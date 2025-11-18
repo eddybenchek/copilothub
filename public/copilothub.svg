@@ -1,0 +1,14 @@
+<svg width="260" height="40" viewBox="0 0 260 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Copilot-style blue → violet gradient -->
+    <linearGradient id="copilotHubGradient" x1="0" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#38BDF8"></stop>
+      <stop offset="1" stop-color="#6366F1"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Text -->
+  <text x="0" y="26" font-family="JetBrains Mono, Menlo, Monaco, Consolas, 'Liberation Mono', monospace" font-size="22" font-weight="600" fill="url(#copilotHubGradient)">
+    CopilotHub
+  </text>
+</svg>

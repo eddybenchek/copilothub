@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String?    @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role       @default(USER)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  accounts      Account[]
+  prompts       Prompt[]
+  sessions      Session[]
+  tools         Tool[]
+  votes         Vote[]
+  workflows     Workflow[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Prompt {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  description String
+  content     String
+  tags        String[]
+  difficulty  Difficulty    @default(BEGINNER)
+  status      ContentStatus @default(PENDING)
+  authorId    String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+}
+
+model Workflow {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  description String
+  content     String
+  steps       String[]
+  tags        String[]
+  difficulty  Difficulty    @default(INTERMEDIATE)
+  status      ContentStatus @default(PENDING)
+  authorId    String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  votes       Vote[]
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+}
+
+model Tool {
+  id               String        @id @default(cuid())
+  title            String
+  slug             String        @unique
+  name             String?       // Display name (fallback to title)
+  description      String
+  shortDescription String?       // Brief description for cards
+  content          String
+  url              String?
+  websiteUrl       String?       // Alias for url
+  logo             String?       // Path to logo in /public/logos
+  tags             String[]
+  difficulty       Difficulty    @default(INTERMEDIATE)
+  status           ContentStatus @default(PENDING)
+  authorId         String
+  authorName       String?       // Cache author name
+  featured         Boolean       @default(false) // Highlight tool with stronger glow
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  author           User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes            Vote[]
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+}
+
+model Vote {
+  id         String     @id @default(cuid())
+  userId     String
+  targetId   String
+  targetType TargetType
+  value      Int
+  createdAt  DateTime   @default(now())
+  promptId   String?
+  workflowId String?
+  toolId     String?
+  prompt     Prompt?    @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  tool       Tool?      @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workflow   Workflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetId, targetType])
+  @@index([userId])
+  @@index([targetId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ContentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum TargetType {
+  PROMPT
+  WORKFLOW
+  TOOL
+}

@@ -1,0 +1,164 @@
+import Link from 'next/link';
+import { ArrowRight, Sparkles, Zap, BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { PromptCard } from '@/components/prompt/prompt-card';
+import { WorkflowCard } from '@/components/workflow/workflow-card';
+import { ToolCard } from '@/components/tool/tool-card';
+import { GlobalSearch } from '@/components/search/global-search';
+import { getLatestPrompts, getLatestWorkflows, getLatestTools } from '@/lib/prisma-helpers';
+
+export default async function HomePage() {
+  const [prompts, workflows, tools] = await Promise.all([
+    getLatestPrompts(3),
+    getLatestWorkflows(3),
+    getLatestTools(3),
+  ]);
+
+  return (
+    <div className="flex flex-col space-y-24">
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-24 md:py-32">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="mb-6 inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-sm">
+            <Sparkles className="mr-2 h-4 w-4 text-primary" />
+            <span className="text-muted-foreground">Powered by AI</span>
+          </div>
+          <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl">
+            Supercharge Your Development with{' '}
+            <span className="text-primary">AI Copilot</span>
+          </h1>
+          <p className="mb-12 text-xl text-muted-foreground">
+            A curated collection of prompts, workflows, and tools to help you build faster and smarter
+            with AI-powered development.
+          </p>
+          
+          {/* Global Search */}
+          <div className="mb-12">
+            <GlobalSearch />
+          </div>
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <Button size="lg" asChild>
+              <Link href="/prompts">
+                Browse Prompts
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/submit">Submit Your Own</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="border-y border-border bg-muted/50">
+        <div className="container mx-auto px-4 py-20">
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 rounded-full bg-primary/10 p-3">
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">Curated Prompts</h3>
+              <p className="text-sm text-muted-foreground">
+                Battle-tested prompts for code review, documentation, debugging, and more.
+              </p>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 rounded-full bg-primary/10 p-3">
+                <Zap className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">Complete Workflows</h3>
+              <p className="text-sm text-muted-foreground">
+                Step-by-step workflows for building features, APIs, and components from scratch.
+              </p>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 rounded-full bg-primary/10 p-3">
+                <BookOpen className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">Essential Tools</h3>
+              <p className="text-sm text-muted-foreground">
+                Discover the best tools and extensions to enhance your AI-powered workflow.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Prompts */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="mb-12 flex items-center justify-between">
+          <h2 className="text-3xl font-bold transition-transform duration-200 group-hover:-translate-y-0.5">Latest Prompts</h2>
+          <Button variant="ghost" asChild>
+            <Link href="/prompts">
+              View all
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {prompts.map((prompt) => (
+            <PromptCard key={prompt.id} prompt={prompt} />
+          ))}
+        </div>
+      </section>
+
+      {/* Latest Workflows */}
+      <section className="border-y border-border bg-muted/50">
+        <div className="container mx-auto px-4 py-20">
+          <div className="mb-12 flex items-center justify-between">
+            <h2 className="text-3xl font-bold transition-transform duration-200 group-hover:-translate-y-0.5">Latest Workflows</h2>
+            <Button variant="ghost" asChild>
+              <Link href="/workflows">
+                View all
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {workflows.map((workflow) => (
+              <WorkflowCard key={workflow.id} workflow={workflow} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Tools */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="mb-12 flex items-center justify-between">
+          <h2 className="text-3xl font-bold transition-transform duration-200 group-hover:-translate-y-0.5">Essential Tools</h2>
+          <Button variant="ghost" asChild>
+            <Link href="/tools">
+              View all
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {tools.map((tool) => (
+            <ToolCard key={tool.id} tool={tool} />
+          ))}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="border-t border-border bg-muted/50">
+        <div className="container mx-auto px-4 py-20">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="mb-4 text-3xl font-bold">Ready to Get Started?</h2>
+            <p className="mb-8 text-lg text-muted-foreground">
+              Join our community and share your own prompts, workflows, and tools.
+            </p>
+            <Button size="lg" asChild>
+              <Link href="/submit">
+                Submit Your Contribution
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

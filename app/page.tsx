@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PromptCard } from '@/components/prompt/prompt-card';
 import { WorkflowCard } from '@/components/workflow/workflow-card';
 import { ToolCard } from '@/components/tool/tool-card';
-import { GlobalSearch } from '@/components/search/global-search';
+import { GlobalSearchDropdown } from '@/components/search/global-search-dropdown';
 import { getLatestPrompts, getLatestWorkflows, getLatestTools } from '@/lib/prisma-helpers';
 
 export default async function HomePage() {
@@ -34,7 +34,7 @@ export default async function HomePage() {
           
           {/* Global Search */}
           <div className="mb-12">
-            <GlobalSearch />
+            <GlobalSearchDropdown />
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">

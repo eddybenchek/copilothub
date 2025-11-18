@@ -1,100 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { Difficulty, ContentStatus } from '@prisma/client';
+import { NextResponse } from 'next/server';
+import { performSearch } from '@/lib/search';
+import type { SearchType, Difficulty } from '@/lib/search-types';
 
-export async function GET(request: NextRequest) {
+export const runtime = 'nodejs';
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const q = searchParams.get('q') ?? '';
+  const type = (searchParams.get('type') ?? 'all') as SearchType;
+  const difficulty = (searchParams.get('difficulty') ?? 'ALL') as
+    | Difficulty
+    | 'ALL';
+
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const query = searchParams.get('q') || '';
-    const type = searchParams.get('type') || 'all'; // prompt, workflow, tool, all
-    const difficulty = searchParams.get('difficulty') as Difficulty | null;
-    const tags = searchParams.get('tags')?.split(',').filter(Boolean) || [];
-
-    // Build search conditions
-    const searchCondition = query
-      ? {
-          OR: [
-            { title: { contains: query, mode: 'insensitive' as const } },
-            { description: { contains: query, mode: 'insensitive' as const } },
-            { content: { contains: query, mode: 'insensitive' as const } },
-          ],
-        }
-      : {};
-
-    const difficultyCondition = difficulty ? { difficulty } : {};
-    const tagsCondition = tags.length > 0 ? { tags: { hasSome: tags } } : {};
-    const statusCondition = { status: ContentStatus.APPROVED };
-
-    // Search Prompts
-    const prompts =
-      type === 'all' || type === 'prompt'
-        ? await db.prompt.findMany({
-            where: {
-              ...searchCondition,
-              ...difficultyCondition,
-              ...tagsCondition,
-              ...statusCondition,
-            },
-            include: {
-              author: true,
-              votes: true,
-            },
-            take: 20,
-            orderBy: { createdAt: 'desc' },
-          })
-        : [];
-
-    // Search Workflows
-    const workflows =
-      type === 'all' || type === 'workflow'
-        ? await db.workflow.findMany({
-            where: {
-              ...searchCondition,
-              ...difficultyCondition,
-              ...tagsCondition,
-              ...statusCondition,
-            },
-            include: {
-              author: true,
-              votes: true,
-            },
-            take: 20,
-            orderBy: { createdAt: 'desc' },
-          })
-        : [];
-
-    // Search Tools
-    const tools =
-      type === 'all' || type === 'tool'
-        ? await db.tool.findMany({
-            where: {
-              ...searchCondition,
-              ...difficultyCondition,
-              ...tagsCondition,
-              ...statusCondition,
-            },
-            include: {
-              author: true,
-              votes: true,
-            },
-            take: 20,
-            orderBy: { createdAt: 'desc' },
-          })
-        : [];
-
-    return NextResponse.json({
-      prompts,
-      workflows,
-      tools,
-      query,
-      totalResults: prompts.length + workflows.length + tools.length,
+    const results = await performSearch({
+      query: q,
+      type,
+      difficulty,
+      limitPerSection: 20,
     });
+
+    return NextResponse.json({ results });
   } catch (error) {
-    console.error('Search error:', error);
-    return NextResponse.json(
-      { error: 'Failed to perform search' },
-      { status: 500 }
-    );
+    console.error('[SEARCH_API_ERROR]', error);
+    return new NextResponse('Internal error', { status: 500 });
   }
 }
 

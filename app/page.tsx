@@ -5,13 +5,57 @@ import { PromptCard } from '@/components/prompt/prompt-card';
 import { WorkflowCard } from '@/components/workflow/workflow-card';
 import { ToolCard } from '@/components/tool/tool-card';
 import { GlobalSearchDropdown } from '@/components/search/global-search-dropdown';
+import { ModernizationSection } from '@/components/home/modernization-section';
 import { getLatestPrompts, getLatestWorkflows, getLatestTools } from '@/lib/prisma-helpers';
+import { db } from '@/lib/db';
+import { ContentStatus } from '@prisma/client';
 
 export default async function HomePage() {
-  const [prompts, workflows, tools] = await Promise.all([
+  const [prompts, workflows, tools, modernizationPrompts, modernizationWorkflows] = await Promise.all([
     getLatestPrompts(3),
     getLatestWorkflows(3),
     getLatestTools(3),
+    // Fetch modernization content
+    db.prompt.findMany({
+      where: {
+        status: ContentStatus.APPROVED,
+        tags: {
+          hasSome: ['modernization', 'migration', 'upgrade', 'refactor'],
+        },
+      },
+      take: 6,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        description: true,
+        difficulty: true,
+        tags: true,
+      },
+    }),
+    db.workflow.findMany({
+      where: {
+        status: ContentStatus.APPROVED,
+        tags: {
+          hasSome: ['modernization', 'migration', 'upgrade', 'refactor'],
+        },
+      },
+      take: 6,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        description: true,
+        difficulty: true,
+        tags: true,
+      },
+    }),
   ]);
 
   return (
@@ -85,6 +129,14 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Modernization & Technical Migration Section */}
+      <div className="container mx-auto px-4">
+        <ModernizationSection
+          prompts={modernizationPrompts}
+          workflows={modernizationWorkflows}
+        />
+      </div>
 
       {/* Latest Prompts */}
       <section className="container mx-auto px-4 py-20">

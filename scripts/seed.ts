@@ -827,7 +827,7 @@ async function main() {
         title: "Enforce Project Coding Conventions",
         slug: "enforce-project-coding-conventions",
         description:
-          "Ask Copilot to rewrite code to follow your project’s style and conventions.",
+          "Ask Copilot to rewrite code to follow your project's style and conventions.",
         content: `Rewrite this code to follow our project conventions.
   
   Our conventions:
@@ -843,6 +843,536 @@ async function main() {
   [Paste code here]`,
         tags: ["category:code-review", "style", "linting", "consistency"],
         difficulty: Difficulty.BEGINNER,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+
+      // MODERNIZATION & MIGRATION
+      {
+        title: "Migrate SQL Query to ORM (Prisma/TypeORM)",
+        slug: "migrate-sql-to-orm",
+        description: "Convert raw SQL queries to type-safe ORM operations.",
+        content: `You are a senior backend engineer. Rewrite this raw SQL query using a modern ORM (Prisma or TypeORM).
+
+Requirements:
+- Use parameterized inputs to prevent SQL injection
+- Return strongly typed results
+- Preserve WHERE/ORDER BY/LIMIT semantics
+- Use relations instead of manual joins where possible
+- Keep behavior identical
+
+Show:
+1) Original SQL
+2) ORM model definitions (if needed)
+3) Equivalent ORM query code.`,
+        tags: [
+          "category:modernization",
+          "migration",
+          "sql",
+          "orm",
+          "prisma",
+          "backend",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Refactor Monolith to Modular Architecture",
+        slug: "refactor-monolith-to-modules",
+        description:
+          "Break down a monolithic file into clean, maintainable modules.",
+        content: `You are refactoring a legacy monolithic file.
+
+Goal: split this file into a small set of cohesive modules.
+
+Rules:
+- Group code by responsibility (auth, data access, domain logic, helpers)
+- Extract reusable functions from duplicated inline logic
+- Create clear public interfaces (exported functions/types only)
+- Avoid circular dependencies
+- Add comments explaining module boundaries
+
+Return:
+- Proposed folder structure
+- New module files (with code)
+- Updated imports in the original entry point.`,
+        tags: [
+          "category:modernization",
+          "refactor",
+          "architecture",
+          "modularization",
+          "backend",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Convert JavaScript File to TypeScript",
+        slug: "js-to-ts-full-conversion",
+        description: "Upgrade JavaScript files to fully typed TypeScript.",
+        content: `Convert this JavaScript file to TypeScript.
+
+Do:
+- Rename to .ts
+- Add type annotations for parameters and returns
+- Introduce interfaces/types for complex objects
+- Use generics where useful
+- Enable strict null checks (no implicit any)
+- Fix any type errors that appear
+
+Explain any important typing decisions in comments.`,
+        tags: [
+          "category:modernization",
+          "typescript",
+          "javascript",
+          "migration",
+          "types",
+        ],
+        difficulty: Difficulty.INTERMEDIATE,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Upgrade React Class Component to Hooks",
+        slug: "react-class-to-hooks",
+        description:
+          "Modernize a React class component by converting it to a functional one using hooks.",
+        content: `Convert this React class component to a modern functional component.
+
+Use:
+- useState for local state
+- useEffect for lifecycle logic
+- useMemo / useCallback for expensive computations and callbacks
+- Extract reusable logic into custom hooks when it makes sense
+
+Preserve:
+- Existing props API
+- Side effects
+- Behavior and rendering output`,
+        tags: ["category:modernization", "react", "hooks", "refactor", "frontend"],
+        difficulty: Difficulty.INTERMEDIATE,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Upgrade Dependencies Safely (Breaking Change Aware)",
+        slug: "upgrade-dependencies-safely",
+        description:
+          "Analyze dependency updates for breaking changes and suggest safe migration steps.",
+        content: `Given this package.json and lockfile, generate a safe dependency upgrade plan.
+
+Steps:
+1) Group dependencies by risk (framework, runtime, tooling, minor libs)
+2) For major versions, list key breaking changes
+3) Propose upgrade order (low-risk first, core libs last)
+4) Suggest code changes needed for each risky upgrade
+5) Provide commands to run (npm/yarn/pnpm)
+6) Recommend tests to run after each batch
+
+Output:
+- Upgrade checklist
+- Notes for each important package`,
+        tags: [
+          "category:modernization",
+          "dependencies",
+          "upgrade",
+          "breaking-changes",
+          "tooling",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Modernize Legacy API to RESTful Standards",
+        slug: "modernize-legacy-api",
+        description: "Refactor legacy API endpoints to follow modern REST.",
+        content: `Refactor this legacy HTTP handler into a RESTful endpoint.
+
+Guidelines:
+- Use nouns for resources (e.g. /users, /orders)
+- Use correct HTTP verbs (GET, POST, PUT/PATCH, DELETE)
+- Return appropriate status codes and error shapes
+- Add pagination parameters where needed
+- Separate validation, business logic, and persistence
+
+Show the new handler and explain the REST improvements you've made.`,
+        tags: [
+          "category:modernization",
+          "api",
+          "rest",
+          "backend",
+          "refactor",
+          "http",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Convert CSS to Tailwind CSS Utilities",
+        slug: "css-to-tailwind",
+        description:
+          "Rewrite traditional CSS classes using Tailwind utility classes.",
+        content: `Translate these CSS rules into Tailwind CSS.
+
+Rules:
+- Prefer existing Tailwind spacing, color, and typography tokens
+- Use responsive prefixes (sm:, md:, lg:) instead of media queries
+- Use state variants (hover:, focus:, active:) instead of separate classes
+- Avoid inline styles unless absolutely necessary
+
+Return:
+- Example HTML markup using Tailwind classes
+- Notes about any compromises or design changes.`,
+        tags: [
+          "category:modernization",
+          "tailwind",
+          "css",
+          "frontend",
+          "design-system",
+        ],
+        difficulty: Difficulty.INTERMEDIATE,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Rewrite Callback-based Code to async/await",
+        slug: "callbacks-to-async-await",
+        description: "Modernize callback-based code to promises and async/await.",
+        content: `Refactor this callback-based function to use Promises and async/await.
+
+Requirements:
+- Remove callback hell / nested callbacks
+- Preserve error propagation
+- Keep the same external API where reasonable
+- Simplify branching logic
+- Use try/catch instead of callback(err)
+
+Return before/after versions and explain the migration.`,
+        tags: [
+          "category:modernization",
+          "javascript",
+          "async",
+          "promises",
+          "node",
+        ],
+        difficulty: Difficulty.BEGINNER,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Express to NestJS Controller Migration",
+        slug: "express-to-nestjs",
+        description:
+          "Convert an Express route handler to a NestJS controller with decorators.",
+        content: `Convert this Express route (or set of routes) to NestJS.
+
+Do:
+- Create a @Controller with appropriate @Get/@Post/etc decorators
+- Inject services instead of requiring modules directly
+- Move validation into DTOs with class-validator
+- Use NestJS exception filters instead of manual res.status calls
+
+Return:
+- NestJS controller code
+- Any new DTOs/services you've introduced.`,
+        tags: [
+          "category:modernization",
+          "node",
+          "nestjs",
+          "migration",
+          "backend",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Upgrade React Router v5 to v6",
+        slug: "react-router-5-to-6",
+        description:
+          "Migrate React Router v5 code to React Router v6 route and navigation APIs.",
+        content: `Convert this React Router v5 setup to v6.
+
+Apply:
+- Replace <Switch> with <Routes>
+- Convert component/render props to element={...}
+- Replace useHistory with useNavigate
+- Update redirects to <Navigate />
+- Fix nested routes
+
+Return updated routing code and call out any breaking changes.`,
+        tags: [
+          "category:modernization",
+          "react",
+          "router",
+          "migration",
+          "frontend",
+        ],
+        difficulty: Difficulty.INTERMEDIATE,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Convert CommonJS to ES Modules",
+        slug: "commonjs-to-esm",
+        description:
+          "Modernize legacy Node.js modules from require/module.exports to ES module syntax.",
+        content: `Refactor this file from CommonJS to ES Modules.
+
+Steps:
+- Replace require() with import statements
+- Replace module.exports / exports.foo with export default / named exports
+- Ensure file extensions are explicit when required by your bundler/runtime
+- Move side-effect imports to the top of the file
+
+Explain any runtime implications (e.g. __dirname, top-level await).`,
+        tags: [
+          "category:modernization",
+          "node",
+          "esm",
+          "modules",
+          "migration",
+        ],
+        difficulty: Difficulty.INTERMEDIATE,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Refactor Redux to Redux Toolkit",
+        slug: "redux-to-rtk",
+        description: "Simplify Redux boilerplate using Redux Toolkit.",
+        content: `Refactor this Redux logic to use Redux Toolkit.
+
+Use:
+- createSlice for reducers + actions
+- createAsyncThunk for async flows
+- Immer-powered immutable updates
+- configureStore for middleware + devtools
+
+Remove:
+- Hand-written action creators
+- Large switch statements
+
+Provide before/after code for at least one slice.`,
+        tags: [
+          "category:modernization",
+          "react",
+          "redux",
+          "redux-toolkit",
+          "frontend",
+        ],
+        difficulty: Difficulty.INTERMEDIATE,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Convert Fetch Calls to React Query",
+        slug: "fetch-to-react-query",
+        description:
+          "Modernize data fetching in React using React Query with caching and retries.",
+        content: `Convert these manual fetch calls + loading state to React Query.
+
+Do:
+- Wrap each fetch in useQuery/useMutation
+- Remove duplicated loading/error state from components
+- Configure sensible cache time and staleTime
+- Add retry behavior only where safe
+
+Return updated component code and suggested React Query config.`,
+        tags: [
+          "category:modernization",
+          "react",
+          "react-query",
+          "data-fetching",
+          "frontend",
+        ],
+        difficulty: Difficulty.BEGINNER,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Modernize Node EventEmitter Code",
+        slug: "eventemitter-modernization",
+        description:
+          "Convert low-level EventEmitter patterns into clearer async flows.",
+        content: `Refactor this EventEmitter-based flow into modern patterns.
+
+Options:
+- Replace one-off events with async function calls returning Promises
+- Use observables or pub/sub only when there's a clear benefit
+- Simplify error channels
+- Remove fragile string event names where possible
+
+Explain your design choices and how they improve maintainability.`,
+        tags: [
+          "category:modernization",
+          "node",
+          "eventemitter",
+          "async",
+          "backend",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Convert SCSS to Tailwind or CSS Modules",
+        slug: "scss-to-tailwind",
+        description:
+          "Refactor nested SCSS rules to modern utility-first Tailwind or component-scoped CSS Modules.",
+        content: `Convert this SCSS file to a more modern styling approach.
+
+Choose:
+- Tailwind utilities, or
+- Component-scoped CSS Modules
+
+Do:
+- Flatten deeply nested selectors
+- Avoid over-specific selectors
+- Replace magic numbers with spacing scale
+- Keep responsive breakpoints explicit
+
+Return updated markup + styles, and explain the mapping.`,
+        tags: [
+          "category:modernization",
+          "scss",
+          "tailwind",
+          "css-modules",
+          "frontend",
+        ],
+        difficulty: Difficulty.INTERMEDIATE,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Convert Kubernetes YAML to Terraform",
+        slug: "k8s-to-terraform",
+        description:
+          "Translate raw Kubernetes YAML manifests into Terraform IaC modules.",
+        content: `Translate these Kubernetes YAML manifests into Terraform resources.
+
+Steps:
+- Identify Deployments, Services, ConfigMaps, Secrets, etc.
+- Use the kubernetes_* provider resources or Helm charts
+- Map metadata, labels, and selectors correctly
+- Parameterize replicas, resources, and image tags
+
+Return Terraform code and a short README for how to apply it.`,
+        tags: [
+          "category:modernization",
+          "kubernetes",
+          "terraform",
+          "iac",
+          "devops",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Modernize Legacy Java API to Spring Boot",
+        slug: "java-api-to-spring-boot",
+        description:
+          "Rewrite old Java HTTP handlers into modern Spring Boot REST controllers.",
+        content: `Rewrite this legacy Java HTTP or servlet-based API into Spring Boot.
+
+Use:
+- @RestController and @RequestMapping/@GetMapping/etc
+- DTOs for request/response bodies
+- Validation annotations (e.g. @NotNull, @Size)
+- Exception handlers via @ControllerAdvice
+
+Keep behavior the same while improving structure.`,
+        tags: [
+          "category:modernization",
+          "java",
+          "spring-boot",
+          "migration",
+          "backend",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Convert Python 2 Code to Python 3",
+        slug: "python2-to-python3",
+        description:
+          "Upgrade Python 2 code to Python 3, handling print, unicode, xrange, and integer division.",
+        content: `Convert this Python 2 script to Python 3.
+
+Checklist:
+- Replace print statements with print() function
+- Fix unicode/bytes handling
+- Replace xrange with range
+- Fix integer division using // where appropriate
+- Update any deprecated stdlib usage
+
+Explain any behavioral differences introduced by the migration.`,
+        tags: [
+          "category:modernization",
+          "python",
+          "migration",
+          "syntax",
+          "backend",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Migrate SQL Schema to Prisma Schema",
+        slug: "sql-to-prisma-schema",
+        description: "Convert CREATE TABLE SQL into a Prisma schema.prisma file.",
+        content: `Convert these CREATE TABLE statements into Prisma schema models.
+
+Do:
+- Infer primary keys and use @id/@default
+- Add @unique where appropriate
+- Map foreign keys to relations
+- Convert enums to Prisma enums
+- Preserve not-null constraints
+
+Return a schema.prisma snippet representing the same schema.`,
+        tags: [
+          "category:modernization",
+          "prisma",
+          "sql",
+          "schema",
+          "migration",
+        ],
+        difficulty: Difficulty.INTERMEDIATE,
+        status: ContentStatus.APPROVED,
+        authorId,
+      },
+      {
+        title: "Migrate Webpack Build to Vite",
+        slug: "webpack-to-vite",
+        description:
+          "Replace an existing Webpack setup with faster, modern Vite configuration.",
+        content: `Migrate this Webpack-based build to Vite.
+
+Steps:
+- Create vite.config.(ts|js) with equivalent entry points
+- Convert loaders to Vite plugins where needed
+- Recreate aliases and environment variables
+- Update npm scripts for dev/build/preview
+- Call out any plugin gaps or behavior changes
+
+Return the Vite config and updated package.json scripts.`,
+        tags: [
+          "category:modernization",
+          "webpack",
+          "vite",
+          "build-system",
+          "tooling",
+          "migration",
+        ],
+        difficulty: Difficulty.INTERMEDIATE,
         status: ContentStatus.APPROVED,
         authorId,
       },
@@ -1264,6 +1794,230 @@ async function main() {
         ],
         tags: ["category:code-review", "style", "linting"],
         difficulty: Difficulty.BEGINNER,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      // MODERNIZATION & MIGRATION WORKFLOWS
+      {
+        title: "Upgrade Node.js 12 to 18 Safely",
+        slug: "upgrade-node-12-to-18",
+        description:
+          "A safe, step-by-step Node version upgrade workflow for production services.",
+        tags: ["category:modernization", "node", "runtime", "upgrade"],
+        difficulty: Difficulty.ADVANCED,
+        steps: [
+          "Audit current Node APIs used (fs, crypto, http, timers, etc.) and list potentially deprecated patterns.",
+          "Update the engines field in package.json to require Node 18.",
+          "Run the codebase under Node 18 locally and capture any runtime warnings or errors.",
+          "Replace deprecated or legacy fs and crypto APIs with their modern equivalents.",
+          "Run dependency checks to ensure core libraries support Node 18.",
+          "Update CI pipelines and Docker base images to use Node 18.",
+          "Run full test suite plus smoke tests against staging environment.",
+          "Roll out to production with a monitored canary deployment.",
+        ],
+        content: `Use this workflow when upgrading a service from Node 12 to 18. Follow each step, verifying behavior with tests and canary deploys before rolling out globally.`,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      {
+        title: "Migrate REST API to GraphQL",
+        slug: "rest-to-graphql",
+        description:
+          "Gradually transition an existing REST API surface to GraphQL without breaking clients.",
+        tags: [
+          "category:modernization",
+          "graphql",
+          "api",
+          "migration",
+          "backend",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        steps: [
+          "Inventory the main REST endpoints and group them by resource.",
+          "Design an initial GraphQL schema that covers the most-used endpoints.",
+          "Implement resolvers that internally call the existing REST handlers.",
+          "Introduce batching and dataloaders to avoid N+1 calls.",
+          "Deploy GraphQL in parallel with existing REST endpoints.",
+          "Document the migration path for clients and add deprecation headers on REST.",
+          "Gradually move clients to GraphQL, monitoring performance and errors.",
+          "Remove unused REST endpoints once clients are fully migrated.",
+        ],
+        content: `This workflow is intended for teams that want to introduce GraphQL while preserving REST compatibility during the transition.`,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      {
+        title: "Convert Entire JavaScript Codebase to TypeScript",
+        slug: "migrate-js-to-ts",
+        description:
+          "Incrementally migrate a JavaScript repo to TypeScript with strict type checking.",
+        tags: [
+          "category:modernization",
+          "typescript",
+          "javascript",
+          "migration",
+        ],
+        difficulty: Difficulty.ADVANCED,
+        steps: [
+          "Add TypeScript tooling and create a strict tsconfig.json.",
+          "Enable allowJs and incremental migration in the config.",
+          "Rename entry points and shared modules to .ts/.tsx one slice at a time.",
+          "Fix the most critical implicit any/type errors in shared utilities.",
+          "Introduce interfaces and types for core domain models.",
+          "Gradually tighten compiler options (noImplicitAny, strictNullChecks).",
+          "Add type-checking to CI as a required step.",
+          "Remove allowJs once all critical files are migrated.",
+        ],
+        content: `Use this plan when a JS codebase needs stronger correctness guarantees and IDE support via TypeScript.`,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      {
+        title: "Upgrade React 17 to React 18",
+        slug: "react-17-to-18",
+        description:
+          "Migrate a React application to v18 with the new root API and concurrency behavior.",
+        tags: ["category:modernization", "react", "frontend", "upgrade"],
+        difficulty: Difficulty.INTERMEDIATE,
+        steps: [
+          "Update react and react-dom to version 18 in package.json.",
+          "Replace ReactDOM.render with createRoot in your entry file.",
+          "Audit StrictMode behavior and resolve double-render side effects.",
+          "Update Suspense boundaries and lazy-loaded components where needed.",
+          "Test hydration for server-rendered routes and fix mismatches.",
+          "Enable optional concurrent features on non-critical screens and measure impact.",
+          "Run visual regression tests to ensure no unexpected UI changes.",
+        ],
+        content: `This workflow ensures you adopt React 18 safely, handling the new rendering semantics and strict mode quirks.`,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      {
+        title: "Migrate Next.js Pages Router to App Router",
+        slug: "nextjs-pages-to-app-router",
+        description:
+          "Systematically migrate a Next.js application from the pages router to the app router.",
+        tags: ["category:modernization", "nextjs", "react", "migration"],
+        difficulty: Difficulty.ADVANCED,
+        steps: [
+          "Enable the app directory and create the initial app/layout.tsx and app/page.tsx.",
+          "Identify top-level routes in pages/ and recreate them under app/ as segments.",
+          "Convert getServerSideProps/getStaticProps into server components or route handlers.",
+          "Move shared layout components and providers into app/layout.tsx and nested layouts.",
+          "Define metadata using the new metadata API instead of next/head.",
+          "Implement loading and error UI using loading.tsx and error.tsx files.",
+          "Gradually deprecate pages/ routes once app/ equivalents are stable.",
+        ],
+        content: `Use this migration when upgrading a Next.js project to leverage the App Router, server components, and new routing primitives.`,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      {
+        title: "Full SQL to ORM Migration (Prisma/TypeORM)",
+        slug: "sql-to-orm-migration",
+        description:
+          "Transform raw SQL queries across a codebase into ORM equivalents.",
+        tags: ["category:modernization", "sql", "orm", "prisma", "migration"],
+        difficulty: Difficulty.ADVANCED,
+        steps: [
+          "Search the codebase for direct SQL usage (query builders, driver calls).",
+          "Define ORM models/entities that match the existing database schema.",
+          "Replace read-only SELECT queries with ORM find/findMany equivalents.",
+          "Refactor INSERT/UPDATE/DELETE operations to ORM create/update/delete.",
+          "Introduce transactions for multi-step operations that must be atomic.",
+          "Add integration tests verifying behavior for critical data flows.",
+          "Remove obsolete SQL helper utilities once all usages are migrated.",
+        ],
+        content: `This playbook is ideal when gradually migrating from manual SQL to a type-safe ORM such as Prisma or TypeORM.`,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      {
+        title: "React Class to Hooks Transformation (Codebase-wide)",
+        slug: "react-class-hooks-migration",
+        description:
+          "Incrementally modernize an entire React codebase from class components to hooks.",
+        tags: ["category:modernization", "react", "hooks", "refactor"],
+        difficulty: Difficulty.INTERMEDIATE,
+        steps: [
+          "Inventory all class components and categorize by complexity.",
+          "Start with leaf components that have simple lifecycle logic.",
+          "Convert lifecycle methods (componentDidMount, etc.) to useEffect hooks.",
+          "Replace this.state and this.setState with useState or useReducer.",
+          "Extract repeated lifecycle patterns into custom hooks.",
+          "Run component-level tests or snapshots to verify behavior.",
+          "Convert container components last, after shared hooks are stable.",
+        ],
+        content: `Use this workflow when you want to adopt hooks across a mature React codebase while reducing risk.`,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      {
+        title: "Global CSS to Tailwind Migration",
+        slug: "css-to-tailwind-workflow",
+        description:
+          "Convert a large CSS codebase into a utility-first Tailwind design system.",
+        tags: ["category:modernization", "css", "tailwind", "design-system"],
+        difficulty: Difficulty.INTERMEDIATE,
+        steps: [
+          "Set up Tailwind with a config that encodes your color, spacing, and typography tokens.",
+          "Audit existing CSS for common layout and spacing patterns.",
+          "Replace global layout utilities (containers, grids, flex helpers) with Tailwind classes.",
+          "Migrate component-specific styles into JSX using Tailwind utilities.",
+          "Use @apply sparingly for complex reusable patterns.",
+          "Enable and tune content-based purging to remove unused CSS.",
+          "Document Tailwind patterns in a small internal style guide.",
+        ],
+        content: `This workflow is designed for teams moving from ad-hoc CSS to a consistent Tailwind-driven design system.`,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      {
+        title: "Database ORM Migration (e.g. Hibernate to JPA, TypeORM to Prisma)",
+        slug: "orm-to-orm-migration",
+        description: "Safely migrate from one ORM to another in production.",
+        tags: ["category:modernization", "database", "orm", "migration"],
+        difficulty: Difficulty.ADVANCED,
+        steps: [
+          "Identify ORM-specific annotations/decorators and configuration.",
+          "Create equivalent models/entities in the new ORM, mapping relations and indexes.",
+          "Introduce the new ORM in parallel, behind a feature flag or abstraction layer.",
+          "Port the most critical read/write paths to use the new ORM.",
+          "Run extensive integration tests, focusing on transactions and cascading behavior.",
+          "Gradually switch the default code paths to the new ORM.",
+          "Remove old ORM dependencies and configuration once fully migrated.",
+        ],
+        content: `Use this playbook when modernizing your persistence layer without rewriting the whole application at once.`,
+        status: ContentStatus.APPROVED,
+        authorId
+      },
+
+      {
+        title: "Migrate Deployment Scripts to Terraform",
+        slug: "bash-to-terraform",
+        description:
+          "Convert ad-hoc shell scripts into structured Terraform infrastructure-as-code.",
+        tags: ["category:modernization", "terraform", "iac", "devops"],
+        difficulty: Difficulty.ADVANCED,
+        steps: [
+          "Collect all existing deployment bash scripts and identify which cloud resources they create.",
+          "Define Terraform providers and remote state configuration.",
+          "Model each resource (VMs, databases, buckets, etc.) as Terraform resources/modules.",
+          "Parameterize configuration via variables instead of hard-coded values.",
+          "Create Terraform plans and compare them with current infrastructure.",
+          "Run apply in a non-production environment and verify behavior.",
+          "Gradually replace bash-based deployments with Terraform workflows in CI/CD.",
+        ],
+        content: `This workflow helps teams standardize infrastructure management by migrating to Terraform-based IaC.`,
         status: ContentStatus.APPROVED,
         authorId
       }

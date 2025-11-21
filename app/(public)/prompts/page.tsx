@@ -219,7 +219,7 @@ export default function PromptsPage() {
           </div>
         ) : filteredAndSortedPrompts.length === 0 ? (
           <p className="mt-8 text-sm text-slate-400">
-            {query || selectedLanguage !== 'all' || difficultyFilter !== 'All'
+            {query || selectedCategory !== 'all' || difficultyFilter !== 'All'
               ? 'No prompts found for this filter.'
               : 'No prompts found. Be the first to submit one!'}
           </p>

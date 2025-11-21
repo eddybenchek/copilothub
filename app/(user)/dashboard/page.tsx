@@ -23,7 +23,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Your Prompts</CardTitle>
-            <CardDescription>Prompts you've submitted</CardDescription>
+            <CardDescription>Prompts you&apos;ve submitted</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">0</p>
@@ -33,7 +33,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Your Workflows</CardTitle>
-            <CardDescription>Workflows you've created</CardDescription>
+            <CardDescription>Workflows you&apos;ve created</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">0</p>
@@ -43,7 +43,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Your Tools</CardTitle>
-            <CardDescription>Tools you've shared</CardDescription>
+            <CardDescription>Tools you&apos;ve shared</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">0</p>

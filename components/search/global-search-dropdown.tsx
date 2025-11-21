@@ -2,12 +2,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { SearchResults, SearchType } from "@/lib/search-types";
 import { highlightMatch } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
+
+// Caps for preview suggestions in dropdown
+const MAX_PROMPT_SUGGESTIONS = 5;
+const MAX_WORKFLOW_SUGGESTIONS = 5;
+const MAX_TOOL_SUGGESTIONS = 3;
 
 type GlobalSearchProps = {
   initialQuery?: string;
@@ -23,6 +28,9 @@ type FlattenedResult = {
 
 export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
   const [query, setQuery] = useState(initialQuery);
   const [searchType] = useState<SearchType>("all");
   const debouncedQuery = useDebouncedValue(query, 250);
@@ -31,17 +39,22 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
   const [results, setResults] = useState<SearchResults | null>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [hasUserTyped, setHasUserTyped] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Flatten results for keyboard navigation
+  // Slice results for preview (memoized to avoid recreating on every render)
+  const promptPreview = useMemo(() => results?.prompts.slice(0, MAX_PROMPT_SUGGESTIONS) ?? [], [results?.prompts]);
+  const workflowPreview = useMemo(() => results?.workflows.slice(0, MAX_WORKFLOW_SUGGESTIONS) ?? [], [results?.workflows]);
+  const toolPreview = useMemo(() => results?.tools.slice(0, MAX_TOOL_SUGGESTIONS) ?? [], [results?.tools]);
+
+  // Flatten preview results for keyboard navigation
   const flatResults: FlattenedResult[] = useMemo(() => {
-    if (!results) return [];
     return [
-      ...results.prompts,
-      ...results.workflows,
-      ...results.tools,
+      ...promptPreview,
+      ...workflowPreview,
+      ...toolPreview,
     ].map((r) => ({
       id: r.id,
       title: r.title,
@@ -49,7 +62,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       type: r.type,
       slug: r.slug,
     }));
-  }, [results]);
+  }, [promptPreview, workflowPreview, toolPreview]);
 
   useEffect(() => {
     if (!debouncedQuery.trim()) {
@@ -72,8 +85,11 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       .then((data) => {
         if (cancelled) return;
         setResults(data.results);
-        setOpen(true);
-        setActiveIndex(data.results ? 0 : -1);
+        // Only open dropdown if user has started typing
+        if (hasUserTyped) {
+          setOpen(true);
+          setActiveIndex(data.results ? 0 : -1);
+        }
       })
       .catch((err) => {
         console.error("Search error", err);
@@ -85,7 +101,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, searchType]);
+  }, [debouncedQuery, searchType, hasUserTyped]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -101,9 +117,23 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const goToResult = (result: FlattenedResult) => {
+  // Close dropdown on navigation (URL change)
+  useEffect(() => {
     setOpen(false);
     setActiveIndex(-1);
+    setHasUserTyped(false);
+  }, [pathname, searchParams]);
+
+  // Close dropdown helper
+  const closeDropdown = () => {
+    setOpen(false);
+    setActiveIndex(-1);
+    setHasUserTyped(false);
+    inputRef.current?.blur();
+  };
+
+  const goToResult = (result: FlattenedResult) => {
+    closeDropdown();
 
     if (result.type === "prompt") {
       router.push(`/prompts/${result.slug}`);
@@ -152,8 +182,8 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
 
   const handleSubmitFull = (e: React.FormEvent) => {
     e.preventDefault();
+    closeDropdown();
     router.push(`/search?q=${encodeURIComponent(query)}`);
-    setOpen(false);
   };
 
   const hasResults =
@@ -161,6 +191,29 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
     (results.prompts.length ||
       results.workflows.length ||
       results.tools.length);
+
+  const totalCount = (results?.prompts.length ?? 0) + (results?.workflows.length ?? 0) + (results?.tools.length ?? 0);
+
+  // Handlers for "View all" buttons
+  const handleViewAllResults = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleViewAllPrompts = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=prompt`);
+  };
+
+  const handleViewAllWorkflows = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=workflow`);
+  };
+
+  const handleViewAllTools = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=tool`);
+  };
 
   return (
     <div ref={containerRef} className="relative w-full max-w-3xl">
@@ -175,7 +228,10 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
           <input
             ref={inputRef}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (!hasUserTyped) setHasUserTyped(true);
+            }}
             onKeyDown={handleKeyDown}
             placeholder="Search prompts, workflows, tools..."
             className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
@@ -188,6 +244,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
                 setResults(null);
                 setOpen(false);
                 setActiveIndex(-1);
+                setHasUserTyped(false);
                 inputRef.current?.focus();
               }}
               className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
@@ -199,37 +256,62 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       </form>
 
       {open && hasResults && (
-        <div className="absolute z-30 mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/95 p-2 backdrop-blur-sm shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-          <SearchDropdownSection
-            label="Prompts"
-            icon="✨"
-            items={results!.prompts}
-            query={debouncedQuery}
-            flatResults={flatResults}
-            activeIndex={activeIndex}
-            offset={0}
-            onClick={goToResult}
-          />
-          <SearchDropdownSection
-            label="Workflows"
-            icon="⚙️"
-            items={results!.workflows}
-            query={debouncedQuery}
-            flatResults={flatResults}
-            activeIndex={activeIndex}
-            offset={results!.prompts.length}
-            onClick={goToResult}
-          />
-          <SearchDropdownSection
-            label="Tools"
-            icon="🔧"
-            items={results!.tools}
-            query={debouncedQuery}
-            flatResults={flatResults}
-            activeIndex={activeIndex}
-            offset={results!.prompts.length + results!.workflows.length}
-            onClick={goToResult}
-          />
+        <div className="absolute z-30 mt-2 w-full rounded-xl border border-slate-800/80 bg-slate-950/95 shadow-2xl backdrop-blur-xl">
+          {/* Scrollable content container */}
+          <div className="relative max-h-[60vh] overflow-y-auto">
+            <SearchDropdownSection
+              label="Prompts"
+              icon="✨"
+              items={promptPreview}
+              totalCount={results!.prompts.length}
+              query={debouncedQuery}
+              flatResults={flatResults}
+              activeIndex={activeIndex}
+              offset={0}
+              onClick={goToResult}
+              onViewAll={handleViewAllPrompts}
+            />
+            <SearchDropdownSection
+              label="Workflows"
+              icon="⚙️"
+              items={workflowPreview}
+              totalCount={results!.workflows.length}
+              query={debouncedQuery}
+              flatResults={flatResults}
+              activeIndex={activeIndex}
+              offset={promptPreview.length}
+              onClick={goToResult}
+              onViewAll={handleViewAllWorkflows}
+            />
+            <SearchDropdownSection
+              label="Tools"
+              icon="🔧"
+              items={toolPreview}
+              totalCount={results!.tools.length}
+              query={debouncedQuery}
+              flatResults={flatResults}
+              activeIndex={activeIndex}
+              offset={promptPreview.length + workflowPreview.length}
+              onClick={goToResult}
+              onViewAll={handleViewAllTools}
+            />
+            
+            {/* Bottom fade gradient */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-950/95 to-transparent" />
+          </div>
+
+          {/* View all results button */}
+          {totalCount > 0 && (
+            <button
+              type="button"
+              onClick={handleViewAllResults}
+              className="w-full border-t border-slate-800/70 px-4 py-3 text-xs text-slate-400 hover:text-slate-100 hover:bg-slate-900/60 flex items-center justify-center gap-2 transition-colors"
+            >
+              <span>View all {totalCount} results for</span>
+              <span className="font-medium text-slate-100">&ldquo;{query}&rdquo;</span>
+              <span>→</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -260,34 +342,45 @@ type SectionProps = {
     type: "prompt" | "workflow" | "tool";
     difficulty: any;
   }[];
+  totalCount: number;
   query: string;
   flatResults: FlattenedResult[];
   activeIndex: number;
   offset: number;
   onClick: (item: FlattenedResult) => void;
+  onViewAll: () => void;
 };
 
 function SearchDropdownSection({
   label,
   icon,
   items,
+  totalCount,
   query,
   flatResults,
   activeIndex,
   offset,
   onClick,
+  onViewAll,
 }: SectionProps) {
   if (!items.length) return null;
 
+  const hasMore = totalCount > items.length;
+
   return (
-    <div className="mb-1 rounded-xl bg-slate-900/60 p-2">
-      <div className="mb-1 flex items-center justify-between px-1 text-xs font-medium uppercase tracking-wide text-slate-500">
-        <span>
-          {icon} {label}
-        </span>
-        <span>{items.length}</span>
+    <div>
+      {/* Sticky section header */}
+      <div className="sticky top-0 z-10 bg-slate-950/95 border-b border-slate-800/70 px-3 py-2 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-[0.16em] text-slate-500 font-medium">
+            {icon} {label}
+          </span>
+          <span className="text-[10px] text-slate-600">{totalCount}</span>
+        </div>
       </div>
-      <ul className="space-y-1">
+
+      {/* Items list */}
+      <ul className="space-y-0.5 px-2 py-2">
         {items.map((item, idx) => {
           const globalIndex = offset + idx;
           const isActive = activeIndex === globalIndex;
@@ -324,6 +417,17 @@ function SearchDropdownSection({
           );
         })}
       </ul>
+
+      {/* View all link for this section if there are more items */}
+      {hasMore && (
+        <button
+          type="button"
+          onClick={onViewAll}
+          className="w-full px-3 pb-2 pt-1 text-[11px] text-slate-500 hover:text-sky-400 text-left transition-colors"
+        >
+          View all {totalCount} {label.toLowerCase()} →
+        </button>
+      )}
     </div>
   );
 }

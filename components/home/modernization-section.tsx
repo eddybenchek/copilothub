@@ -1,4 +1,6 @@
 // components/home/modernization-section.tsx
+"use client";
+
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -70,19 +72,33 @@ export function ModernizationSection({
 
           {/* CTAs */}
           <div className="mt-6 flex flex-wrap gap-3 text-sm">
-            <Link
-              href="/search?q=modernization&type=prompt"
-              className="inline-flex items-center justify-center rounded-full bg-sky-500 px-4 py-2 font-medium text-slate-950 hover:bg-sky-400"
+            <button
+              onClick={() => {
+                const element = document.getElementById('modernization-prompts');
+                if (element) {
+                  const yOffset = -80; // Offset for fixed header
+                  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                  window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+              }}
+              className="inline-flex items-center justify-center rounded-full bg-sky-500 px-4 py-2 font-medium text-slate-950 hover:bg-sky-400 transition-colors"
             >
               Browse modernization prompts
-              <span className="ml-1 text-xs">↗</span>
-            </Link>
-            <Link
-              href="/search?q=migration&type=workflow"
-              className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-slate-200 hover:border-slate-500"
+              <span className="ml-1 text-xs">↓</span>
+            </button>
+            <button
+              onClick={() => {
+                const element = document.getElementById('migration-workflows');
+                if (element) {
+                  const yOffset = -80; // Offset for fixed header
+                  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                  window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+              }}
+              className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-slate-200 hover:border-slate-500 transition-colors"
             >
               View migration workflows
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -98,34 +114,38 @@ export function ModernizationSection({
       {/* Content rails */}
       <div className="mt-10 space-y-8">
         {/* Prompts rail */}
-        <RailHeader
-          title="Modernization Prompts"
-          subtitle="High-signal prompt patterns for Copilot to refactor, upgrade, and clean up code at scale."
-          href="/search?q=modernization&type=prompt"
-        />
-        <HorizontalRail>
-          {prompts.length === 0 && (
-            <EmptyRailPlaceholder kind="prompts" />
-          )}
-          {prompts.map((prompt) => (
-            <MiniPromptCard key={prompt.id} prompt={prompt} />
-          ))}
-        </HorizontalRail>
+        <section id="modernization-prompts">
+          <RailHeader
+            title="Modernization Prompts"
+            subtitle="High-signal prompt patterns for Copilot to refactor, upgrade, and clean up code at scale."
+            href="/modernization/prompts"
+          />
+          <HorizontalRail>
+            {prompts.length === 0 && (
+              <EmptyRailPlaceholder kind="prompts" />
+            )}
+            {prompts.map((prompt) => (
+              <MiniPromptCard key={prompt.id} prompt={prompt} />
+            ))}
+          </HorizontalRail>
+        </section>
 
         {/* Workflows rail */}
-        <RailHeader
-          title="Migration Workflows"
-          subtitle="Step-by-step recipes for safe framework, language, and dependency changes."
-          href="/search?q=migration&type=workflow"
-        />
-        <HorizontalRail>
-          {workflows.length === 0 && (
-            <EmptyRailPlaceholder kind="workflows" />
-          )}
-          {workflows.map((workflow) => (
-            <MiniWorkflowCard key={workflow.id} workflow={workflow} />
-          ))}
-        </HorizontalRail>
+        <section id="migration-workflows">
+          <RailHeader
+            title="Migration Workflows"
+            subtitle="Step-by-step recipes for safe framework, language, and dependency changes."
+            href="/modernization/workflows"
+          />
+          <HorizontalRail>
+            {workflows.length === 0 && (
+              <EmptyRailPlaceholder kind="workflows" />
+            )}
+            {workflows.map((workflow) => (
+              <MiniWorkflowCard key={workflow.id} workflow={workflow} />
+            ))}
+          </HorizontalRail>
+        </section>
       </div>
     </section>
   );

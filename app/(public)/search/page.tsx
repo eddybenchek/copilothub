@@ -29,6 +29,15 @@ export default function SearchPage() {
 
   const query = initialQuery;
 
+  // Sync state with URL parameters when they change
+  useEffect(() => {
+    const urlType = (searchParams.get('type') as SearchType) || 'all';
+    const urlDifficulty = (searchParams.get('difficulty') as Difficulty | 'ALL') || 'ALL';
+    
+    setType(urlType);
+    setDifficulty(urlDifficulty);
+  }, [searchParams]);
+
   // Perform search
   const performSearch = useCallback(async () => {
     if (!query) {
@@ -240,30 +249,41 @@ export default function SearchPage() {
       {query && (
         <>
           <section className="space-y-10">
-            <SearchSection
-              icon="✨"
-              label={`Prompts (${results.prompts.length})`}
-              emptyLabel="No prompts found."
-              items={results.prompts}
-              basePath="/prompts"
-              query={query}
-            />
-            <SearchSection
-              icon="⚙️"
-              label={`Workflows (${results.workflows.length})`}
-              emptyLabel="No workflows found."
-              items={results.workflows}
-              basePath="/workflows"
-              query={query}
-            />
-            <SearchSection
-              icon="🔧"
-              label={`Tools (${results.tools.length})`}
-              emptyLabel="No tools found."
-              items={results.tools}
-              basePath="/tools"
-              query={query}
-            />
+            {/* Show prompts section if type is 'all' or 'prompt' */}
+            {(type === 'all' || type === 'prompt') && (
+              <SearchSection
+                icon="✨"
+                label={`Prompts (${results.prompts.length})`}
+                emptyLabel="No prompts found."
+                items={results.prompts}
+                basePath="/prompts"
+                query={query}
+              />
+            )}
+            
+            {/* Show workflows section if type is 'all' or 'workflow' */}
+            {(type === 'all' || type === 'workflow') && (
+              <SearchSection
+                icon="⚙️"
+                label={`Workflows (${results.workflows.length})`}
+                emptyLabel="No workflows found."
+                items={results.workflows}
+                basePath="/workflows"
+                query={query}
+              />
+            )}
+            
+            {/* Show tools section if type is 'all' or 'tool' */}
+            {(type === 'all' || type === 'tool') && (
+              <SearchSection
+                icon="🔧"
+                label={`Tools (${results.tools.length})`}
+                emptyLabel="No tools found."
+                items={results.tools}
+                basePath="/tools"
+                query={query}
+              />
+            )}
           </section>
 
           {!loading && totalCount === 0 && (

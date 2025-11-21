@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { SearchResults, SearchType } from "@/lib/search-types";
 import { highlightMatch } from "@/lib/search-types";
@@ -28,6 +28,9 @@ type FlattenedResult = {
 
 export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
   const [query, setQuery] = useState(initialQuery);
   const [searchType] = useState<SearchType>("all");
   const debouncedQuery = useDebouncedValue(query, 250);
@@ -114,9 +117,23 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const goToResult = (result: FlattenedResult) => {
+  // Close dropdown on navigation (URL change)
+  useEffect(() => {
     setOpen(false);
     setActiveIndex(-1);
+    setHasUserTyped(false);
+  }, [pathname, searchParams]);
+
+  // Close dropdown helper
+  const closeDropdown = () => {
+    setOpen(false);
+    setActiveIndex(-1);
+    setHasUserTyped(false);
+    inputRef.current?.blur();
+  };
+
+  const goToResult = (result: FlattenedResult) => {
+    closeDropdown();
 
     if (result.type === "prompt") {
       router.push(`/prompts/${result.slug}`);
@@ -165,8 +182,8 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
 
   const handleSubmitFull = (e: React.FormEvent) => {
     e.preventDefault();
+    closeDropdown();
     router.push(`/search?q=${encodeURIComponent(query)}`);
-    setOpen(false);
   };
 
   const hasResults =
@@ -177,9 +194,25 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
 
   const totalCount = (results?.prompts.length ?? 0) + (results?.workflows.length ?? 0) + (results?.tools.length ?? 0);
 
+  // Handlers for "View all" buttons
   const handleViewAllResults = () => {
+    closeDropdown();
     router.push(`/search?q=${encodeURIComponent(query)}`);
-    setOpen(false);
+  };
+
+  const handleViewAllPrompts = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=prompt`);
+  };
+
+  const handleViewAllWorkflows = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=workflow`);
+  };
+
+  const handleViewAllTools = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=tool`);
   };
 
   return (
@@ -236,7 +269,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               activeIndex={activeIndex}
               offset={0}
               onClick={goToResult}
-              onViewAll={() => router.push(`/search?type=prompt&q=${encodeURIComponent(query)}`)}
+              onViewAll={handleViewAllPrompts}
             />
             <SearchDropdownSection
               label="Workflows"
@@ -248,7 +281,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               activeIndex={activeIndex}
               offset={promptPreview.length}
               onClick={goToResult}
-              onViewAll={() => router.push(`/search?type=workflow&q=${encodeURIComponent(query)}`)}
+              onViewAll={handleViewAllWorkflows}
             />
             <SearchDropdownSection
               label="Tools"
@@ -260,7 +293,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               activeIndex={activeIndex}
               offset={promptPreview.length + workflowPreview.length}
               onClick={goToResult}
-              onViewAll={() => router.push(`/search?type=tool&q=${encodeURIComponent(query)}`)}
+              onViewAll={handleViewAllTools}
             />
             
             {/* Bottom fade gradient */}

@@ -106,21 +106,21 @@ model Tool {
   id               String        @id @default(cuid())
   title            String
   slug             String        @unique
-  name             String?       // Display name (fallback to title)
   description      String
-  shortDescription String?       // Brief description for cards
   content          String
   url              String?
-  websiteUrl       String?       // Alias for url
-  logo             String?       // Path to logo in /public/logos
   tags             String[]
   difficulty       Difficulty    @default(INTERMEDIATE)
   status           ContentStatus @default(PENDING)
   authorId         String
-  authorName       String?       // Cache author name
-  featured         Boolean       @default(false) // Highlight tool with stronger glow
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  authorName       String?
+  featured         Boolean       @default(false)
+  logo             String?
+  name             String?
+  shortDescription String?
+  websiteUrl       String?
   author           User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   votes            Vote[]
 

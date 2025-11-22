@@ -45,15 +45,15 @@ export function ToolCard({ tool }: ToolCardProps) {
   return (
     <div
       className={clsx(
-        "flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-5 shadow-sm transition",
-        "hover:border-sky-500/30 hover:shadow-[0_0_14px_rgba(56,189,248,0.18)] hover:scale-[1.01]",
+        "flex flex-col gap-4 rounded-2xl border border-slate-800 bg-[#1a1d24] p-5 shadow-sm transition duration-150",
+        "hover:border-sky-500/40 hover:shadow-[0_0_18px_rgba(56,189,248,0.25)] hover:scale-[1.01] cursor-pointer",
         tool.featured &&
           "border-sky-500/50 shadow-[0_0_22px_rgba(56,189,248,0.28)]",
       )}
     >
       {/* Top: logo + title + website link */}
       <div className="flex min-h-[48px] items-start gap-4">
-        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-slate-700/60 bg-slate-900">
+        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-slate-700/60 bg-slate-950">
           {tool.logo ? (
             <Image
               src={tool.logo}
@@ -98,7 +98,7 @@ export function ToolCard({ tool }: ToolCardProps) {
           {tool.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2.5 py-1 text-xs text-slate-200"
+              className="inline-flex items-center rounded-full bg-slate-950 border border-slate-700/40 backdrop-blur-sm px-2.5 py-1 text-xs text-slate-200"
             >
               {tag}
             </span>
@@ -126,7 +126,7 @@ export function ToolCard({ tool }: ToolCardProps) {
           <span
             className={clsx(
               "ml-auto inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold tracking-wide",
-              "bg-slate-900 border border-slate-700/70 text-slate-200",
+              "bg-slate-950 border border-slate-700/70 text-slate-200",
             )}
           >
             {tool.difficulty}

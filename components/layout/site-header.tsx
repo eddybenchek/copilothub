@@ -17,6 +17,9 @@ export function SiteHeader() {
     { name: 'Prompts', href: '/prompts' },
     { name: 'Workflows', href: '/workflows' },
     { name: 'Tools', href: '/tools' },
+    { name: 'Recipes', href: '/recipes' },
+    { name: 'Migrations', href: '/migrations' },
+    { name: 'Paths', href: '/paths' },
     { name: 'Submit', href: '/submit' },
   ];
 

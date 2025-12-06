@@ -3009,6 +3009,165 @@ const tools = getToolsSeed(demoUser.id);
 
   console.log('✅ Created', tools.length, 'example tools');
 
+  // Seed Code Recipes
+  const recipes = [
+    {
+      title: "React: Debounced Search Input with useEffect",
+      slug: "react-debounced-search-input",
+      description: "Prevent excessive API calls by debouncing user input with useEffect and setTimeout.",
+      codeSample: `function useDebouncedValue<T>(value: T, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+
+  return debounced;
+}`,
+      language: "typescript",
+      framework: "react",
+      tags: ["react", "hook", "debounce", "search"],
+      difficulty: Difficulty.INTERMEDIATE,
+      explanation: "This hook keeps the UI responsive while reducing how often you call backend APIs.",
+      usageNotes: "Good for search inputs, filters, and analytics events. Avoid very short delays for accessibility.",
+      status: ContentStatus.APPROVED,
+      authorId: demoUser.id,
+    },
+    {
+      title: "SQL: Find N+1 Queries with EXPLAIN ANALYZE",
+      slug: "sql-detect-n-plus-one",
+      description: "Use EXPLAIN ANALYZE to identify N+1 query patterns in your ORM-generated SQL.",
+      codeSample: `EXPLAIN ANALYZE
+SELECT *
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.id
+WHERE o.user_id = $1;`,
+      language: "sql",
+      framework: "database",
+      tags: ["sql", "performance", "n+1"],
+      difficulty: Difficulty.ADVANCED,
+      status: ContentStatus.APPROVED,
+      authorId: demoUser.id,
+    },
+  ];
+
+  for (const recipe of recipes) {
+    await prisma.codeRecipe.upsert({
+      where: { slug: recipe.slug },
+      update: {},
+      create: recipe,
+    });
+  }
+
+  console.log('✅ Created', recipes.length, 'code recipes');
+
+  // Seed Migration Guides
+  const migrations = [
+    {
+      title: "Next.js Pages Router → App Router",
+      slug: "nextjs-pages-to-app-router",
+      description: "Safely migrate a Next.js project from the legacy pages/ router to the modern app/ router.",
+      fromStack: "Next.js Pages Router",
+      toStack: "Next.js App Router",
+      category: "frontend",
+      tags: ["nextjs", "react", "migration", "routing"],
+      difficulty: Difficulty.ADVANCED,
+      overview: "The App Router unlocks layouts, server components, and streaming. This guide walks you through a staged migration.",
+      risks: "Watch out for dynamic routes, middleware behavior changes, and any library that expects the pages router file structure.",
+      prerequisites: "Next.js 13+ with the appDir feature enabled. Good test coverage or at least basic smoke tests.",
+      steps: [
+        "Audit existing routes and dynamic segments",
+        "Create initial app/ directory and root layout",
+        "Gradually move non-critical pages",
+        "Migrate API routes and data fetching",
+        "Update navigation and links",
+        "Remove legacy pages/ router references",
+      ],
+      relatedWorkflowSlugs: [],
+      relatedToolSlugs: [],
+      relatedPromptSlugs: [],
+      relatedRecipeSlugs: [],
+      status: ContentStatus.APPROVED,
+      authorId: demoUser.id,
+    },
+    {
+      title: "JavaScript → TypeScript for Existing React Codebase",
+      slug: "react-js-to-ts-migration",
+      description: "Incrementally add TypeScript to a React app while keeping shipping velocity.",
+      fromStack: "React + JavaScript",
+      toStack: "React + TypeScript",
+      category: "frontend",
+      tags: ["typescript", "react", "migration"],
+      difficulty: Difficulty.INTERMEDIATE,
+      overview: "TypeScript gives you stronger guarantees and safer refactors. This guide shows an incremental, low-risk approach.",
+      steps: [
+        "Enable TypeScript in the build system",
+        "Rename leaf files from .js to .tsx",
+        "Introduce strict tsconfig progressively",
+        "Type your shared UI components",
+        "Type API responses and data models",
+        "Remove any remaining any and ts-ignore",
+      ],
+      relatedWorkflowSlugs: [],
+      relatedToolSlugs: [],
+      relatedPromptSlugs: [],
+      relatedRecipeSlugs: [],
+      status: ContentStatus.APPROVED,
+      authorId: demoUser.id,
+    },
+  ];
+
+  for (const migration of migrations) {
+    await prisma.migrationGuide.upsert({
+      where: { slug: migration.slug },
+      update: {},
+      create: migration,
+    });
+  }
+
+  console.log('✅ Created', migrations.length, 'migration guides');
+
+  // Seed Learning Paths
+  const paths = [
+    {
+      title: "AI-Assisted React Developer (7-Day Path)",
+      slug: "ai-assisted-react-developer-7-day",
+      description: "A one-week learning path to use GitHub Copilot effectively in a React + TypeScript codebase.",
+      audience: "frontend",
+      level: Difficulty.INTERMEDIATE,
+      tags: ["copilot", "react", "typescript", "frontend"],
+      overview: "This path focuses on real-world, production-oriented usage of Copilot for React development.",
+      goals: "By the end, you should be comfortable using Copilot for component scaffolding, state management, testing, and refactoring.",
+      steps: [
+        "Day 1: Set up Copilot and learn core prompting patterns",
+        "Day 2: Build React components with Copilot",
+        "Day 3: Manage state and hooks with AI assistance",
+        "Day 4: Write tests and stories with Copilot",
+        "Day 5: Refactor legacy components safely",
+        "Day 6: Debug and fix bugs using Copilot",
+        "Day 7: Migrate a small feature to TypeScript",
+      ],
+      promptSlugs: [],
+      workflowSlugs: [],
+      toolSlugs: [],
+      recipeSlugs: ["react-debounced-search-input"],
+      migrationSlugs: ["react-js-to-ts-migration"],
+      status: ContentStatus.APPROVED,
+      authorId: demoUser.id,
+    },
+  ];
+
+  for (const path of paths) {
+    await prisma.learningPath.upsert({
+      where: { slug: path.slug },
+      update: {},
+      create: path,
+    });
+  }
+
+  console.log('✅ Created', paths.length, 'learning paths');
+
   console.log('🎉 Seeding completed successfully!');
 }
 

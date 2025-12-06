@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { PromptCard } from '@/components/prompt/prompt-card';
 import { WorkflowCard } from '@/components/workflow/workflow-card';
 import { ToolCard } from '@/components/tool/tool-card';
+import { RecipeCard } from '@/components/recipes/recipe-card';
+import { MigrationCard } from '@/components/migrations/migration-card';
+import { LearningPathCard } from '@/components/paths/learning-path-card';
 import { GlobalSearchDropdown } from '@/components/search/global-search-dropdown';
 import { ModernizationSection } from '@/components/home/modernization-section';
 import { getLatestPrompts, getLatestWorkflows, getLatestTools } from '@/lib/prisma-helpers';
@@ -11,7 +14,7 @@ import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 
 export default async function HomePage() {
-  const [prompts, workflows, tools, modernizationPrompts, modernizationWorkflows] = await Promise.all([
+  const [prompts, workflows, tools, modernizationPrompts, modernizationWorkflows, latestRecipes, latestMigrations, latestPaths] = await Promise.all([
     getLatestPrompts(3),
     getLatestWorkflows(3),
     getLatestTools(3),
@@ -54,6 +57,34 @@ export default async function HomePage() {
         description: true,
         difficulty: true,
         tags: true,
+      },
+    }),
+    // Fetch new content types
+    db.codeRecipe.findMany({ 
+      where: { status: ContentStatus.APPROVED }, 
+      orderBy: { createdAt: "desc" }, 
+      take: 6,
+      include: {
+        author: true,
+        votes: true,
+      },
+    }),
+    db.migrationGuide.findMany({ 
+      where: { status: ContentStatus.APPROVED }, 
+      orderBy: { createdAt: "desc" }, 
+      take: 6,
+      include: {
+        author: true,
+        votes: true,
+      },
+    }),
+    db.learningPath.findMany({ 
+      where: { status: ContentStatus.APPROVED }, 
+      orderBy: { createdAt: "desc" }, 
+      take: 4,
+      include: {
+        author: true,
+        votes: true,
       },
     }),
   ]);
@@ -137,6 +168,71 @@ export default async function HomePage() {
           workflows={modernizationWorkflows}
         />
       </div>
+
+      {/* Code Recipes */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="mb-12 flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold">Code Recipes</h2>
+            <p className="mt-2 text-slate-400">Reusable patterns and snippets for real projects</p>
+          </div>
+          <Button variant="ghost" asChild>
+            <Link href="/recipes">
+              View all
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {latestRecipes.map((recipe) => (
+            <RecipeCard key={recipe.id} recipe={recipe} />
+          ))}
+        </div>
+      </section>
+
+      {/* Migration Catalog */}
+      <section className="border-y border-border bg-muted/50">
+        <div className="container mx-auto px-4 py-20">
+          <div className="mb-12 flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold">Migration Catalog</h2>
+              <p className="mt-2 text-slate-400">Structured guides for framework and language migrations</p>
+            </div>
+            <Button variant="ghost" asChild>
+              <Link href="/migrations">
+                View all
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {latestMigrations.map((migration) => (
+              <MigrationCard key={migration.id} migration={migration} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Learning Paths */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="mb-12 flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold">Learning Paths</h2>
+            <p className="mt-2 text-slate-400">Curated journeys to master AI-assisted development</p>
+          </div>
+          <Button variant="ghost" asChild>
+            <Link href="/paths">
+              View all
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {latestPaths.map((path) => (
+            <LearningPathCard key={path.id} path={path} />
+          ))}
+        </div>
+      </section>
 
       {/* Latest Prompts */}
       <section className="container mx-auto px-4 py-20">

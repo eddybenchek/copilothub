@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Filter } from 'lucide-react';
 import Link from 'next/link';
@@ -9,7 +9,7 @@ import { highlightMatch } from '@/lib/search-types';
 import type { SearchResults, SearchType, Difficulty } from '@/lib/search-types';
 import { cn } from '@/lib/utils';
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -461,5 +461,22 @@ function SearchSection({
         })}
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-24 pt-20">
+        <section>
+          <h1 className="mb-6 text-3xl font-semibold text-slate-50">Search</h1>
+          <div className="animate-pulse">
+            <div className="h-12 w-full rounded-lg bg-slate-800"></div>
+          </div>
+        </section>
+      </main>
+    }>
+      <SearchPageContent />
+    </Suspense>
   );
 }

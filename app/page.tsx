@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { ArrowRight, Sparkles, Zap, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PromptCard } from '@/components/prompt/prompt-card';
@@ -109,7 +110,13 @@ export default async function HomePage() {
           
           {/* Global Search */}
           <div className="mb-12">
-            <GlobalSearchDropdown />
+            <Suspense fallback={
+              <div className="relative">
+                <div className="h-12 w-full rounded-lg border border-slate-800 bg-slate-900/40 animate-pulse"></div>
+              </div>
+            }>
+              <GlobalSearchDropdown />
+            </Suspense>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">

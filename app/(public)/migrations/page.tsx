@@ -5,11 +5,12 @@ import { ContentStatus } from "@prisma/client";
 export default async function MigrationsPage({
   searchParams,
 }: {
-  searchParams?: { q?: string; category?: string; level?: string };
+  searchParams?: Promise<{ q?: string; category?: string; level?: string }>;
 }) {
-  const q = searchParams?.q ?? "";
-  const category = searchParams?.category;
-  const level = searchParams?.level as "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | undefined;
+  const params = await searchParams;
+  const q = params?.q ?? "";
+  const category = params?.category;
+  const level = params?.level as "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | undefined;
 
   const migrations = await db.migrationGuide.findMany({
     where: {

@@ -5,12 +5,13 @@ import { ContentStatus } from "@prisma/client";
 export default async function RecipesPage({
   searchParams,
 }: {
-  searchParams?: { q?: string; lang?: string; framework?: string; level?: string };
+  searchParams?: Promise<{ q?: string; lang?: string; framework?: string; level?: string }>;
 }) {
-  const q = searchParams?.q ?? "";
-  const lang = searchParams?.lang;
-  const framework = searchParams?.framework;
-  const level = searchParams?.level as "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | undefined;
+  const params = await searchParams;
+  const q = params?.q ?? "";
+  const lang = params?.lang;
+  const framework = params?.framework;
+  const level = params?.level as "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | undefined;
 
   const recipes = await db.codeRecipe.findMany({
     where: {

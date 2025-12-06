@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/copy-button';
 import { getPromptBySlug } from '@/lib/prisma-helpers';
 
-export default async function PromptDetailPage({ params }: { params: { slug: string } }) {
-  const prompt = await getPromptBySlug(params.slug);
+export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const prompt = await getPromptBySlug(slug);
 
   if (!prompt) {
     notFound();

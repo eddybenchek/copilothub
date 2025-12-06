@@ -12,10 +12,11 @@ import { RecipeCard } from "@/components/recipes/recipe-card";
 export default async function MigrationDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   const migration = await db.migrationGuide.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       author: true,
       votes: true,

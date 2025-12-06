@@ -5,11 +5,12 @@ import { ContentStatus } from "@prisma/client";
 export default async function PathsPage({
   searchParams,
 }: {
-  searchParams?: { q?: string; audience?: string; level?: string };
+  searchParams?: Promise<{ q?: string; audience?: string; level?: string }>;
 }) {
-  const q = searchParams?.q ?? "";
-  const audience = searchParams?.audience;
-  const level = searchParams?.level as "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | undefined;
+  const params = await searchParams;
+  const q = params?.q ?? "";
+  const audience = params?.audience;
+  const level = params?.level as "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | undefined;
 
   const paths = await db.learningPath.findMany({
     where: {

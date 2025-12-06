@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/copy-button';
 import { getWorkflowBySlug } from '@/lib/prisma-helpers';
 
-export default async function WorkflowDetailPage({ params }: { params: { slug: string } }) {
-  const workflow = await getWorkflowBySlug(params.slug);
+export default async function WorkflowDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const workflow = await getWorkflowBySlug(slug);
 
   if (!workflow) {
     notFound();

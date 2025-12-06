@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getToolBySlug } from '@/lib/prisma-helpers';
 
-export default async function ToolDetailPage({ params }: { params: { slug: string } }) {
-  const tool = await getToolBySlug(params.slug);
+export default async function ToolDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const tool = await getToolBySlug(slug);
 
   if (!tool) {
     notFound();

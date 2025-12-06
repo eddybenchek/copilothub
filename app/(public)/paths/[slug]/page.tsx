@@ -13,10 +13,11 @@ import { MigrationCard } from "@/components/migrations/migration-card";
 export default async function LearningPathDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   const path = await db.learningPath.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       author: true,
       votes: true,

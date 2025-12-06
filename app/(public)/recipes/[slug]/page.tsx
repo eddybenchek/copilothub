@@ -8,10 +8,11 @@ import { CodeBlock } from "@/components/ui/code-block";
 export default async function RecipeDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   const recipe = await db.codeRecipe.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       author: true,
       votes: true,

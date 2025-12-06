@@ -13,6 +13,9 @@ import { Search, X } from "lucide-react";
 const MAX_PROMPT_SUGGESTIONS = 5;
 const MAX_WORKFLOW_SUGGESTIONS = 5;
 const MAX_TOOL_SUGGESTIONS = 3;
+const MAX_RECIPE_SUGGESTIONS = 5;
+const MAX_MIGRATION_SUGGESTIONS = 5;
+const MAX_PATH_SUGGESTIONS = 3;
 
 type GlobalSearchProps = {
   initialQuery?: string;
@@ -22,7 +25,7 @@ type FlattenedResult = {
   id: string;
   title: string;
   description: string;
-  type: "prompt" | "workflow" | "tool";
+  type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path";
   slug: string;
 };
 
@@ -48,6 +51,9 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
   const promptPreview = useMemo(() => results?.prompts.slice(0, MAX_PROMPT_SUGGESTIONS) ?? [], [results?.prompts]);
   const workflowPreview = useMemo(() => results?.workflows.slice(0, MAX_WORKFLOW_SUGGESTIONS) ?? [], [results?.workflows]);
   const toolPreview = useMemo(() => results?.tools.slice(0, MAX_TOOL_SUGGESTIONS) ?? [], [results?.tools]);
+  const recipePreview = useMemo(() => results?.recipes?.slice(0, MAX_RECIPE_SUGGESTIONS) ?? [], [results?.recipes]);
+  const migrationPreview = useMemo(() => results?.migrations?.slice(0, MAX_MIGRATION_SUGGESTIONS) ?? [], [results?.migrations]);
+  const pathPreview = useMemo(() => results?.paths?.slice(0, MAX_PATH_SUGGESTIONS) ?? [], [results?.paths]);
 
   // Flatten preview results for keyboard navigation
   const flatResults: FlattenedResult[] = useMemo(() => {
@@ -55,6 +61,9 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       ...promptPreview,
       ...workflowPreview,
       ...toolPreview,
+      ...recipePreview,
+      ...migrationPreview,
+      ...pathPreview,
     ].map((r) => ({
       id: r.id,
       title: r.title,
@@ -62,7 +71,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       type: r.type,
       slug: r.slug,
     }));
-  }, [promptPreview, workflowPreview, toolPreview]);
+  }, [promptPreview, workflowPreview, toolPreview, recipePreview, migrationPreview, pathPreview]);
 
   useEffect(() => {
     if (!debouncedQuery.trim()) {
@@ -139,8 +148,14 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       router.push(`/prompts/${result.slug}`);
     } else if (result.type === "workflow") {
       router.push(`/workflows/${result.slug}`);
-    } else {
+    } else if (result.type === "tool") {
       router.push(`/tools/${result.slug}`);
+    } else if (result.type === "recipe") {
+      router.push(`/recipes/${result.slug}`);
+    } else if (result.type === "migration") {
+      router.push(`/migrations/${result.slug}`);
+    } else if (result.type === "path") {
+      router.push(`/paths/${result.slug}`);
     }
   };
 
@@ -186,13 +201,27 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
     router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
-  const hasResults =
-    results &&
-    (results.prompts.length ||
-      results.workflows.length ||
-      results.tools.length);
+  const hasResults = useMemo(() => {
+    return (
+      (results?.prompts.length ?? 0) > 0 ||
+      (results?.workflows.length ?? 0) > 0 ||
+      (results?.tools.length ?? 0) > 0 ||
+      (results?.recipes?.length ?? 0) > 0 ||
+      (results?.migrations?.length ?? 0) > 0 ||
+      (results?.paths?.length ?? 0) > 0
+    );
+  }, [results]);
 
-  const totalCount = (results?.prompts.length ?? 0) + (results?.workflows.length ?? 0) + (results?.tools.length ?? 0);
+  const totalCount = useMemo(() => {
+    return (
+      (results?.prompts.length ?? 0) +
+      (results?.workflows.length ?? 0) +
+      (results?.tools.length ?? 0) +
+      (results?.recipes?.length ?? 0) +
+      (results?.migrations?.length ?? 0) +
+      (results?.paths?.length ?? 0)
+    );
+  }, [results]);
 
   // Handlers for "View all" buttons
   const handleViewAllResults = () => {
@@ -215,6 +244,21 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
     router.push(`/search?q=${encodeURIComponent(query)}&type=tool`);
   };
 
+  const handleViewAllRecipes = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=recipe`);
+  };
+
+  const handleViewAllMigrations = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=migration`);
+  };
+
+  const handleViewAllPaths = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=path`);
+  };
+
   return (
     <div ref={containerRef} className="relative w-full max-w-3xl">
       <form onSubmit={handleSubmitFull}>
@@ -233,7 +277,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               if (!hasUserTyped) setHasUserTyped(true);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Search prompts, workflows, tools..."
+            placeholder="Search prompts, workflows, tools, recipes, migrations, paths..."
             className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
           />
           {query && (
@@ -295,6 +339,42 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               onClick={goToResult}
               onViewAll={handleViewAllTools}
             />
+            <SearchDropdownSection
+              label="Recipes"
+              icon="📝"
+              items={recipePreview}
+              totalCount={results!.recipes?.length ?? 0}
+              query={debouncedQuery}
+              flatResults={flatResults}
+              activeIndex={activeIndex}
+              offset={promptPreview.length + workflowPreview.length + toolPreview.length}
+              onClick={goToResult}
+              onViewAll={handleViewAllRecipes}
+            />
+            <SearchDropdownSection
+              label="Migrations"
+              icon="🔄"
+              items={migrationPreview}
+              totalCount={results!.migrations?.length ?? 0}
+              query={debouncedQuery}
+              flatResults={flatResults}
+              activeIndex={activeIndex}
+              offset={promptPreview.length + workflowPreview.length + toolPreview.length + recipePreview.length}
+              onClick={goToResult}
+              onViewAll={handleViewAllMigrations}
+            />
+            <SearchDropdownSection
+              label="Paths"
+              icon="🛤️"
+              items={pathPreview}
+              totalCount={results!.paths?.length ?? 0}
+              query={debouncedQuery}
+              flatResults={flatResults}
+              activeIndex={activeIndex}
+              offset={promptPreview.length + workflowPreview.length + toolPreview.length + recipePreview.length + migrationPreview.length}
+              onClick={goToResult}
+              onViewAll={handleViewAllPaths}
+            />
             
             {/* Bottom fade gradient */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-950/95 to-transparent" />
@@ -339,7 +419,7 @@ type SectionProps = {
     title: string;
     slug: string;
     description: string;
-    type: "prompt" | "workflow" | "tool";
+    type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path";
     difficulty: any;
   }[];
   totalCount: number;

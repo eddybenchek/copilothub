@@ -37,20 +37,23 @@ model Session {
 }
 
 model User {
-  id            String     @id @default(cuid())
+  id            String            @id @default(cuid())
   name          String?
-  email         String?    @unique
+  email         String?           @unique
   emailVerified DateTime?
   image         String?
-  role          Role       @default(USER)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  role          Role              @default(USER)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   accounts      Account[]
   prompts       Prompt[]
   sessions      Session[]
   tools         Tool[]
   votes         Vote[]
   workflows     Workflow[]
+  recipes       CodeRecipe[]
+  migrations    MigrationGuide[]
+  paths         LearningPath[]
 }
 
 model VerificationToken {
@@ -130,23 +133,112 @@ model Tool {
 }
 
 model Vote {
-  id         String     @id @default(cuid())
-  userId     String
-  targetId   String
-  targetType TargetType
-  value      Int
-  createdAt  DateTime   @default(now())
-  promptId   String?
-  workflowId String?
-  toolId     String?
-  prompt     Prompt?    @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  tool       Tool?      @relation(fields: [toolId], references: [id], onDelete: Cascade)
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workflow   Workflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  id           String          @id @default(cuid())
+  userId       String
+  targetId     String
+  targetType   TargetType
+  value        Int
+  createdAt    DateTime        @default(now())
+  promptId     String?
+  workflowId   String?
+  toolId       String?
+  recipeId     String?
+  migrationId  String?
+  pathId       String?
+  prompt       Prompt?         @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  tool         Tool?           @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workflow     Workflow?       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  recipe       CodeRecipe?     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  migration    MigrationGuide? @relation(fields: [migrationId], references: [id], onDelete: Cascade)
+  path         LearningPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
 
   @@unique([userId, targetId, targetType])
   @@index([userId])
   @@index([targetId])
+}
+
+model CodeRecipe {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  description String
+  codeSample  String
+  language    String
+  framework   String?
+  tags        String[]
+  difficulty  Difficulty    @default(INTERMEDIATE)
+  explanation String?
+  usageNotes  String?
+  status      ContentStatus @default(PENDING)
+  authorId    String
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([language])
+  @@index([framework])
+}
+
+model MigrationGuide {
+  id                    String        @id @default(cuid())
+  title                 String
+  slug                  String        @unique
+  description           String
+  fromStack             String
+  toStack               String
+  category              String
+  tags                  String[]
+  difficulty            Difficulty    @default(ADVANCED)
+  status                ContentStatus @default(PENDING)
+  overview              String?
+  risks                 String?
+  prerequisites         String?
+  steps                 String[]
+  relatedPromptSlugs    String[]      @default([])
+  relatedWorkflowSlugs  String[]      @default([])
+  relatedToolSlugs      String[]      @default([])
+  relatedRecipeSlugs    String[]      @default([])
+  authorId              String
+  author                User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes                 Vote[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([category])
+}
+
+model LearningPath {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  description     String
+  audience        String
+  level           Difficulty    @default(BEGINNER)
+  tags            String[]
+  overview        String?
+  goals           String?
+  steps           String[]
+  status          ContentStatus @default(PENDING)
+  promptSlugs     String[]      @default([])
+  workflowSlugs   String[]      @default([])
+  toolSlugs       String[]      @default([])
+  recipeSlugs     String[]      @default([])
+  migrationSlugs  String[]      @default([])
+  authorId        String
+  author          User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes           Vote[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([audience])
 }
 
 enum Role {
@@ -155,9 +247,10 @@ enum Role {
 }
 
 enum ContentStatus {
+  DRAFT
   PENDING
   APPROVED
-  REJECTED
+  ARCHIVED
 }
 
 enum Difficulty {
@@ -170,4 +263,7 @@ enum TargetType {
   PROMPT
   WORKFLOW
   TOOL
+  RECIPE
+  MIGRATION
+  PATH
 }

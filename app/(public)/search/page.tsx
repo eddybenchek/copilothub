@@ -21,6 +21,9 @@ export default function SearchPage() {
     prompts: [],
     workflows: [],
     tools: [],
+    recipes: [],
+    migrations: [],
+    paths: [],
   });
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<SearchType>(initialType);
@@ -41,7 +44,7 @@ export default function SearchPage() {
   // Perform search
   const performSearch = useCallback(async () => {
     if (!query) {
-      setResults({ prompts: [], workflows: [], tools: [] });
+      setResults({ prompts: [], workflows: [], tools: [], recipes: [], migrations: [], paths: [] });
       return;
     }
 
@@ -77,7 +80,8 @@ export default function SearchPage() {
     router.push(`/search?${params.toString()}`);
   };
 
-  const totalCount = results.prompts.length + results.workflows.length + results.tools.length;
+  const totalCount = results.prompts.length + results.workflows.length + results.tools.length + 
+    (results.recipes?.length ?? 0) + (results.migrations?.length ?? 0) + (results.paths?.length ?? 0);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-24 pt-20">
@@ -156,6 +160,36 @@ export default function SearchPage() {
                 }}
               >
                 Tools
+              </FilterPill>
+              <FilterPill
+                href={`/search?q=${encodeURIComponent(query)}&type=recipe`}
+                active={type === 'recipe'}
+                onClick={() => {
+                  setType('recipe');
+                  updateFilters('recipe', difficulty);
+                }}
+              >
+                Recipes
+              </FilterPill>
+              <FilterPill
+                href={`/search?q=${encodeURIComponent(query)}&type=migration`}
+                active={type === 'migration'}
+                onClick={() => {
+                  setType('migration');
+                  updateFilters('migration', difficulty);
+                }}
+              >
+                Migrations
+              </FilterPill>
+              <FilterPill
+                href={`/search?q=${encodeURIComponent(query)}&type=path`}
+                active={type === 'path'}
+                onClick={() => {
+                  setType('path');
+                  updateFilters('path', difficulty);
+                }}
+              >
+                Paths
               </FilterPill>
 
               <span className="mx-2 h-5 w-px bg-slate-700" />
@@ -281,6 +315,42 @@ export default function SearchPage() {
                 emptyLabel="No tools found."
                 items={results.tools}
                 basePath="/tools"
+                query={query}
+              />
+            )}
+            
+            {/* Show recipes section if type is 'all' or 'recipe' */}
+            {(type === 'all' || type === 'recipe') && (
+              <SearchSection
+                icon="📝"
+                label={`Recipes (${results.recipes?.length ?? 0})`}
+                emptyLabel="No recipes found."
+                items={results.recipes ?? []}
+                basePath="/recipes"
+                query={query}
+              />
+            )}
+            
+            {/* Show migrations section if type is 'all' or 'migration' */}
+            {(type === 'all' || type === 'migration') && (
+              <SearchSection
+                icon="🔄"
+                label={`Migrations (${results.migrations?.length ?? 0})`}
+                emptyLabel="No migrations found."
+                items={results.migrations ?? []}
+                basePath="/migrations"
+                query={query}
+              />
+            )}
+            
+            {/* Show paths section if type is 'all' or 'path' */}
+            {(type === 'all' || type === 'path') && (
+              <SearchSection
+                icon="🛤️"
+                label={`Paths (${results.paths?.length ?? 0})`}
+                emptyLabel="No paths found."
+                items={results.paths ?? []}
+                basePath="/paths"
                 query={query}
               />
             )}

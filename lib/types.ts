@@ -1,4 +1,4 @@
-import { Prompt, Workflow, Tool, User, Vote } from '@prisma/client';
+import { Prompt, Workflow, Tool, User, Vote, McpServer } from '@prisma/client';
 
 // Extended types with relations
 export type PromptWithAuthor = Prompt & {
@@ -17,6 +17,17 @@ export type ToolWithAuthor = Tool & {
   name?: string | null;
   shortDescription?: string | null;
   websiteUrl?: string | null;
+  logo?: string | null;
+  authorName?: string | null;
+};
+
+export type McpWithAuthor = McpServer & {
+  author: User;
+  votes: Vote[];
+  name?: string | null;
+  shortDescription?: string | null;
+  websiteUrl?: string | null;
+  githubUrl?: string | null;
   logo?: string | null;
   authorName?: string | null;
 };

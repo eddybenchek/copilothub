@@ -104,6 +104,28 @@ export async function getAllTools() {
 }
 
 // Vote helpers
+// MCP helpers
+export async function getMcpBySlug(slug: string) {
+  return await db.mcpServer.findUnique({
+    where: { slug },
+    include: {
+      author: true,
+      votes: true,
+    },
+  });
+}
+
+export async function getAllMcps() {
+  return await db.mcpServer.findMany({
+    where: { status: ContentStatus.APPROVED },
+    include: {
+      author: true,
+      votes: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+}
+
 export async function getVoteCount(targetId: string) {
   const votes = await db.vote.findMany({
     where: { targetId },

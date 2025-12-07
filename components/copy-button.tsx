@@ -7,9 +7,10 @@ import { Button } from './ui/button';
 interface CopyButtonProps {
   text: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
-export function CopyButton({ text, className }: CopyButtonProps) {
+export function CopyButton({ text, className, children }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -28,13 +29,15 @@ export function CopyButton({ text, className }: CopyButtonProps) {
       {copied ? (
         <>
           <Check className="mr-2 h-4 w-4" />
-          Copied!
+          {children ? 'Copied!' : 'Copied!'}
         </>
       ) : (
-        <>
-          <Copy className="mr-2 h-4 w-4" />
-          Copy
-        </>
+        children || (
+          <>
+            <Copy className="mr-2 h-4 w-4" />
+            Copy
+          </>
+        )
       )}
     </Button>
   );

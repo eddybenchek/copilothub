@@ -71,7 +71,7 @@ export async function performSearch({
   const difficultyFilter =
     difficulty === 'ALL' ? {} : { difficulty: { equals: difficulty } };
 
-  const [prompts, workflows, tools, recipes, migrations, paths] = await Promise.all([
+  const [prompts, workflows, tools, recipes, migrations, paths, mcps] = await Promise.all([
     type === 'all' || type === 'prompt'
       ? db.prompt.findMany({
           where: { ...baseWhereWithContent, ...difficultyFilter, status: ContentStatus.APPROVED },
@@ -129,6 +129,20 @@ export async function performSearch({
           orderBy: { createdAt: 'desc' },
         })
       : Promise.resolve([]),
+    type === 'all' || type === 'mcp'
+      ? (db as any).mcpServer.findMany({
+          where: {
+            ...baseWhereWithoutContent,
+            ...difficultyFilter,
+            status: ContentStatus.APPROVED,
+          },
+          take: limitPerSection,
+          orderBy: [
+            { featured: 'desc' },
+            { createdAt: 'desc' },
+          ],
+        })
+      : Promise.resolve([]),
   ]);
 
   return {
@@ -180,6 +194,23 @@ export async function performSearch({
       difficulty: p.level,
       type: 'path' as const,
     })),
+    mcps: mcps.map((m: any) => {
+      // Extract just the repo name from owner/repo format and format it
+      const rawName = m.title;
+      const repoName = rawName.includes('/') ? rawName.split('/')[1] : rawName;
+      const displayName = repoName
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, (char: string) => char.toUpperCase());
+      
+      return {
+        id: m.id,
+        title: displayName,
+        slug: m.slug,
+        description: m.description || '',
+        difficulty: m.difficulty,
+        type: 'mcp' as const,
+      };
+    }),
   };
 }
 

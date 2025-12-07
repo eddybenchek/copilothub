@@ -8,6 +8,7 @@ import { ToolCard } from '@/components/tool/tool-card';
 import { RecipeCard } from '@/components/recipes/recipe-card';
 import { MigrationCard } from '@/components/migrations/migration-card';
 import { LearningPathCard } from '@/components/paths/learning-path-card';
+import { McpCard } from '@/components/mcp/mcp-card';
 import { GlobalSearchDropdown } from '@/components/search/global-search-dropdown';
 import { ModernizationSection } from '@/components/home/modernization-section';
 import { getLatestPrompts, getLatestWorkflows, getLatestTools } from '@/lib/prisma-helpers';
@@ -15,7 +16,7 @@ import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 
 export default async function HomePage() {
-  const [prompts, workflows, tools, modernizationPrompts, modernizationWorkflows, latestRecipes, latestMigrations, latestPaths] = await Promise.all([
+  const [prompts, workflows, tools, modernizationPrompts, modernizationWorkflows, latestRecipes, latestMigrations, latestPaths, featuredMcps] = await Promise.all([
     getLatestPrompts(3),
     getLatestWorkflows(3),
     getLatestTools(3),
@@ -83,6 +84,22 @@ export default async function HomePage() {
       where: { status: ContentStatus.APPROVED }, 
       orderBy: { createdAt: "desc" }, 
       take: 4,
+      include: {
+        author: true,
+        votes: true,
+      },
+    }),
+    // Fetch featured MCPs
+    (db as any).mcpServer.findMany({
+      where: { 
+        status: ContentStatus.APPROVED,
+        featured: true,
+      },
+      orderBy: [
+        { featured: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      take: 6,
       include: {
         author: true,
         votes: true,
@@ -240,6 +257,31 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Featured MCPs */}
+      {featuredMcps.length > 0 && (
+        <section className="border-y border-border bg-muted/50">
+          <div className="container mx-auto px-4 py-20">
+            <div className="mb-12 flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold">Featured MCPs</h2>
+                <p className="mt-2 text-slate-400">Extend your AI capabilities with Model Context Protocol servers</p>
+              </div>
+              <Button variant="ghost" asChild>
+                <Link href="/mcps">
+                  View all
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {featuredMcps.map((mcp: any) => (
+                <McpCard key={mcp.id} mcp={mcp} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Latest Prompts */}
       <section className="container mx-auto px-4 py-20">

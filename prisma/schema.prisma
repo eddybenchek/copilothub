@@ -54,6 +54,7 @@ model User {
   recipes       CodeRecipe[]
   migrations    MigrationGuide[]
   paths         LearningPath[]
+  mcps          McpServer[]
 }
 
 model VerificationToken {
@@ -145,6 +146,7 @@ model Vote {
   recipeId     String?
   migrationId  String?
   pathId       String?
+  mcpId        String?
   prompt       Prompt?         @relation(fields: [promptId], references: [id], onDelete: Cascade)
   tool         Tool?           @relation(fields: [toolId], references: [id], onDelete: Cascade)
   user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -152,6 +154,7 @@ model Vote {
   recipe       CodeRecipe?     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   migration    MigrationGuide? @relation(fields: [migrationId], references: [id], onDelete: Cascade)
   path         LearningPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  mcp          McpServer?      @relation(fields: [mcpId], references: [id], onDelete: Cascade)
 
   @@unique([userId, targetId, targetType])
   @@index([userId])
@@ -241,6 +244,37 @@ model LearningPath {
   @@index([audience])
 }
 
+model McpServer {
+  id               String        @id @default(cuid())
+  title            String
+  slug             String        @unique
+  description      String
+  content          String
+  githubUrl        String?       // GitHub repository URL
+  websiteUrl       String?       // Official website
+  logo             String?       // Path to logo in /public/logos
+  tags             String[]     // e.g., ["python", "cloud", "database"]
+  category         String?       // e.g., "database", "api", "productivity"
+  difficulty       Difficulty    @default(INTERMEDIATE)
+  status           ContentStatus @default(PENDING)
+  authorId         String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  authorName       String?
+  featured         Boolean       @default(false)
+  name             String?       // Display name
+  shortDescription String?       // Brief description for cards
+  installCommand   String?       // Command to install the MCP server
+  configExample    String?       // Example configuration JSON
+  author           User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes            Vote[]
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+  @@index([category])
+}
+
 enum Role {
   USER
   ADMIN
@@ -266,4 +300,5 @@ enum TargetType {
   RECIPE
   MIGRATION
   PATH
+  MCP
 }

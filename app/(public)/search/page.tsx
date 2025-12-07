@@ -24,6 +24,7 @@ function SearchPageContent() {
     recipes: [],
     migrations: [],
     paths: [],
+    mcps: [],
   });
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<SearchType>(initialType);
@@ -44,7 +45,7 @@ function SearchPageContent() {
   // Perform search
   const performSearch = useCallback(async () => {
     if (!query) {
-      setResults({ prompts: [], workflows: [], tools: [], recipes: [], migrations: [], paths: [] });
+      setResults({ prompts: [], workflows: [], tools: [], recipes: [], migrations: [], paths: [], mcps: [] });
       return;
     }
 
@@ -81,7 +82,7 @@ function SearchPageContent() {
   };
 
   const totalCount = results.prompts.length + results.workflows.length + results.tools.length + 
-    (results.recipes?.length ?? 0) + (results.migrations?.length ?? 0) + (results.paths?.length ?? 0);
+    (results.recipes?.length ?? 0) + (results.migrations?.length ?? 0) + (results.paths?.length ?? 0) + (results.mcps?.length ?? 0);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-24 pt-20">
@@ -190,6 +191,16 @@ function SearchPageContent() {
                 }}
               >
                 Paths
+              </FilterPill>
+              <FilterPill
+                href={`/search?q=${encodeURIComponent(query)}&type=mcp`}
+                active={type === 'mcp'}
+                onClick={() => {
+                  setType('mcp');
+                  updateFilters('mcp', difficulty);
+                }}
+              >
+                MCPs
               </FilterPill>
 
               <span className="mx-2 h-5 w-px bg-slate-700" />
@@ -351,6 +362,18 @@ function SearchPageContent() {
                 emptyLabel="No paths found."
                 items={results.paths ?? []}
                 basePath="/paths"
+                query={query}
+              />
+            )}
+            
+            {/* Show MCPs section if type is 'all' or 'mcp' */}
+            {(type === 'all' || type === 'mcp') && (
+              <SearchSection
+                icon="🔌"
+                label={`MCPs (${results.mcps?.length ?? 0})`}
+                emptyLabel="No MCPs found."
+                items={results.mcps ?? []}
+                basePath="/mcps"
                 query={query}
               />
             )}

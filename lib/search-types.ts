@@ -1,6 +1,6 @@
 // lib/search-types.ts
 
-export type SearchType = "all" | "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path";
+export type SearchType = "all" | "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp";
 
 export type Difficulty = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
@@ -10,7 +10,7 @@ export type SearchResultBase = {
   slug: string;
   description: string;
   difficulty: Difficulty;
-  type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path";
+  type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp";
 };
 
 export type SearchResults = {
@@ -20,6 +20,7 @@ export type SearchResults = {
   recipes: SearchResultBase[];
   migrations: SearchResultBase[];
   paths: SearchResultBase[];
+  mcps: SearchResultBase[];
 };
 
 export function highlightMatch(text: string, query: string): {

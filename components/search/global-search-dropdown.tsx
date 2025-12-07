@@ -16,6 +16,7 @@ const MAX_TOOL_SUGGESTIONS = 3;
 const MAX_RECIPE_SUGGESTIONS = 5;
 const MAX_MIGRATION_SUGGESTIONS = 5;
 const MAX_PATH_SUGGESTIONS = 3;
+const MAX_MCP_SUGGESTIONS = 5;
 
 type GlobalSearchProps = {
   initialQuery?: string;
@@ -25,7 +26,7 @@ type FlattenedResult = {
   id: string;
   title: string;
   description: string;
-  type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path";
+  type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp";
   slug: string;
 };
 
@@ -54,6 +55,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
   const recipePreview = useMemo(() => results?.recipes?.slice(0, MAX_RECIPE_SUGGESTIONS) ?? [], [results?.recipes]);
   const migrationPreview = useMemo(() => results?.migrations?.slice(0, MAX_MIGRATION_SUGGESTIONS) ?? [], [results?.migrations]);
   const pathPreview = useMemo(() => results?.paths?.slice(0, MAX_PATH_SUGGESTIONS) ?? [], [results?.paths]);
+  const mcpPreview = useMemo(() => results?.mcps?.slice(0, MAX_MCP_SUGGESTIONS) ?? [], [results?.mcps]);
 
   // Flatten preview results for keyboard navigation
   const flatResults: FlattenedResult[] = useMemo(() => {
@@ -64,6 +66,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       ...recipePreview,
       ...migrationPreview,
       ...pathPreview,
+      ...mcpPreview,
     ].map((r) => ({
       id: r.id,
       title: r.title,
@@ -71,7 +74,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       type: r.type,
       slug: r.slug,
     }));
-  }, [promptPreview, workflowPreview, toolPreview, recipePreview, migrationPreview, pathPreview]);
+  }, [promptPreview, workflowPreview, toolPreview, recipePreview, migrationPreview, pathPreview, mcpPreview]);
 
   useEffect(() => {
     if (!debouncedQuery.trim()) {
@@ -156,6 +159,8 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       router.push(`/migrations/${result.slug}`);
     } else if (result.type === "path") {
       router.push(`/paths/${result.slug}`);
+    } else if (result.type === "mcp") {
+      router.push(`/mcps/${result.slug}`);
     }
   };
 
@@ -208,7 +213,8 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       (results?.tools.length ?? 0) > 0 ||
       (results?.recipes?.length ?? 0) > 0 ||
       (results?.migrations?.length ?? 0) > 0 ||
-      (results?.paths?.length ?? 0) > 0
+      (results?.paths?.length ?? 0) > 0 ||
+      (results?.mcps?.length ?? 0) > 0
     );
   }, [results]);
 
@@ -219,7 +225,8 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       (results?.tools.length ?? 0) +
       (results?.recipes?.length ?? 0) +
       (results?.migrations?.length ?? 0) +
-      (results?.paths?.length ?? 0)
+      (results?.paths?.length ?? 0) +
+      (results?.mcps?.length ?? 0)
     );
   }, [results]);
 
@@ -259,6 +266,11 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
     router.push(`/search?q=${encodeURIComponent(query)}&type=path`);
   };
 
+  const handleViewAllMcps = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=mcp`);
+  };
+
   return (
     <div ref={containerRef} className="relative w-full max-w-3xl">
       <form onSubmit={handleSubmitFull}>
@@ -277,7 +289,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               if (!hasUserTyped) setHasUserTyped(true);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Search prompts, workflows, tools, recipes, migrations, paths..."
+            placeholder="Search prompts, workflows, tools, recipes, migrations, paths, MCPs..."
             className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
           />
           {query && (
@@ -375,6 +387,18 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               onClick={goToResult}
               onViewAll={handleViewAllPaths}
             />
+            <SearchDropdownSection
+              label="MCPs"
+              icon="🔌"
+              items={mcpPreview}
+              totalCount={results!.mcps?.length ?? 0}
+              query={debouncedQuery}
+              flatResults={flatResults}
+              activeIndex={activeIndex}
+              offset={promptPreview.length + workflowPreview.length + toolPreview.length + recipePreview.length + migrationPreview.length + pathPreview.length}
+              onClick={goToResult}
+              onViewAll={handleViewAllMcps}
+            />
             
             {/* Bottom fade gradient */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-950/95 to-transparent" />
@@ -419,7 +443,7 @@ type SectionProps = {
     title: string;
     slug: string;
     description: string;
-    type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path";
+    type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp";
     difficulty: any;
   }[];
   totalCount: number;

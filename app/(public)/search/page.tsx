@@ -26,6 +26,7 @@ function SearchPageContent() {
     paths: [],
     mcps: [],
     instructions: [],
+    agents: [],
   });
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<SearchType>(initialType);
@@ -46,7 +47,7 @@ function SearchPageContent() {
   // Perform search
   const performSearch = useCallback(async () => {
     if (!query) {
-      setResults({ prompts: [], workflows: [], tools: [], recipes: [], migrations: [], paths: [], mcps: [], instructions: [] });
+      setResults({ prompts: [], workflows: [], tools: [], recipes: [], migrations: [], paths: [], mcps: [], instructions: [], agents: [] });
       return;
     }
 
@@ -84,7 +85,7 @@ function SearchPageContent() {
 
   const totalCount = results.prompts.length + results.workflows.length + results.tools.length + 
     (results.recipes?.length ?? 0) + (results.migrations?.length ?? 0) + (results.paths?.length ?? 0) + 
-    (results.mcps?.length ?? 0) + (results.instructions?.length ?? 0);
+    (results.mcps?.length ?? 0) + (results.instructions?.length ?? 0) + (results.agents?.length ?? 0);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-24 pt-20">
@@ -153,6 +154,16 @@ function SearchPageContent() {
                 }}
               >
                 Instructions
+              </FilterPill>
+              <FilterPill
+                href={`/search?q=${encodeURIComponent(query)}&type=agent`}
+                active={type === 'agent'}
+                onClick={() => {
+                  setType('agent');
+                  updateFilters('agent', difficulty);
+                }}
+              >
+                Agents
               </FilterPill>
               <FilterPill
                 href={`/search?q=${encodeURIComponent(query)}&type=workflow`}
@@ -326,6 +337,18 @@ function SearchPageContent() {
                 emptyLabel="No instructions found."
                 items={results.instructions ?? []}
                 basePath="/instructions"
+                query={query}
+              />
+            )}
+            
+            {/* Show agents section if type is 'all' or 'agent' */}
+            {(type === 'all' || type === 'agent') && (
+              <SearchSection
+                icon="🤖"
+                label={`Agents (${results.agents?.length ?? 0})`}
+                emptyLabel="No agents found."
+                items={results.agents ?? []}
+                basePath="/agents"
                 query={query}
               />
             )}

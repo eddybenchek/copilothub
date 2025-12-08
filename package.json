@@ -11,8 +11,10 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx scripts/seed.ts",
     "seed:instructions": "tsx scripts/seed-instructions.ts",
+    "seed:agents": "tsx scripts/seed-agents.ts",
     "import:mcps": "tsx scripts/import-mcps-simple.ts",
     "import:instructions": "tsx scripts/import-awesome-copilot.ts",
+    "import:agents": "tsx scripts/import-agents.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

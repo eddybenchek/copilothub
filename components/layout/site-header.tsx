@@ -16,6 +16,7 @@ export function SiteHeader() {
     { name: 'Search', href: '/search' },
     { name: 'Prompts', href: '/prompts' },
     { name: 'Instructions', href: '/instructions' },
+    { name: 'Agents', href: '/agents' },
     { name: 'Workflows', href: '/workflows' },
     { name: 'Tools', href: '/tools' },
     { name: 'MCPs', href: '/mcps' },

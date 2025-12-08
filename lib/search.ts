@@ -71,7 +71,7 @@ export async function performSearch({
   const difficultyFilter =
     difficulty === 'ALL' ? {} : { difficulty: { equals: difficulty } };
 
-  const [prompts, workflows, tools, recipes, migrations, paths, mcps] = await Promise.all([
+  const [prompts, workflows, tools, recipes, migrations, paths, mcps, instructions] = await Promise.all([
     type === 'all' || type === 'prompt'
       ? db.prompt.findMany({
           where: { ...baseWhereWithContent, ...difficultyFilter, status: ContentStatus.APPROVED },
@@ -131,6 +131,20 @@ export async function performSearch({
       : Promise.resolve([]),
     type === 'all' || type === 'mcp'
       ? (db as any).mcpServer.findMany({
+          where: {
+            ...baseWhereWithoutContent,
+            ...difficultyFilter,
+            status: ContentStatus.APPROVED,
+          },
+          take: limitPerSection,
+          orderBy: [
+            { featured: 'desc' },
+            { createdAt: 'desc' },
+          ],
+        })
+      : Promise.resolve([]),
+    type === 'all' || type === 'instruction'
+      ? db.instruction.findMany({
           where: {
             ...baseWhereWithoutContent,
             ...difficultyFilter,
@@ -211,6 +225,14 @@ export async function performSearch({
         type: 'mcp' as const,
       };
     }),
+    instructions: instructions.map((i) => ({
+      id: i.id,
+      title: i.title,
+      slug: i.slug,
+      description: i.description || '',
+      difficulty: i.difficulty,
+      type: 'instruction' as const,
+    })),
   };
 }
 

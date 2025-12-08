@@ -25,6 +25,7 @@ function SearchPageContent() {
     migrations: [],
     paths: [],
     mcps: [],
+    instructions: [],
   });
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<SearchType>(initialType);
@@ -45,7 +46,7 @@ function SearchPageContent() {
   // Perform search
   const performSearch = useCallback(async () => {
     if (!query) {
-      setResults({ prompts: [], workflows: [], tools: [], recipes: [], migrations: [], paths: [], mcps: [] });
+      setResults({ prompts: [], workflows: [], tools: [], recipes: [], migrations: [], paths: [], mcps: [], instructions: [] });
       return;
     }
 
@@ -82,7 +83,8 @@ function SearchPageContent() {
   };
 
   const totalCount = results.prompts.length + results.workflows.length + results.tools.length + 
-    (results.recipes?.length ?? 0) + (results.migrations?.length ?? 0) + (results.paths?.length ?? 0) + (results.mcps?.length ?? 0);
+    (results.recipes?.length ?? 0) + (results.migrations?.length ?? 0) + (results.paths?.length ?? 0) + 
+    (results.mcps?.length ?? 0) + (results.instructions?.length ?? 0);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 pb-24 pt-20">
@@ -141,6 +143,16 @@ function SearchPageContent() {
                 }}
               >
                 Prompts
+              </FilterPill>
+              <FilterPill
+                href={`/search?q=${encodeURIComponent(query)}&type=instruction`}
+                active={type === 'instruction'}
+                onClick={() => {
+                  setType('instruction');
+                  updateFilters('instruction', difficulty);
+                }}
+              >
+                Instructions
               </FilterPill>
               <FilterPill
                 href={`/search?q=${encodeURIComponent(query)}&type=workflow`}
@@ -302,6 +314,18 @@ function SearchPageContent() {
                 emptyLabel="No prompts found."
                 items={results.prompts}
                 basePath="/prompts"
+                query={query}
+              />
+            )}
+            
+            {/* Show instructions section if type is 'all' or 'instruction' */}
+            {(type === 'all' || type === 'instruction') && (
+              <SearchSection
+                icon="📋"
+                label={`Instructions (${results.instructions?.length ?? 0})`}
+                emptyLabel="No instructions found."
+                items={results.instructions ?? []}
+                basePath="/instructions"
                 query={query}
               />
             )}

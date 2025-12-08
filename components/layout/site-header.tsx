@@ -15,6 +15,7 @@ export function SiteHeader() {
   const navigation = [
     { name: 'Search', href: '/search' },
     { name: 'Prompts', href: '/prompts' },
+    { name: 'Instructions', href: '/instructions' },
     { name: 'Workflows', href: '/workflows' },
     { name: 'Tools', href: '/tools' },
     { name: 'MCPs', href: '/mcps' },

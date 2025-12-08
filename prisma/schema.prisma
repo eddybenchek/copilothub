@@ -55,6 +55,7 @@ model User {
   migrations    MigrationGuide[]
   paths         LearningPath[]
   mcps          McpServer[]
+  instructions  Instruction[]
 }
 
 model VerificationToken {
@@ -140,21 +141,23 @@ model Vote {
   targetType   TargetType
   value        Int
   createdAt    DateTime        @default(now())
-  promptId     String?
-  workflowId   String?
-  toolId       String?
-  recipeId     String?
-  migrationId  String?
-  pathId       String?
-  mcpId        String?
-  prompt       Prompt?         @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  tool         Tool?           @relation(fields: [toolId], references: [id], onDelete: Cascade)
-  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workflow     Workflow?       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  recipe       CodeRecipe?     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  migration    MigrationGuide? @relation(fields: [migrationId], references: [id], onDelete: Cascade)
-  path         LearningPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
-  mcp          McpServer?      @relation(fields: [mcpId], references: [id], onDelete: Cascade)
+  promptId      String?
+  workflowId    String?
+  toolId        String?
+  recipeId      String?
+  migrationId   String?
+  pathId        String?
+  mcpId         String?
+  instructionId String?
+  prompt        Prompt?         @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  tool          Tool?           @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workflow      Workflow?       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  recipe        CodeRecipe?     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  migration     MigrationGuide? @relation(fields: [migrationId], references: [id], onDelete: Cascade)
+  path          LearningPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  mcp           McpServer?      @relation(fields: [mcpId], references: [id], onDelete: Cascade)
+  instruction   Instruction?    @relation(fields: [instructionId], references: [id], onDelete: Cascade)
 
   @@unique([userId, targetId, targetType])
   @@index([userId])
@@ -275,6 +278,37 @@ model McpServer {
   @@index([category])
 }
 
+model Instruction {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  description     String
+  content         String        @db.Text
+  filePattern     String?       // e.g., "*.tsx", "**/*.test.ts"
+  language        String?       // e.g., "typescript", "python"
+  framework       String?       // e.g., "react", "vue", "django"
+  scope           String?       // "file", "project", "workspace"
+  exampleBefore   String?       @db.Text
+  exampleAfter    String?       @db.Text
+  tags            String[]
+  difficulty      Difficulty    @default(INTERMEDIATE)
+  status          ContentStatus @default(PENDING)
+  featured        Boolean       @default(false)
+  downloads       Int           @default(0)
+  views           Int           @default(0)
+  authorId        String
+  author          User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes           Vote[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([language])
+  @@index([framework])
+  @@index([authorId])
+}
+
 enum Role {
   USER
   ADMIN
@@ -301,4 +335,5 @@ enum TargetType {
   MIGRATION
   PATH
   MCP
+  INSTRUCTION
 }

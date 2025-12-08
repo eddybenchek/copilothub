@@ -17,6 +17,7 @@ const MAX_RECIPE_SUGGESTIONS = 5;
 const MAX_MIGRATION_SUGGESTIONS = 5;
 const MAX_PATH_SUGGESTIONS = 3;
 const MAX_MCP_SUGGESTIONS = 5;
+const MAX_INSTRUCTION_SUGGESTIONS = 5;
 
 type GlobalSearchProps = {
   initialQuery?: string;
@@ -26,7 +27,7 @@ type FlattenedResult = {
   id: string;
   title: string;
   description: string;
-  type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp";
+  type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp" | "instruction";
   slug: string;
 };
 
@@ -56,11 +57,13 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
   const migrationPreview = useMemo(() => results?.migrations?.slice(0, MAX_MIGRATION_SUGGESTIONS) ?? [], [results?.migrations]);
   const pathPreview = useMemo(() => results?.paths?.slice(0, MAX_PATH_SUGGESTIONS) ?? [], [results?.paths]);
   const mcpPreview = useMemo(() => results?.mcps?.slice(0, MAX_MCP_SUGGESTIONS) ?? [], [results?.mcps]);
+  const instructionPreview = useMemo(() => results?.instructions?.slice(0, MAX_INSTRUCTION_SUGGESTIONS) ?? [], [results?.instructions]);
 
   // Flatten preview results for keyboard navigation
   const flatResults: FlattenedResult[] = useMemo(() => {
     return [
       ...promptPreview,
+      ...instructionPreview,
       ...workflowPreview,
       ...toolPreview,
       ...recipePreview,
@@ -74,7 +77,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       type: r.type,
       slug: r.slug,
     }));
-  }, [promptPreview, workflowPreview, toolPreview, recipePreview, migrationPreview, pathPreview, mcpPreview]);
+  }, [promptPreview, instructionPreview, workflowPreview, toolPreview, recipePreview, migrationPreview, pathPreview, mcpPreview]);
 
   useEffect(() => {
     if (!debouncedQuery.trim()) {
@@ -161,6 +164,8 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       router.push(`/paths/${result.slug}`);
     } else if (result.type === "mcp") {
       router.push(`/mcps/${result.slug}`);
+    } else if (result.type === "instruction") {
+      router.push(`/instructions/${result.slug}`);
     }
   };
 
@@ -214,7 +219,8 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       (results?.recipes?.length ?? 0) > 0 ||
       (results?.migrations?.length ?? 0) > 0 ||
       (results?.paths?.length ?? 0) > 0 ||
-      (results?.mcps?.length ?? 0) > 0
+      (results?.mcps?.length ?? 0) > 0 ||
+      (results?.instructions?.length ?? 0) > 0
     );
   }, [results]);
 
@@ -226,7 +232,8 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       (results?.recipes?.length ?? 0) +
       (results?.migrations?.length ?? 0) +
       (results?.paths?.length ?? 0) +
-      (results?.mcps?.length ?? 0)
+      (results?.mcps?.length ?? 0) +
+      (results?.instructions?.length ?? 0)
     );
   }, [results]);
 
@@ -271,6 +278,11 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
     router.push(`/search?q=${encodeURIComponent(query)}&type=mcp`);
   };
 
+  const handleViewAllInstructions = () => {
+    closeDropdown();
+    router.push(`/search?q=${encodeURIComponent(query)}&type=instruction`);
+  };
+
   return (
     <div ref={containerRef} className="relative w-full max-w-3xl">
       <form onSubmit={handleSubmitFull}>
@@ -289,7 +301,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               if (!hasUserTyped) setHasUserTyped(true);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Search prompts, workflows, tools, recipes, migrations, paths, MCPs..."
+            placeholder="Search prompts, instructions, workflows, tools, recipes, migrations, paths, MCPs..."
             className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
           />
           {query && (
@@ -328,6 +340,18 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               onViewAll={handleViewAllPrompts}
             />
             <SearchDropdownSection
+              label="Instructions"
+              icon="📋"
+              items={instructionPreview}
+              totalCount={results!.instructions?.length ?? 0}
+              query={debouncedQuery}
+              flatResults={flatResults}
+              activeIndex={activeIndex}
+              offset={promptPreview.length}
+              onClick={goToResult}
+              onViewAll={handleViewAllInstructions}
+            />
+            <SearchDropdownSection
               label="Workflows"
               icon="⚙️"
               items={workflowPreview}
@@ -335,7 +359,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               query={debouncedQuery}
               flatResults={flatResults}
               activeIndex={activeIndex}
-              offset={promptPreview.length}
+              offset={promptPreview.length + instructionPreview.length}
               onClick={goToResult}
               onViewAll={handleViewAllWorkflows}
             />
@@ -347,7 +371,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               query={debouncedQuery}
               flatResults={flatResults}
               activeIndex={activeIndex}
-              offset={promptPreview.length + workflowPreview.length}
+              offset={promptPreview.length + instructionPreview.length + workflowPreview.length}
               onClick={goToResult}
               onViewAll={handleViewAllTools}
             />
@@ -359,7 +383,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               query={debouncedQuery}
               flatResults={flatResults}
               activeIndex={activeIndex}
-              offset={promptPreview.length + workflowPreview.length + toolPreview.length}
+              offset={promptPreview.length + instructionPreview.length + workflowPreview.length + toolPreview.length}
               onClick={goToResult}
               onViewAll={handleViewAllRecipes}
             />
@@ -371,7 +395,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               query={debouncedQuery}
               flatResults={flatResults}
               activeIndex={activeIndex}
-              offset={promptPreview.length + workflowPreview.length + toolPreview.length + recipePreview.length}
+              offset={promptPreview.length + instructionPreview.length + workflowPreview.length + toolPreview.length + recipePreview.length}
               onClick={goToResult}
               onViewAll={handleViewAllMigrations}
             />
@@ -383,7 +407,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               query={debouncedQuery}
               flatResults={flatResults}
               activeIndex={activeIndex}
-              offset={promptPreview.length + workflowPreview.length + toolPreview.length + recipePreview.length + migrationPreview.length}
+              offset={promptPreview.length + instructionPreview.length + workflowPreview.length + toolPreview.length + recipePreview.length + migrationPreview.length}
               onClick={goToResult}
               onViewAll={handleViewAllPaths}
             />
@@ -395,7 +419,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               query={debouncedQuery}
               flatResults={flatResults}
               activeIndex={activeIndex}
-              offset={promptPreview.length + workflowPreview.length + toolPreview.length + recipePreview.length + migrationPreview.length + pathPreview.length}
+              offset={promptPreview.length + instructionPreview.length + workflowPreview.length + toolPreview.length + recipePreview.length + migrationPreview.length + pathPreview.length}
               onClick={goToResult}
               onViewAll={handleViewAllMcps}
             />
@@ -443,7 +467,7 @@ type SectionProps = {
     title: string;
     slug: string;
     description: string;
-    type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp";
+    type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp" | "instruction";
     difficulty: any;
   }[];
   totalCount: number;

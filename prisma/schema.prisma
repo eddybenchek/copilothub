@@ -56,6 +56,7 @@ model User {
   paths         LearningPath[]
   mcps          McpServer[]
   instructions  Instruction[]
+  agents        Agent[]
 }
 
 model VerificationToken {
@@ -149,6 +150,7 @@ model Vote {
   pathId        String?
   mcpId         String?
   instructionId String?
+  agentId       String?
   prompt        Prompt?         @relation(fields: [promptId], references: [id], onDelete: Cascade)
   tool          Tool?           @relation(fields: [toolId], references: [id], onDelete: Cascade)
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -158,6 +160,7 @@ model Vote {
   path          LearningPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
   mcp           McpServer?      @relation(fields: [mcpId], references: [id], onDelete: Cascade)
   instruction   Instruction?    @relation(fields: [instructionId], references: [id], onDelete: Cascade)
+  agent         Agent?          @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, targetId, targetType])
   @@index([userId])
@@ -309,6 +312,37 @@ model Instruction {
   @@index([authorId])
 }
 
+model Agent {
+  id                  String        @id @default(cuid())
+  title               String
+  slug                String        @unique
+  description         String
+  content             String        @db.Text
+  category            String?       // e.g., "Testing", "Security", "Frontend"
+  mcpServers          String[]      // Required MCP server names
+  languages           String[]      // Supported languages
+  frameworks          String[]      // Supported frameworks
+  vsCodeInstallUrl    String?       // VS Code install deep link
+  vsCodeInsidersUrl   String?       // VS Code Insiders install link
+  downloadUrl         String?       // Direct .agent.md download URL
+  tags                String[]
+  difficulty          Difficulty    @default(INTERMEDIATE)
+  status              ContentStatus @default(PENDING)
+  featured            Boolean       @default(false)
+  downloads           Int           @default(0)
+  views               Int           @default(0)
+  authorId            String
+  author              User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes               Vote[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([status])
+  @@index([authorId])
+}
+
 enum Role {
   USER
   ADMIN
@@ -336,4 +370,5 @@ enum TargetType {
   PATH
   MCP
   INSTRUCTION
+  AGENT
 }

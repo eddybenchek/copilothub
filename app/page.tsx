@@ -10,6 +10,7 @@ import { MigrationCard } from '@/components/migrations/migration-card';
 import { LearningPathCard } from '@/components/paths/learning-path-card';
 import { McpCard } from '@/components/mcp/mcp-card';
 import { InstructionCard } from '@/components/instructions/instruction-card';
+import { AgentCard } from '@/components/agents/agent-card';
 import { GlobalSearchDropdown } from '@/components/search/global-search-dropdown';
 import { ModernizationSection } from '@/components/home/modernization-section';
 import { getLatestPrompts, getLatestWorkflows, getLatestTools } from '@/lib/prisma-helpers';
@@ -17,7 +18,7 @@ import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 
 export default async function HomePage() {
-  const [prompts, workflows, tools, modernizationPrompts, modernizationWorkflows, latestRecipes, latestMigrations, latestPaths, featuredMcps, featuredInstructions] = await Promise.all([
+  const [prompts, workflows, tools, modernizationPrompts, modernizationWorkflows, latestRecipes, latestMigrations, latestPaths, featuredMcps, featuredInstructions, featuredAgents] = await Promise.all([
     getLatestPrompts(3),
     getLatestWorkflows(3),
     getLatestTools(3),
@@ -108,6 +109,22 @@ export default async function HomePage() {
     }),
     // Fetch featured Instructions
     db.instruction.findMany({
+      where: {
+        status: ContentStatus.APPROVED,
+        featured: true,
+      },
+      orderBy: [
+        { featured: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      take: 6,
+      include: {
+        author: true,
+        votes: true,
+      },
+    }),
+    // Fetch featured Agents
+    db.agent.findMany({
       where: {
         status: ContentStatus.APPROVED,
         featured: true,
@@ -229,6 +246,31 @@ export default async function HomePage() {
             {featuredInstructions.map((instruction) => (
               <InstructionCard key={instruction.id} instruction={instruction} />
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* Featured Agents */}
+      {featuredAgents.length > 0 && (
+        <section className="border-y border-border bg-muted/50">
+          <div className="container mx-auto px-4 py-20">
+            <div className="mb-12 flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold">AI Agents</h2>
+                <p className="mt-2 text-slate-400">Specialized assistants for complex development tasks</p>
+              </div>
+              <Button variant="ghost" asChild>
+                <Link href="/agents">
+                  View all
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {featuredAgents.map((agent) => (
+                <AgentCard key={agent.id} agent={agent} />
+              ))}
+            </div>
           </div>
         </section>
       )}

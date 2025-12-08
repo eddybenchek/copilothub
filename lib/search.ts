@@ -71,7 +71,7 @@ export async function performSearch({
   const difficultyFilter =
     difficulty === 'ALL' ? {} : { difficulty: { equals: difficulty } };
 
-  const [prompts, workflows, tools, recipes, migrations, paths, mcps, instructions] = await Promise.all([
+  const [prompts, workflows, tools, recipes, migrations, paths, mcps, instructions, agents] = await Promise.all([
     type === 'all' || type === 'prompt'
       ? db.prompt.findMany({
           where: { ...baseWhereWithContent, ...difficultyFilter, status: ContentStatus.APPROVED },
@@ -157,6 +157,20 @@ export async function performSearch({
           ],
         })
       : Promise.resolve([]),
+    type === 'all' || type === 'agent'
+      ? db.agent.findMany({
+          where: {
+            ...baseWhereWithContent,
+            ...difficultyFilter,
+            status: ContentStatus.APPROVED,
+          },
+          take: limitPerSection,
+          orderBy: [
+            { featured: 'desc' },
+            { createdAt: 'desc' },
+          ],
+        })
+      : Promise.resolve([]),
   ]);
 
   return {
@@ -232,6 +246,14 @@ export async function performSearch({
       description: i.description || '',
       difficulty: i.difficulty,
       type: 'instruction' as const,
+    })),
+    agents: agents.map((a) => ({
+      id: a.id,
+      title: a.title,
+      slug: a.slug,
+      description: a.description || '',
+      difficulty: a.difficulty,
+      type: 'agent' as const,
     })),
   };
 }

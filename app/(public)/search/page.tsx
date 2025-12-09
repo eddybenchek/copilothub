@@ -19,11 +19,7 @@ function SearchPageContent() {
 
   const [results, setResults] = useState<SearchResults>({
     prompts: [],
-    workflows: [],
     tools: [],
-    recipes: [],
-    migrations: [],
-    paths: [],
     mcps: [],
     instructions: [],
     agents: [],
@@ -47,7 +43,7 @@ function SearchPageContent() {
   // Perform search
   const performSearch = useCallback(async () => {
     if (!query) {
-      setResults({ prompts: [], workflows: [], tools: [], recipes: [], migrations: [], paths: [], mcps: [], instructions: [], agents: [] });
+      setResults({ prompts: [], tools: [], mcps: [], instructions: [], agents: [] });
       return;
     }
 
@@ -83,8 +79,7 @@ function SearchPageContent() {
     router.push(`/search?${params.toString()}`);
   };
 
-  const totalCount = results.prompts.length + results.workflows.length + results.tools.length + 
-    (results.recipes?.length ?? 0) + (results.migrations?.length ?? 0) + (results.paths?.length ?? 0) + 
+  const totalCount = results.prompts.length + results.tools.length + 
     (results.mcps?.length ?? 0) + (results.instructions?.length ?? 0) + (results.agents?.length ?? 0);
 
   return (
@@ -166,16 +161,6 @@ function SearchPageContent() {
                 Agents
               </FilterPill>
               <FilterPill
-                href={`/search?q=${encodeURIComponent(query)}&type=workflow`}
-                active={type === 'workflow'}
-                onClick={() => {
-                  setType('workflow');
-                  updateFilters('workflow', difficulty);
-                }}
-              >
-                Workflows
-              </FilterPill>
-              <FilterPill
                 href={`/search?q=${encodeURIComponent(query)}&type=tool`}
                 active={type === 'tool'}
                 onClick={() => {
@@ -184,36 +169,6 @@ function SearchPageContent() {
                 }}
               >
                 Tools
-              </FilterPill>
-              <FilterPill
-                href={`/search?q=${encodeURIComponent(query)}&type=recipe`}
-                active={type === 'recipe'}
-                onClick={() => {
-                  setType('recipe');
-                  updateFilters('recipe', difficulty);
-                }}
-              >
-                Recipes
-              </FilterPill>
-              <FilterPill
-                href={`/search?q=${encodeURIComponent(query)}&type=migration`}
-                active={type === 'migration'}
-                onClick={() => {
-                  setType('migration');
-                  updateFilters('migration', difficulty);
-                }}
-              >
-                Migrations
-              </FilterPill>
-              <FilterPill
-                href={`/search?q=${encodeURIComponent(query)}&type=path`}
-                active={type === 'path'}
-                onClick={() => {
-                  setType('path');
-                  updateFilters('path', difficulty);
-                }}
-              >
-                Paths
               </FilterPill>
               <FilterPill
                 href={`/search?q=${encodeURIComponent(query)}&type=mcp`}
@@ -282,7 +237,7 @@ function SearchPageContent() {
             Start Searching
           </h2>
           <p className="mb-8 max-w-md text-slate-400">
-            Type in the search box above to find prompts, workflows, and tools for your AI development needs.
+            Type in the search box above to find prompts, instructions, agents, tools, and MCPs for your AI development needs.
           </p>
           <div className="flex flex-wrap justify-center gap-2 text-sm">
             <span className="text-slate-500">Try:</span>
@@ -353,18 +308,6 @@ function SearchPageContent() {
               />
             )}
             
-            {/* Show workflows section if type is 'all' or 'workflow' */}
-            {(type === 'all' || type === 'workflow') && (
-              <SearchSection
-                icon="⚙️"
-                label={`Workflows (${results.workflows.length})`}
-                emptyLabel="No workflows found."
-                items={results.workflows}
-                basePath="/workflows"
-                query={query}
-              />
-            )}
-            
             {/* Show tools section if type is 'all' or 'tool' */}
             {(type === 'all' || type === 'tool') && (
               <SearchSection
@@ -373,42 +316,6 @@ function SearchPageContent() {
                 emptyLabel="No tools found."
                 items={results.tools}
                 basePath="/tools"
-                query={query}
-              />
-            )}
-            
-            {/* Show recipes section if type is 'all' or 'recipe' */}
-            {(type === 'all' || type === 'recipe') && (
-              <SearchSection
-                icon="📝"
-                label={`Recipes (${results.recipes?.length ?? 0})`}
-                emptyLabel="No recipes found."
-                items={results.recipes ?? []}
-                basePath="/recipes"
-                query={query}
-              />
-            )}
-            
-            {/* Show migrations section if type is 'all' or 'migration' */}
-            {(type === 'all' || type === 'migration') && (
-              <SearchSection
-                icon="🔄"
-                label={`Migrations (${results.migrations?.length ?? 0})`}
-                emptyLabel="No migrations found."
-                items={results.migrations ?? []}
-                basePath="/migrations"
-                query={query}
-              />
-            )}
-            
-            {/* Show paths section if type is 'all' or 'path' */}
-            {(type === 'all' || type === 'path') && (
-              <SearchSection
-                icon="🛤️"
-                label={`Paths (${results.paths?.length ?? 0})`}
-                emptyLabel="No paths found."
-                items={results.paths ?? []}
-                basePath="/paths"
                 query={query}
               />
             )}

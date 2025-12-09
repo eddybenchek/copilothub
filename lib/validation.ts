@@ -32,7 +32,7 @@ export const createToolSchema = z.object({
 // Vote validation
 export const voteSchema = z.object({
   targetId: z.string().cuid(),
-  targetType: z.enum(['PROMPT', 'WORKFLOW', 'TOOL']),
+  targetType: z.enum(['PROMPT', 'TOOL', 'MCP', 'INSTRUCTION', 'AGENT']),
   value: z.union([z.literal(1), z.literal(-1)]),
 });
 

@@ -35,40 +35,6 @@ export async function getAllPrompts() {
   });
 }
 
-// Workflow helpers
-export async function getLatestWorkflows(limit = 6) {
-  return await db.workflow.findMany({
-    where: { status: ContentStatus.APPROVED },
-    include: {
-      author: true,
-      votes: true,
-    },
-    orderBy: { createdAt: 'desc' },
-    take: limit,
-  });
-}
-
-export async function getWorkflowBySlug(slug: string) {
-  return await db.workflow.findUnique({
-    where: { slug },
-    include: {
-      author: true,
-      votes: true,
-    },
-  });
-}
-
-export async function getAllWorkflows() {
-  return await db.workflow.findMany({
-    where: { status: ContentStatus.APPROVED },
-    include: {
-      author: true,
-      votes: true,
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-}
-
 // Tool helpers
 export async function getLatestTools(limit = 6) {
   return await db.tool.findMany({

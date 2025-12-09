@@ -37,8 +37,10 @@ export async function POST(request: NextRequest) {
     // Determine the relation field based on target type
     const relationField = {
       PROMPT: 'promptId',
-      WORKFLOW: 'workflowId',
       TOOL: 'toolId',
+      MCP: 'mcpId',
+      INSTRUCTION: 'instructionId',
+      AGENT: 'agentId',
     }[validatedData.targetType];
 
     // Create new vote

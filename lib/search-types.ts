@@ -1,6 +1,6 @@
 // lib/search-types.ts
 
-export type SearchType = "all" | "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp" | "instruction" | "agent";
+export type SearchType = "all" | "prompt" | "tool" | "mcp" | "instruction" | "agent";
 
 export type Difficulty = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
@@ -10,16 +10,12 @@ export type SearchResultBase = {
   slug: string;
   description: string;
   difficulty: Difficulty;
-  type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp" | "instruction" | "agent";
+  type: "prompt" | "tool" | "mcp" | "instruction" | "agent";
 };
 
 export type SearchResults = {
   prompts: SearchResultBase[];
-  workflows: SearchResultBase[];
   tools: SearchResultBase[];
-  recipes: SearchResultBase[];
-  migrations: SearchResultBase[];
-  paths: SearchResultBase[];
   mcps: SearchResultBase[];
   instructions: SearchResultBase[];
   agents: SearchResultBase[];

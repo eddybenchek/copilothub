@@ -75,15 +75,16 @@ async function fetchAwesomeCopilotAgents(): Promise<CopilotAgent[]> {
             
             const agentName = nameMatch.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
             
+            const category = extractCategory(content, agentName);
             agents.push({
               name: agentName,
               description: description.substring(0, 200),
               content: content,
-              category: extractCategory(content, agentName),
+              category: category,
               mcpServers: extractMcpServers(content),
-              languages: extractLanguages(content),
-              frameworks: extractFrameworks(content),
-              tags: extractTags(content, nameMatch),
+              languages: extractLanguages(content, agentName),
+              frameworks: extractFrameworks(content, agentName),
+              tags: extractTags(content, nameMatch, category),
               vsCodeInstallUrl: vsCodeUrl,
               vsCodeInsidersUrl: vsCodeInsidersUrl,
               downloadUrl: rawUrl,
@@ -109,82 +110,133 @@ function extractCategory(content: string, name: string): string | undefined {
   // Priority-based category extraction - check most specific first
   // Use both name and content, but prioritize name for accuracy
   
-  // Infrastructure & DevOps (check first as it's very specific)
-  if (lowerName.includes('terraform') || lowerName.includes('azure') || lowerName.includes('bicep') || 
-      lowerName.includes('infrastructure') || lowerName.includes('devops') || lowerName.includes('deploy')) {
-    return 'Infrastructure';
-  }
-  
-  // Cloud & Platform
-  if (lowerName.includes('azure') || lowerName.includes('aws') || lowerName.includes('gcp') || 
-      lowerName.includes('cloud') || lowerName.includes('platform')) {
-    return 'Cloud';
-  }
-  
-  // Database
-  if (lowerName.includes('database') || lowerName.includes('dba') || lowerName.includes('sql') || 
-      lowerName.includes('postgres') || lowerName.includes('mongodb') || lowerName.includes('neo4j') ||
-      lowerContent.includes('database administrator') || lowerContent.includes('dba')) {
-    return 'Database';
-  }
-  
-  // Language Experts (MCP Experts)
-  if (lowerName.includes('mcp expert') || lowerName.includes('expert') && 
-      (lowerName.includes('typescript') || lowerName.includes('python') || lowerName.includes('go') || 
-       lowerName.includes('rust') || lowerName.includes('java') || lowerName.includes('csharp') ||
-       lowerName.includes('php') || lowerName.includes('ruby') || lowerName.includes('swift') ||
-       lowerName.includes('kotlin') || lowerName.includes('clojure'))) {
+  // Language Experts (MCP Experts) - check first as it's very specific
+  const languageKeywords = ['typescript', 'python', 'go', 'rust', 'java', 'csharp', 'php', 'ruby', 'swift', 'kotlin', 'clojure', 'cpp', 'c++'];
+  const isLanguageExpert = lowerName.includes('mcp expert') || 
+    (lowerName.includes('expert') && languageKeywords.some(lang => lowerName.includes(lang)));
+  if (isLanguageExpert) {
     return 'Language Expert';
   }
   
-  // Security (be more specific - avoid false positives)
-  if (lowerName.includes('security') || lowerName.includes('sentinel') || lowerName.includes('sec') ||
-      (lowerContent.includes('security vulnerability') || lowerContent.includes('security audit') ||
-       lowerContent.includes('vulnerability scan') || lowerContent.includes('security testing'))) {
+  // Infrastructure & DevOps (check before Cloud as it's more specific)
+  if (lowerName.includes('terraform') || lowerName.includes('bicep') || 
+      lowerName.includes('infrastructure') || lowerName.includes('devops') || 
+      lowerName.includes('deploy') || lowerName.includes('gitops')) {
+    return 'Infrastructure';
+  }
+  
+  // Database - be very specific, only match explicit database-related terms
+  const databaseKeywords = ['dba', 'database', 'postgres', 'mongodb', 'neo4j', 
+    'sql', 'mysql', 'postgresql', 'mssql', 'oracle'];
+  const hasDatabaseName = databaseKeywords.some(keyword => lowerName.includes(keyword));
+  const hasDatabaseContent = lowerContent.includes('database administrator') || 
+    lowerContent.includes('dba') || lowerContent.includes('database management');
+  
+  if (hasDatabaseName || hasDatabaseContent) {
+    return 'Database';
+  }
+  
+  // Cloud & Platform (but not if already Infrastructure)
+  if (lowerName.includes('azure') || lowerName.includes('aws') || lowerName.includes('gcp') || 
+      lowerName.includes('cloud') || (lowerName.includes('platform') && !lowerName.includes('power'))) {
+    return 'Cloud';
+  }
+  
+  // Security - be more specific
+  if (lowerName.includes('security') || lowerName.includes('sentinel') || 
+      (lowerName.includes('sec') && !lowerName.includes('expert')) ||
+      lowerContent.includes('security vulnerability') || lowerContent.includes('security audit') ||
+      lowerContent.includes('vulnerability scan') || lowerContent.includes('security testing')) {
     return 'Security';
   }
   
-  // Testing (be more specific - only if it's actually about testing)
-  if (lowerName.includes('test') || lowerName.includes('tester') || lowerName.includes('tdd') ||
-      (lowerContent.includes('write tests') || lowerContent.includes('test suite') ||
-       lowerContent.includes('unit test') || lowerContent.includes('integration test') ||
-       lowerContent.includes('test coverage') || lowerContent.includes('testing framework'))) {
+  // Testing - ONLY match explicit testing keywords in NAME (not content to avoid false positives)
+  const testingNameKeywords = ['tester', 'tdd', 'playwright'];
+  const hasTestingName = testingNameKeywords.some(keyword => lowerName.includes(keyword));
+  
+  if (hasTestingName) {
     return 'Testing';
   }
   
-  // Frontend
-  if (lowerName.includes('frontend') || lowerName.includes('react') || lowerName.includes('vue') ||
-      lowerName.includes('angular') || lowerName.includes('ui') || lowerName.includes('nextjs')) {
-    return 'Frontend';
-  }
-  
-  // Backend
-  if (lowerName.includes('backend') || lowerName.includes('api') || lowerName.includes('server') ||
-      lowerName.includes('express') || lowerName.includes('django') || lowerName.includes('flask')) {
-    return 'Backend';
-  }
-  
-  // Architecture & Planning
-  if (lowerName.includes('architect') || lowerName.includes('architecture') || lowerName.includes('plan') ||
-      lowerName.includes('planner') || lowerName.includes('blueprint') || lowerName.includes('design')) {
+  // Software Engineering roles (SE prefix) - check early
+  if (lowerName.startsWith('se ') || lowerName.startsWith('se-')) {
+    const seType = lowerName;
+    if (seType.includes('security')) return 'Security';
+    if (seType.includes('gitops') || seType.includes('ci')) return 'Infrastructure';
+    if (seType.includes('technical writer') || seType.includes('writer')) return 'Documentation';
+    if (seType.includes('ux') || seType.includes('ui') || seType.includes('designer')) return 'Frontend';
+    if (seType.includes('architecture') || seType.includes('architect')) return 'Architecture';
+    if (seType.includes('product manager')) return 'Architecture'; // Planning/strategy
+    // Default for other SE roles
     return 'Architecture';
   }
   
   // Business Intelligence & Data
-  if (lowerName.includes('power bi') || lowerName.includes('dax') || lowerName.includes('data modeling') ||
-      lowerName.includes('analytics') || lowerName.includes('kusto')) {
+  if (lowerName.includes('power bi') || lowerName.includes('dax') || 
+      lowerName.includes('data modeling') || lowerName.includes('kusto')) {
     return 'Business Intelligence';
   }
   
+  // Architecture & Planning - expand to catch more planning/research agents
+  if (lowerName.includes('architect') || lowerName.includes('architecture') || 
+      lowerName.includes('blueprint') || lowerName.includes('planner') ||
+      lowerName.includes('plan') || lowerName.includes('research') ||
+      lowerName.includes('spike') || lowerName.includes('specification') ||
+      lowerName.includes('prd') || lowerName.includes('implementation plan')) {
+    return 'Architecture';
+  }
+  
+  // Code Quality & Analysis
+  if (lowerName.includes('code review') || lowerName.includes('code quality') ||
+      lowerName.includes('code sentinel') || lowerName.includes('code alchemist') ||
+      lowerName.includes('analyzer') || lowerName.includes('optimization') ||
+      lowerName.includes('evaluator') || lowerName.includes('reviewer')) {
+    return 'Maintenance';
+  }
+  
+  // Generic Expert/Engineer agents (catch before they fall through)
+  if (lowerName.includes('expert') && !lowerName.includes('mcp')) {
+    // Try to infer from context
+    if (lowerName.includes('frontend') || lowerName.includes('react') || 
+        lowerName.includes('nextjs') || lowerName.includes('ui')) {
+      return 'Frontend';
+    }
+    if (lowerName.includes('backend') || lowerName.includes('api') || 
+        lowerName.includes('dotnet') || lowerName.includes('cpp')) {
+      return 'Backend';
+    }
+    if (lowerName.includes('drupal') || lowerName.includes('laravel') || 
+        lowerName.includes('shopify') || lowerName.includes('pimcore')) {
+      return 'Framework';
+    }
+    // Default expert agents to Architecture
+    return 'Architecture';
+  }
+  
+  // Frontend
+  if (lowerName.includes('frontend') || lowerName.includes('react') || 
+      lowerName.includes('vue') || lowerName.includes('angular') || 
+      lowerName.includes('nextjs') || (lowerName.includes('ui') && !lowerName.includes('platform'))) {
+    return 'Frontend';
+  }
+  
+  // Backend
+  if (lowerName.includes('backend') || lowerName.includes('api architect') ||
+      lowerName.includes('express') || lowerName.includes('django') || lowerName.includes('flask')) {
+    return 'Backend';
+  }
+  
   // Maintenance & Refactoring
-  if (lowerName.includes('refactor') || lowerName.includes('cleanup') || lowerName.includes('janitor') ||
-      lowerName.includes('maintenance') || lowerName.includes('remediation') || lowerName.includes('tech debt')) {
+  if (lowerName.includes('refactor') || lowerName.includes('cleanup') || 
+      lowerName.includes('janitor') || lowerName.includes('maintenance') || 
+      lowerName.includes('remediation') || lowerName.includes('tech debt')) {
     return 'Maintenance';
   }
   
   // Documentation
-  if (lowerName.includes('documentation') || lowerName.includes('docs') || lowerName.includes('adr') ||
-      lowerName.includes('readme') || lowerName.includes('i18n')) {
+  if (lowerName.includes('documentation') || lowerName.includes('docs') || 
+      lowerName.includes('adr') || lowerName.includes('readme') || 
+      lowerName.includes('i18n') || lowerName.includes('technical writer')) {
     return 'Documentation';
   }
   
@@ -194,15 +246,29 @@ function extractCategory(content: string, name: string): string | undefined {
   }
   
   // Framework-specific
-  if (lowerName.includes('laravel') || lowerName.includes('drupal') || lowerName.includes('shopify') ||
-      lowerName.includes('semantic kernel') || lowerName.includes('electron')) {
+  if (lowerName.includes('laravel') || lowerName.includes('drupal') || 
+      lowerName.includes('shopify') || lowerName.includes('semantic kernel') ||
+      (lowerName.includes('electron') && !lowerName.includes('angular'))) {
     return 'Framework';
   }
   
   // Monitoring & Observability
-  if (lowerName.includes('monitoring') || lowerName.includes('observability') || lowerName.includes('dynatrace') ||
-      lowerName.includes('elasticsearch') || lowerName.includes('pagerduty')) {
+  if (lowerName.includes('monitoring') || lowerName.includes('observability') || 
+      lowerName.includes('dynatrace') || lowerName.includes('elasticsearch') || 
+      lowerName.includes('pagerduty')) {
     return 'Monitoring';
+  }
+  
+  // Generic "Beast Mode" and similar generic agents - default to Architecture
+  if (lowerName.includes('beast mode') || lowerName.includes('beast-mode') ||
+      lowerName.includes('thinking') && lowerName.includes('mode')) {
+    return 'Architecture';
+  }
+  
+  // Generic utility/helper agents - default to Architecture
+  if (lowerName.includes('debug') || lowerName.includes('mentor') || 
+      lowerName.includes('demonstrate') || lowerName.includes('critical thinking')) {
+    return 'Architecture';
   }
   
   return undefined;
@@ -246,71 +312,290 @@ function extractMcpServers(content: string): string[] {
   return [];
 }
 
-function extractLanguages(content: string): string[] {
+function extractLanguages(content: string, name: string): string[] {
   const languages: string[] = [];
   const lowerContent = content.toLowerCase();
+  const lowerName = name.toLowerCase();
   
+  // Language map with priority keywords (more specific = higher priority)
   const languageMap = {
-    'typescript': ['typescript', 'ts'],
-    'javascript': ['javascript', 'js'],
-    'python': ['python', 'py'],
-    'java': ['java'],
-    'go': ['golang', 'go'],
-    'rust': ['rust'],
-    'csharp': ['c#', 'csharp'],
-    'php': ['php'],
+    'typescript': {
+      keywords: ['typescript', 'ts'],
+      strongSignals: ['typescript', '.ts', 'tsx', 'typescript code', 'typescript project'],
+      nameSignals: ['typescript', 'ts']
+    },
+    'javascript': {
+      keywords: ['javascript', 'js'],
+      strongSignals: ['javascript', '.js', 'jsx', 'javascript code', 'node.js', 'nodejs'],
+      nameSignals: ['javascript', 'js']
+    },
+    'python': {
+      keywords: ['python', 'py'],
+      strongSignals: ['python', '.py', 'python code', 'python project', 'pip', 'pytest'],
+      nameSignals: ['python', 'py']
+    },
+    'java': {
+      keywords: ['java'],
+      strongSignals: ['java', '.java', 'java code', 'java project', 'maven', 'gradle'],
+      nameSignals: ['java']
+    },
+    'go': {
+      keywords: ['golang', 'go'],
+      strongSignals: ['golang', 'go code', '.go', 'go project', 'go module'],
+      nameSignals: ['go', 'golang']
+    },
+    'rust': {
+      keywords: ['rust'],
+      strongSignals: ['rust', '.rs', 'rust code', 'rust project', 'cargo'],
+      nameSignals: ['rust']
+    },
+    'csharp': {
+      keywords: ['c#', 'csharp'],
+      strongSignals: ['c#', 'csharp', '.cs', 'c# code', '.net', 'dotnet'],
+      nameSignals: ['csharp', 'c#']
+    },
+    'php': {
+      keywords: ['php'],
+      strongSignals: ['php', '.php', 'php code', 'php project', 'composer'],
+      nameSignals: ['php']
+    },
   };
   
-  for (const [lang, keywords] of Object.entries(languageMap)) {
-    if (keywords.some(kw => lowerContent.includes(kw))) {
+  // Check name first (highest priority)
+  for (const [lang, data] of Object.entries(languageMap)) {
+    if (data.nameSignals.some(signal => lowerName.includes(signal))) {
       languages.push(lang);
     }
   }
   
-  return [...new Set(languages)];
+  // Then check for strong signals in content
+  for (const [lang, data] of Object.entries(languageMap)) {
+    if (!languages.includes(lang) && data.strongSignals.some(signal => lowerContent.includes(signal))) {
+      languages.push(lang);
+    }
+  }
+  
+  // Finally, check for any keyword mentions (but limit to max 5 languages)
+  if (languages.length < 5) {
+    for (const [lang, data] of Object.entries(languageMap)) {
+      if (!languages.includes(lang) && languages.length < 5) {
+        // Only add if it appears in a meaningful context (not just a passing mention)
+        const keywordPattern = new RegExp(`\\b(${data.keywords.join('|')})\\b`, 'i');
+        if (keywordPattern.test(lowerContent)) {
+          // Check if it's mentioned in a relevant context (near words like "code", "project", "development", etc.)
+          const contextPattern = new RegExp(`(${data.keywords.join('|')}).{0,50}(code|project|development|application|programming|framework|library)`, 'i');
+          if (contextPattern.test(lowerContent)) {
+            languages.push(lang);
+          }
+        }
+      }
+    }
+  }
+  
+  return [...new Set(languages)].slice(0, 5); // Limit to 5 most relevant
 }
 
-function extractFrameworks(content: string): string[] {
+function extractFrameworks(content: string, name: string): string[] {
   const frameworks: string[] = [];
   const lowerContent = content.toLowerCase();
+  const lowerName = name.toLowerCase();
   
+  // Framework map with priority signals
   const frameworkMap = {
-    'react': ['react'],
-    'vue': ['vue'],
-    'angular': ['angular'],
-    'nextjs': ['next.js', 'nextjs'],
-    'express': ['express'],
-    'django': ['django'],
-    'flask': ['flask'],
-    'spring': ['spring'],
+    'react': {
+      keywords: ['react'],
+      strongSignals: ['react', 'react.js', 'reactjs', 'react component', 'react app'],
+      nameSignals: ['react']
+    },
+    'vue': {
+      keywords: ['vue'],
+      strongSignals: ['vue', 'vue.js', 'vuejs', 'vue component', 'vue app'],
+      nameSignals: ['vue']
+    },
+    'angular': {
+      keywords: ['angular'],
+      strongSignals: ['angular', 'angular.js', 'angularjs', 'angular component', 'angular app'],
+      nameSignals: ['angular']
+    },
+    'nextjs': {
+      keywords: ['next.js', 'nextjs'],
+      strongSignals: ['next.js', 'nextjs', 'next.js app', 'next.js project'],
+      nameSignals: ['nextjs', 'next.js']
+    },
+    'express': {
+      keywords: ['express'],
+      strongSignals: ['express', 'express.js', 'expressjs', 'express app', 'express server'],
+      nameSignals: ['express']
+    },
+    'django': {
+      keywords: ['django'],
+      strongSignals: ['django', 'django app', 'django project', 'django framework'],
+      nameSignals: ['django']
+    },
+    'flask': {
+      keywords: ['flask'],
+      strongSignals: ['flask', 'flask app', 'flask application', 'flask project'],
+      nameSignals: ['flask']
+    },
+    'spring': {
+      keywords: ['spring'],
+      strongSignals: ['spring', 'spring boot', 'spring framework', 'spring application'],
+      nameSignals: ['spring']
+    },
   };
   
-  for (const [framework, keywords] of Object.entries(frameworkMap)) {
-    if (keywords.some(kw => lowerContent.includes(kw))) {
+  // Check name first (highest priority)
+  for (const [framework, data] of Object.entries(frameworkMap)) {
+    if (data.nameSignals.some(signal => lowerName.includes(signal))) {
       frameworks.push(framework);
     }
   }
   
-  return [...new Set(frameworks)];
+  // Then check for strong signals in content
+  for (const [framework, data] of Object.entries(frameworkMap)) {
+    if (!frameworks.includes(framework) && data.strongSignals.some(signal => lowerContent.includes(signal))) {
+      frameworks.push(framework);
+    }
+  }
+  
+  // Finally, check for keyword mentions in relevant context (limit to max 3 frameworks)
+  if (frameworks.length < 3) {
+    for (const [framework, data] of Object.entries(frameworkMap)) {
+      if (!frameworks.includes(framework) && frameworks.length < 3) {
+        const keywordPattern = new RegExp(`\\b(${data.keywords.join('|')})\\b`, 'i');
+        if (keywordPattern.test(lowerContent)) {
+          // Check if it's mentioned in a relevant context
+          const contextPattern = new RegExp(`(${data.keywords.join('|')}).{0,50}(app|application|project|framework|development|code)`, 'i');
+          if (contextPattern.test(lowerContent)) {
+            frameworks.push(framework);
+          }
+        }
+      }
+    }
+  }
+  
+  return [...new Set(frameworks)].slice(0, 3); // Limit to 3 most relevant
 }
 
-function extractTags(content: string, name: string): string[] {
+function extractTags(content: string, name: string, category?: string): string[] {
   const tags: string[] = [];
   const lowerContent = content.toLowerCase();
   const lowerName = name.toLowerCase();
+  const lowerCategory = category?.toLowerCase() || '';
   
-  // Common tags based on content
-  if (lowerContent.includes('security') || lowerName.includes('security')) tags.push('security');
-  if (lowerContent.includes('test')) tags.push('testing');
-  if (lowerContent.includes('accessibility') || lowerContent.includes('a11y')) tags.push('accessibility');
-  if (lowerContent.includes('refactor') || lowerContent.includes('cleanup')) tags.push('refactoring');
-  if (lowerContent.includes('documentation')) tags.push('documentation');
-  if (lowerContent.includes('performance')) tags.push('performance');
-  if (lowerContent.includes('best practices')) tags.push('best-practices');
-  if (lowerContent.includes('code review')) tags.push('code-review');
-  if (lowerContent.includes('migration')) tags.push('migration');
+  // Security tag - add if Security category OR if explicitly about security
+  if (lowerCategory === 'security') {
+    tags.push('security');
+  } else {
+    // Only add security tag if explicitly about security (not just mentions "security")
+    const securityPatterns = [
+      /\bsecurity\b.*\b(vulnerability|audit|scan|review|testing|check|onboarding)\b/i,
+      /\b(vulnerability|security audit|security scan|security review|security testing)\b/i,
+      /\bsecure\b.*\b(code|practice|implementation|development)\b/i,
+      /\bsecurity\s+(tool|agent|assistant|onboarding|scanner)\b/i
+    ];
+    if (securityPatterns.some(pattern => pattern.test(lowerContent)) || 
+        (lowerName.includes('security') && (lowerName.includes('onboarding') || lowerName.includes('reviewer') || lowerName.includes('scanner')))) {
+      tags.push('security');
+    }
+  }
   
-  return [...new Set(tags)];
+  // Testing tag - ONLY if category is Testing
+  if (lowerCategory === 'testing') {
+    tags.push('testing');
+  }
+  // Don't add testing tag for non-testing categories, even if they mention "test"
+  
+  // Accessibility tag - only if explicitly about accessibility
+  if (lowerName.includes('accessibility') || lowerName.includes('a11y')) {
+    tags.push('accessibility');
+  } else if (lowerContent.includes('accessibility') || lowerContent.includes('a11y') ||
+      lowerContent.includes('wcag') || lowerContent.includes('aria')) {
+    // Check if it's actually about accessibility, not just a mention
+    const a11yPatterns = [
+      /\baccessibility\s+(tool|agent|assistant|checker|audit)\b/i,
+      /\b(improve|check|audit|test)\s+accessibility\b/i,
+      /\bwcag\s+(compliance|guidelines)\b/i
+    ];
+    if (a11yPatterns.some(pattern => pattern.test(lowerContent))) {
+      tags.push('accessibility');
+    }
+  }
+  
+  // Refactoring tag - only if explicitly about refactoring
+  if (lowerContent.includes('refactor') || lowerContent.includes('refactoring')) {
+    const refactorPatterns = [
+      /\brefactor\b.*\b(code|legacy|technical debt)\b/i,
+      /\bcode\s+refactoring\b/i,
+      /\brefactoring\s+(tool|agent|assistant)\b/i
+    ];
+    if (refactorPatterns.some(pattern => pattern.test(lowerContent)) ||
+        lowerName.includes('refactor') || lowerName.includes('janitor')) {
+      tags.push('refactoring');
+    }
+  }
+  
+  // Documentation tag - only if explicitly about documentation
+  if (lowerContent.includes('documentation') || lowerName.includes('documentation') ||
+      lowerName.includes('docs') || lowerName.includes('adr') || lowerName.includes('readme')) {
+    const docPatterns = [
+      /\b(generate|create|write|improve)\s+documentation\b/i,
+      /\bdocumentation\s+(generator|tool|assistant)\b/i,
+      /\b(api|code)\s+documentation\b/i
+    ];
+    if (docPatterns.some(pattern => pattern.test(lowerContent)) ||
+        lowerName.includes('documentation') || lowerName.includes('docs')) {
+      tags.push('documentation');
+    }
+  }
+  
+  // Performance tag - only if explicitly about performance
+  if (lowerContent.includes('performance') || lowerName.includes('performance')) {
+    const perfPatterns = [
+      /\bperformance\s+(optimization|improvement|analysis|tuning)\b/i,
+      /\boptimize\b.*\bperformance\b/i,
+      /\b(improve|enhance)\s+performance\b/i
+    ];
+    if (perfPatterns.some(pattern => pattern.test(lowerContent)) ||
+        lowerName.includes('performance') || lowerName.includes('optimization')) {
+      tags.push('performance');
+    }
+  }
+  
+  // Best practices tag
+  if (lowerContent.includes('best practices') || lowerContent.includes('best-practices') ||
+      lowerContent.includes('coding standards') || lowerContent.includes('code quality')) {
+    tags.push('best-practices');
+  }
+  
+  // Code review tag - only if explicitly about code review
+  if (lowerName.includes('reviewer') || lowerName.includes('code review')) {
+    tags.push('code-review');
+  } else if (lowerContent.includes('code review') || lowerContent.includes('review code')) {
+    const reviewPatterns = [
+      /\bcode\s+review\s+(tool|agent|assistant|process)\b/i,
+      /\b(review|analyze)\s+code\s+(quality|security|best practices)\b/i
+    ];
+    if (reviewPatterns.some(pattern => pattern.test(lowerContent))) {
+      tags.push('code-review');
+    }
+  }
+  
+  // Migration tag - only if explicitly about migration
+  if (lowerContent.includes('migration') || lowerName.includes('migration')) {
+    const migrationPatterns = [
+      /\b(migrate|migration)\s+(from|to|project|codebase)\b/i,
+      /\bcode\s+migration\b/i,
+      /\b(migrate|upgrade)\s+(framework|library|version)\b/i
+    ];
+    if (migrationPatterns.some(pattern => pattern.test(lowerContent)) ||
+        lowerName.includes('migration') || lowerName.includes('upgrade')) {
+      tags.push('migration');
+    }
+  }
+  
+  // Limit tags to most relevant (max 4)
+  return [...new Set(tags)].slice(0, 4);
 }
 
 async function importAgents() {

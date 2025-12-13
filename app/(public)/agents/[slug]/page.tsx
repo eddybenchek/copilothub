@@ -8,7 +8,8 @@ import { CodeBlock } from "@/components/ui/code-block";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button";
 import { ShareButton } from "@/components/share-button";
-import ReactMarkdown from "react-markdown";
+import { MarkdownPreview } from "@/components/markdown-preview";
+import { AgentDownloadButton } from "@/components/agents/download-button";
 import Link from "next/link";
 
 export default async function AgentDetailPage({
@@ -117,14 +118,7 @@ export default async function AgentDetailPage({
               </Button>
             </a>
           )}
-          {agent.downloadUrl && (
-            <a href={agent.downloadUrl} target="_blank" rel="noopener noreferrer">
-              <Button size="lg" variant="outline">
-                <Download className="mr-2 h-5 w-5" />
-                Download .agent.md
-              </Button>
-            </a>
-          )}
+          <AgentDownloadButton agent={agent} />
           <ShareButton title={agent.title} />
           <AddToCollectionButton
             targetId={agent.id}
@@ -189,10 +183,8 @@ export default async function AgentDetailPage({
           </TabsList>
 
           <TabsContent value="preview">
-            <div className="prose prose-invert prose-pre:bg-slate-950 prose-pre:border prose-pre:border-slate-800 prose-code:text-teal-300 prose-code:bg-slate-800/50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-[''] prose-headings:text-slate-100 prose-h1:text-3xl prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:border-slate-800 prose-h2:pb-2 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-p:text-slate-300 prose-p:leading-relaxed prose-ul:text-slate-300 prose-ol:text-slate-300 prose-li:my-1 prose-strong:text-slate-200 prose-strong:font-semibold max-w-none rounded-lg border border-slate-800 bg-slate-900/40 p-8">
-              <ReactMarkdown>
-                {agent.content.replace(/^---\n[\s\S]*?\n---\n/, '')}
-              </ReactMarkdown>
+            <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-8">
+              <MarkdownPreview content={agent.content} />
             </div>
           </TabsContent>
 

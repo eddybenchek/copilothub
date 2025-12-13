@@ -93,10 +93,6 @@ export default async function HomePage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-24 md:py-32">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-6 inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-sm">
-            <Sparkles className="mr-2 h-4 w-4 text-primary" />
-            <span className="text-muted-foreground">Powered by AI</span>
-          </div>
           <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl">
             Supercharge Your Development with{' '}
             <span className="text-primary">AI Copilot</span>

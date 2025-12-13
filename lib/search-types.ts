@@ -9,7 +9,6 @@ export type SearchResultBase = {
   title: string;
   slug: string;
   description: string;
-  difficulty: Difficulty;
   type: "prompt" | "tool" | "mcp" | "instruction" | "agent";
 };
 

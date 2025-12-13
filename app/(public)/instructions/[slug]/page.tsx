@@ -10,7 +10,7 @@ import { DownloadButton } from "@/components/instructions/download-button";
 import { CopyButton } from "@/components/copy-button";
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button";
 import { ShareButton } from "@/components/share-button";
-import ReactMarkdown from "react-markdown";
+import { MarkdownPreview } from "@/components/markdown-preview";
 
 export default async function InstructionDetailPage({
   params,
@@ -118,8 +118,8 @@ export default async function InstructionDetailPage({
           </TabsList>
 
           <TabsContent value="preview">
-            <div className="prose prose-invert max-w-none rounded-lg border border-slate-800 bg-slate-900/40 p-6">
-              <ReactMarkdown>{instruction.content}</ReactMarkdown>
+            <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-8">
+              <MarkdownPreview content={instruction.content} />
             </div>
           </TabsContent>
 
@@ -213,15 +213,6 @@ export default async function InstructionDetailPage({
           </div>
         )}
 
-        {/* Author Info */}
-        <div className="border-t border-slate-800 pt-8">
-          <div className="flex items-center gap-3 text-sm text-slate-400">
-            <span>Created by</span>
-            <span className="font-medium text-slate-200">{instruction.author.name || "Anonymous"}</span>
-            <span>•</span>
-            <span>{new Date(instruction.createdAt).toLocaleDateString()}</span>
-          </div>
-        </div>
       </article>
     </div>
   );

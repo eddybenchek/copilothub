@@ -6,7 +6,7 @@ import { Search, Filter } from 'lucide-react';
 import Link from 'next/link';
 import { GlobalSearchDropdown } from '@/components/search/global-search-dropdown';
 import { highlightMatch } from '@/lib/search-types';
-import type { SearchResults, SearchType, Difficulty } from '@/lib/search-types';
+import type { SearchResults, SearchType } from '@/lib/search-types';
 import { cn } from '@/lib/utils';
 
 function SearchPageContent() {
@@ -15,7 +15,6 @@ function SearchPageContent() {
   
   const initialQuery = searchParams.get('q') || '';
   const initialType = (searchParams.get('type') as SearchType) || 'all';
-  const initialDifficulty = (searchParams.get('difficulty') as Difficulty | 'ALL') || 'ALL';
 
   const [results, setResults] = useState<SearchResults>({
     prompts: [],
@@ -26,7 +25,6 @@ function SearchPageContent() {
   });
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<SearchType>(initialType);
-  const [difficulty, setDifficulty] = useState<Difficulty | 'ALL'>(initialDifficulty);
   const [showFilters, setShowFilters] = useState(false);
 
   const query = initialQuery;
@@ -34,10 +32,7 @@ function SearchPageContent() {
   // Sync state with URL parameters when they change
   useEffect(() => {
     const urlType = (searchParams.get('type') as SearchType) || 'all';
-    const urlDifficulty = (searchParams.get('difficulty') as Difficulty | 'ALL') || 'ALL';
-    
     setType(urlType);
-    setDifficulty(urlDifficulty);
   }, [searchParams]);
 
   // Perform search
@@ -52,7 +47,6 @@ function SearchPageContent() {
       const params = new URLSearchParams();
       params.set('q', query);
       if (type !== 'all') params.set('type', type);
-      if (difficulty !== 'ALL') params.set('difficulty', difficulty);
 
       const response = await fetch(`/api/search?${params.toString()}`);
       const data = await response.json();
@@ -62,7 +56,7 @@ function SearchPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [query, type, difficulty]);
+  }, [query, type]);
 
   // Search when query or filters change
   useEffect(() => {
@@ -70,11 +64,10 @@ function SearchPageContent() {
   }, [performSearch]);
 
   // Update URL when filters change
-  const updateFilters = (newType: SearchType, newDifficulty: Difficulty | 'ALL') => {
+  const updateFilters = (newType: SearchType) => {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     if (newType !== 'all') params.set('type', newType);
-    if (newDifficulty !== 'ALL') params.set('difficulty', newDifficulty);
     
     router.push(`/search?${params.toString()}`);
   };
@@ -125,7 +118,7 @@ function SearchPageContent() {
                 active={type === 'all'}
                 onClick={() => {
                   setType('all');
-                  updateFilters('all', difficulty);
+                  updateFilters('all');
                 }}
               >
                 All
@@ -135,7 +128,7 @@ function SearchPageContent() {
                 active={type === 'prompt'}
                 onClick={() => {
                   setType('prompt');
-                  updateFilters('prompt', difficulty);
+                  updateFilters('prompt');
                 }}
               >
                 Prompts
@@ -145,7 +138,7 @@ function SearchPageContent() {
                 active={type === 'instruction'}
                 onClick={() => {
                   setType('instruction');
-                  updateFilters('instruction', difficulty);
+                  updateFilters('instruction');
                 }}
               >
                 Instructions
@@ -155,7 +148,7 @@ function SearchPageContent() {
                 active={type === 'agent'}
                 onClick={() => {
                   setType('agent');
-                  updateFilters('agent', difficulty);
+                  updateFilters('agent');
                 }}
               >
                 Agents
@@ -165,7 +158,7 @@ function SearchPageContent() {
                 active={type === 'tool'}
                 onClick={() => {
                   setType('tool');
-                  updateFilters('tool', difficulty);
+                  updateFilters('tool');
                 }}
               >
                 Tools
@@ -175,54 +168,10 @@ function SearchPageContent() {
                 active={type === 'mcp'}
                 onClick={() => {
                   setType('mcp');
-                  updateFilters('mcp', difficulty);
+                  updateFilters('mcp');
                 }}
               >
                 MCPs
-              </FilterPill>
-
-              <span className="mx-2 h-5 w-px bg-slate-700" />
-
-              {/* Difficulty filters */}
-              <FilterPill
-                href={`/search?q=${encodeURIComponent(query)}&type=${type}`}
-                active={difficulty === 'ALL'}
-                onClick={() => {
-                  setDifficulty('ALL');
-                  updateFilters(type, 'ALL');
-                }}
-              >
-                All
-              </FilterPill>
-              <FilterPill
-                href={`/search?q=${encodeURIComponent(query)}&type=${type}&difficulty=BEGINNER`}
-                active={difficulty === 'BEGINNER'}
-                onClick={() => {
-                  setDifficulty('BEGINNER');
-                  updateFilters(type, 'BEGINNER');
-                }}
-              >
-                Beginner
-              </FilterPill>
-              <FilterPill
-                href={`/search?q=${encodeURIComponent(query)}&type=${type}&difficulty=INTERMEDIATE`}
-                active={difficulty === 'INTERMEDIATE'}
-                onClick={() => {
-                  setDifficulty('INTERMEDIATE');
-                  updateFilters(type, 'INTERMEDIATE');
-                }}
-              >
-                Intermediate
-              </FilterPill>
-              <FilterPill
-                href={`/search?q=${encodeURIComponent(query)}&type=${type}&difficulty=ADVANCED`}
-                active={difficulty === 'ADVANCED'}
-                onClick={() => {
-                  setDifficulty('ADVANCED');
-                  updateFilters(type, 'ADVANCED');
-                }}
-              >
-                Advanced
               </FilterPill>
             </div>
           </>
@@ -385,7 +334,6 @@ type SectionProps = {
     title: string;
     slug: string;
     description: string;
-    difficulty: any;
   }[];
   basePath: string;
   query: string;

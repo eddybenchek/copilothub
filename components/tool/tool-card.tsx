@@ -28,13 +28,6 @@ export function ToolCard({ tool }: ToolCardProps) {
   const displayName = tool.name || tool.title || "Untitled Tool";
   const displayDescription = tool.shortDescription || tool.description || "";
   const displayUrl = tool.websiteUrl || tool.url || "";
-  
-  const createdAt =
-    tool.createdAt instanceof Date
-      ? tool.createdAt
-      : tool.createdAt
-      ? new Date(tool.createdAt)
-      : null;
 
   const initials = displayName
     .split(" ")
@@ -113,33 +106,6 @@ export function ToolCard({ tool }: ToolCardProps) {
         </div>
       )}
 
-      {/* Meta row */}
-      <div className="mt-auto flex flex-wrap items-center gap-3 text-xs text-slate-500">
-        {tool.authorName && (
-          <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-500" />
-            {tool.authorName}
-          </span>
-        )}
-
-        {createdAt && (
-          <span className="flex items-center gap-1">
-            <span aria-hidden>📅</span>
-            {createdAt.toLocaleDateString()}
-          </span>
-        )}
-
-        {tool.difficulty && (
-          <span
-            className={clsx(
-              "ml-auto inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold tracking-wide",
-              "bg-slate-800/60 border border-slate-700/40 text-slate-200",
-            )}
-          >
-            {tool.difficulty}
-          </span>
-        )}
-      </div>
     </div>
   );
 }

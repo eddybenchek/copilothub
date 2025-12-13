@@ -4,10 +4,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { ToolCard } from '@/components/tool/tool-card';
 import { Search } from 'lucide-react';
 import type { ToolWithAuthor } from '@/lib/types';
-import { Difficulty } from '@prisma/client';
 import clsx from 'clsx';
 
-type SortOption = 'recent' | 'beginner' | 'intermediate' | 'advanced';
+type SortOption = 'recent';
 
 const CATEGORY_OPTIONS = [
   { key: "all", label: "All" },
@@ -23,7 +22,6 @@ export default function ToolsPage() {
   const [tools, setTools] = useState<ToolWithAuthor[]>([]);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [difficultyFilter, setDifficultyFilter] = useState<'All' | Difficulty>('All');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [loading, setLoading] = useState(true);
 
@@ -76,31 +74,18 @@ export default function ToolsPage() {
       );
     }
 
-    // Difficulty filter
-    if (difficultyFilter !== 'All') {
-      result = result.filter((tool) => tool.difficulty === difficultyFilter);
-    }
-
     // Sorting
     result = [...result].sort((a, b) => {
       switch (sortBy) {
         case 'recent':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'beginner':
-          const orderBeg = { BEGINNER: 0, INTERMEDIATE: 1, ADVANCED: 2 };
-          return orderBeg[a.difficulty] - orderBeg[b.difficulty];
-        case 'intermediate':
-          return a.difficulty === 'INTERMEDIATE' ? -1 : 1;
-        case 'advanced':
-          const orderAdv = { ADVANCED: 0, INTERMEDIATE: 1, BEGINNER: 2 };
-          return orderAdv[a.difficulty] - orderAdv[b.difficulty];
         default:
           return 0;
       }
     });
 
     return result;
-  }, [tools, query, categoryFilter, difficultyFilter, sortBy]);
+  }, [tools, query, categoryFilter, sortBy]);
 
   return (
     <div className="mx-auto flex max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
@@ -175,32 +160,14 @@ export default function ToolsPage() {
           </div>
         </div>
 
-        {/* Difficulty Filters & Sort */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap gap-2">
-            {(['All', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map((level) => (
-              <button
-                key={level}
-                onClick={() => setDifficultyFilter(level)}
-                className={`rounded-full px-4 py-1.5 text-xs font-medium border transition-colors ${
-                  difficultyFilter === level
-                    ? 'bg-sky-500/20 border-sky-500/60 text-sky-200'
-                    : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'
-                }`}
-              >
-                {level === 'All' ? 'All' : level.charAt(0) + level.slice(1).toLowerCase()}
-              </button>
-            ))}
-          </div>
+        {/* Sort */}
+        <div className="mb-8 flex flex-wrap items-center justify-end gap-4">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="rounded-full bg-slate-900 border border-slate-700 px-4 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/60"
           >
             <option value="recent">Most Recent</option>
-            <option value="beginner">Beginner First</option>
-            <option value="intermediate">Intermediate First</option>
-            <option value="advanced">Advanced First</option>
           </select>
         </div>
 
@@ -212,7 +179,7 @@ export default function ToolsPage() {
         ) : filteredAndSortedTools.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-slate-400">
-              {query || categoryFilter !== 'all' || difficultyFilter !== 'All'
+              {query || categoryFilter !== 'all'
                 ? 'No tools match your filters.'
                 : 'No tools found. Be the first to submit one!'}
             </p>

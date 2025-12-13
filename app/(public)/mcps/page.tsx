@@ -4,16 +4,14 @@ import { useState, useMemo, useEffect } from 'react';
 import { McpCard } from '@/components/mcp/mcp-card';
 import { Search } from 'lucide-react';
 import type { McpWithAuthor } from '@/lib/types';
-import { Difficulty } from '@prisma/client';
 import clsx from 'clsx';
 
-type SortOption = 'recent' | 'beginner' | 'intermediate' | 'advanced';
+type SortOption = 'recent';
 
 export default function McpsPage() {
   const [mcps, setMcps] = useState<McpWithAuthor[]>([]);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [difficultyFilter, setDifficultyFilter] = useState<'All' | Difficulty>('All');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [loading, setLoading] = useState(true);
 
@@ -70,31 +68,18 @@ export default function McpsPage() {
       );
     }
 
-    // Difficulty filter
-    if (difficultyFilter !== 'All') {
-      result = result.filter((mcp) => mcp.difficulty === difficultyFilter);
-    }
-
     // Sorting
     result = [...result].sort((a, b) => {
       switch (sortBy) {
         case 'recent':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'beginner':
-          const orderBeg = { BEGINNER: 0, INTERMEDIATE: 1, ADVANCED: 2 };
-          return orderBeg[a.difficulty] - orderBeg[b.difficulty];
-        case 'intermediate':
-          return a.difficulty === 'INTERMEDIATE' ? -1 : 1;
-        case 'advanced':
-          const orderAdv = { ADVANCED: 0, INTERMEDIATE: 1, BEGINNER: 2 };
-          return orderAdv[a.difficulty] - orderAdv[b.difficulty];
         default:
           return 0;
       }
     });
 
     return result;
-  }, [mcps, query, categoryFilter, difficultyFilter, sortBy]);
+  }, [mcps, query, categoryFilter, sortBy]);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
@@ -146,22 +131,11 @@ export default function McpsPage() {
           ))}
         </div>
 
-        {/* Difficulty and Sort */}
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-400">Difficulty:</span>
-            <select
-              value={difficultyFilter}
-              onChange={(e) => setDifficultyFilter(e.target.value as 'All' | Difficulty)}
-              className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-1.5 text-sm text-slate-100 focus:border-sky-500/40 focus:outline-none"
-            >
-              <option value="All">All</option>
-              <option value="BEGINNER">Beginner</option>
-              <option value="INTERMEDIATE">Intermediate</option>
-              <option value="ADVANCED">Advanced</option>
-            </select>
+        {/* Sort and Count */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="text-sm text-slate-400">
+            {filteredAndSortedMcps.length} {filteredAndSortedMcps.length === 1 ? 'server' : 'servers'}
           </div>
-
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-400">Sort by:</span>
             <select
@@ -170,14 +144,7 @@ export default function McpsPage() {
               className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-1.5 text-sm text-slate-100 focus:border-sky-500/40 focus:outline-none"
             >
               <option value="recent">Most Recent</option>
-              <option value="beginner">Beginner First</option>
-              <option value="intermediate">Intermediate First</option>
-              <option value="advanced">Advanced First</option>
             </select>
-          </div>
-
-          <div className="ml-auto text-sm text-slate-400">
-            {filteredAndSortedMcps.length} {filteredAndSortedMcps.length === 1 ? 'server' : 'servers'}
           </div>
         </div>
       </div>

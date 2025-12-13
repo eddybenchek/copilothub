@@ -6,15 +6,13 @@ import { PromptCard } from '@/components/prompt/prompt-card';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { PromptWithAuthor } from '@/lib/types';
-import { Difficulty } from '@prisma/client';
 
-type SortOption = 'recent' | 'beginner' | 'intermediate' | 'advanced';
+type SortOption = 'recent';
 
 export default function PromptsPage() {
   const [prompts, setPrompts] = useState<PromptWithAuthor[]>([]);
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [difficultyFilter, setDifficultyFilter] = useState<'All' | Difficulty>('All');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [loading, setLoading] = useState(true);
 
@@ -65,31 +63,18 @@ export default function PromptsPage() {
       );
     }
 
-    // Difficulty filter
-    if (difficultyFilter !== 'All') {
-      result = result.filter((prompt) => prompt.difficulty === difficultyFilter);
-    }
-
     // Sorting
     result = [...result].sort((a, b) => {
       switch (sortBy) {
         case 'recent':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'beginner':
-          const orderBeg = { BEGINNER: 0, INTERMEDIATE: 1, ADVANCED: 2 };
-          return orderBeg[a.difficulty] - orderBeg[b.difficulty];
-        case 'intermediate':
-          return a.difficulty === 'INTERMEDIATE' ? -1 : 1;
-        case 'advanced':
-          const orderAdv = { ADVANCED: 0, INTERMEDIATE: 1, BEGINNER: 2 };
-          return orderAdv[a.difficulty] - orderAdv[b.difficulty];
         default:
           return 0;
       }
     });
 
     return result;
-  }, [prompts, query, selectedCategory, difficultyFilter, sortBy]);
+  }, [prompts, query, selectedCategory, sortBy]);
 
   const CATEGORY_LABELS: Record<string, string> = {
     'code-generation': 'Code Generation',
@@ -183,32 +168,14 @@ export default function PromptsPage() {
           </div>
         </div>
 
-        {/* Difficulty Filters & Sort */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap gap-2">
-            {(['All', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map((level) => (
-              <button
-                key={level}
-                onClick={() => setDifficultyFilter(level)}
-                className={`rounded-full px-4 py-1.5 text-xs font-medium border transition-colors ${
-                  difficultyFilter === level
-                    ? 'bg-sky-500/20 border-sky-500/60 text-sky-200'
-                    : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'
-                }`}
-              >
-                {level === 'All' ? 'All' : level.charAt(0) + level.slice(1).toLowerCase()}
-              </button>
-            ))}
-          </div>
+        {/* Sort */}
+        <div className="mb-8 flex flex-wrap items-center justify-end gap-4">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="rounded-full bg-slate-900 border border-slate-700 px-4 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/60"
           >
             <option value="recent">Most Recent</option>
-            <option value="beginner">Beginner First</option>
-            <option value="intermediate">Intermediate First</option>
-            <option value="advanced">Advanced First</option>
           </select>
         </div>
 
@@ -219,7 +186,7 @@ export default function PromptsPage() {
           </div>
         ) : filteredAndSortedPrompts.length === 0 ? (
           <p className="mt-8 text-sm text-slate-400">
-            {query || selectedCategory !== 'all' || difficultyFilter !== 'All'
+            {query || selectedCategory !== 'all'
               ? 'No prompts found for this filter.'
               : 'No prompts found. Be the first to submit one!'}
           </p>

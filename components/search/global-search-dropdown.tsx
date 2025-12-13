@@ -396,7 +396,6 @@ type SectionProps = {
     slug: string;
     description: string;
     type: "prompt" | "workflow" | "tool" | "recipe" | "migration" | "path" | "mcp" | "instruction" | "agent";
-    difficulty: any;
   }[];
   totalCount: number;
   query: string;

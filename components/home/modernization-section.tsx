@@ -4,14 +4,11 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-type Difficulty = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
-
 type PromptLike = {
   id: string;
   slug: string;
   title: string;
   description: string;
-  difficulty: Difficulty;
   tags: string[];
 };
 
@@ -189,8 +186,7 @@ function MiniPromptCard({ prompt }: { prompt: PromptLike }) {
         {prompt.description}
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-1">
-        <Badge subtle>{formatDifficulty(prompt.difficulty)}</Badge>
-        {prompt.tags.slice(0, 2).map((tag) => (
+        {prompt.tags.slice(0, 3).map((tag) => (
           <Badge key={tag}>{tag}</Badge>
         ))}
       </div>
@@ -220,9 +216,4 @@ function Badge({
   );
 }
 
-function formatDifficulty(d: Difficulty) {
-  if (d === "BEGINNER") return "Beginner";
-  if (d === "INTERMEDIATE") return "Intermediate";
-  return "Advanced";
-}
 

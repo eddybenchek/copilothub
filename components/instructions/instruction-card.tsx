@@ -85,7 +85,6 @@ export function InstructionCard({ instruction }: InstructionCardProps) {
                 <Eye className="h-3 w-3" />
                 <span>{instruction.views}</span>
               </div>
-              <Badge variant="outline" className="capitalize">{instruction.difficulty}</Badge>
             </div>
           </div>
         </CardContent>

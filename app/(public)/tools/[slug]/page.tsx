@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Calendar, User, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { getToolBySlug } from '@/lib/prisma-helpers';
 
 export default async function ToolDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -50,17 +51,22 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
           ))}
         </div>
 
-        {/* URL */}
-        {tool.url && (
-          <div className="mb-8">
+        {/* Quick Actions */}
+        <div className="mb-8 flex flex-wrap gap-3">
+          {tool.url && (
             <Button asChild>
               <a href={tool.url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Visit Tool Website
               </a>
             </Button>
-          </div>
-        )}
+          )}
+          <AddToCollectionButton
+            targetId={tool.id}
+            targetType="TOOL"
+            targetTitle={tool.title}
+          />
+        </div>
 
         {/* Content */}
         <div className="rounded-lg border border-border bg-muted/50 p-6">

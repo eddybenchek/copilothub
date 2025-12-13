@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Bot, Download, Plug, Star } from "lucide-react";
+import { FavoriteButton } from "@/components/favorites/favorite-button";
 
 type AgentCardProps = {
   agent: {
@@ -41,9 +42,14 @@ export function AgentCard({ agent }: AgentCardProps) {
                 )}
               </div>
             </div>
-            {agent.featured && (
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              {agent.featured && (
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
+              )}
+              <div onClick={(e) => e.preventDefault()} className="relative z-10">
+                <FavoriteButton targetId={agent.id} targetType="AGENT" size="sm" />
+              </div>
+            </div>
           </div>
           <CardDescription className="line-clamp-2 mt-2">
             {agent.description}

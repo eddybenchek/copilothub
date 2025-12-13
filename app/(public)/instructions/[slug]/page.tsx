@@ -8,6 +8,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CodeBlock } from "@/components/ui/code-block";
 import { DownloadButton } from "@/components/instructions/download-button";
 import { CopyButton } from "@/components/copy-button";
+import { AddToCollectionButton } from "@/components/collections/add-to-collection-button";
+import { ShareButton } from "@/components/share-button";
 import ReactMarkdown from "react-markdown";
 
 export default async function InstructionDetailPage({
@@ -94,14 +96,14 @@ export default async function InstructionDetailPage({
         <div className="mb-8 flex flex-wrap gap-3">
           <CopyButton text={instruction.content} />
           <DownloadButton instruction={instruction} />
-          <Button size="lg" variant="outline">
-            <Star className="mr-2 h-5 w-5" />
-            Add to Collection
-          </Button>
-          <Button size="lg" variant="ghost">
-            <Share2 className="mr-2 h-5 w-5" />
-            Share
-          </Button>
+          <AddToCollectionButton
+            targetId={instruction.id}
+            targetType="INSTRUCTION"
+            targetTitle={instruction.title}
+          />
+          <ShareButton 
+            title={instruction.title}
+          />
         </div>
 
         {/* Tabs */}

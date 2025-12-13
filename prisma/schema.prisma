@@ -53,6 +53,8 @@ model User {
   mcps          McpServer[]
   instructions  Instruction[]
   agents        Agent[]
+  favorites     Favorite[]
+  collections   Collection[]
 }
 
 model VerificationToken {
@@ -225,6 +227,39 @@ model Agent {
   @@index([category])
   @@index([status])
   @@index([authorId])
+}
+
+model Favorite {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetId    String      // ID of the content (Prompt, Tool, etc)
+  targetType  TargetType  // Allows favorite of Prompt, Tool, MCP, Instruction, Agent
+  createdAt   DateTime    @default(now())
+  @@unique([userId, targetType, targetId])
+}
+
+model Collection {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       CollectionItem[]
+  isPublic    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  @@index([userId])
+}
+
+model CollectionItem {
+  id          String      @id @default(cuid())
+  collectionId String
+  collection  Collection  @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  targetId    String
+  targetType  TargetType
+  addedAt     DateTime    @default(now())
+  @@unique([collectionId, targetType, targetId])
 }
 
 enum Role {

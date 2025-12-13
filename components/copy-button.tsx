@@ -7,10 +7,12 @@ import { Button } from './ui/button';
 interface CopyButtonProps {
   text: string;
   className?: string;
+  size?: "sm" | "md" | "lg";
+  variant?: "primary" | "outline" | "ghost" | "destructive";
   children?: React.ReactNode;
 }
 
-export function CopyButton({ text, className, children }: CopyButtonProps) {
+export function CopyButton({ text, className, size = "sm", variant = "outline", children }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -21,8 +23,8 @@ export function CopyButton({ text, className, children }: CopyButtonProps) {
 
   return (
     <Button
-      variant="outline"
-      size="sm"
+      variant={variant}
+      size={size}
       onClick={handleCopy}
       className={className}
     >

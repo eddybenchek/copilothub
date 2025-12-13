@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button";
 import { ShareButton } from "@/components/share-button";
 import { MarkdownPreview } from "@/components/markdown-preview";
+import { AgentDownloadButton } from "@/components/agents/download-button";
 import Link from "next/link";
 
 export default async function AgentDetailPage({
@@ -117,14 +118,7 @@ export default async function AgentDetailPage({
               </Button>
             </a>
           )}
-          {agent.downloadUrl && (
-            <a href={agent.downloadUrl} target="_blank" rel="noopener noreferrer">
-              <Button size="lg" variant="outline">
-                <Download className="mr-2 h-5 w-5" />
-                Download .agent.md
-              </Button>
-            </a>
-          )}
+          <AgentDownloadButton agent={agent} />
           <ShareButton title={agent.title} />
           <AddToCollectionButton
             targetId={agent.id}

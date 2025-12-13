@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
-import { Calendar, User, ExternalLink, Github, Download, Copy } from 'lucide-react';
+import { Calendar, User, ExternalLink, Github, Download, Copy, BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
+import { MarkdownPreview } from '@/components/markdown-preview';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 import { CopyButton } from '@/components/copy-button';
@@ -93,10 +94,11 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
               command: mcp.installCommand?.split(' ')[0] || 'npx',
               args: mcp.installCommand ? mcp.installCommand.split(' ').slice(1) : [],
             }, null, 2)}
-            className="bg-sky-500 hover:bg-sky-400 text-slate-950"
+            size="lg"
+            variant="primary"
           >
-            <Download className="mr-2 h-4 w-4" />
-            Add to Cursor
+            <Copy className="mr-2 h-4 w-4" />
+            Copy MCP Config
           </CopyButton>
           {mcp.githubUrl && (
             <Button size="lg" variant="outline" asChild>
@@ -136,7 +138,7 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
           <div className="mb-8 rounded-lg border border-slate-800 bg-slate-900/40 p-6">
             <h2 className="mb-4 text-lg font-semibold text-slate-50">Configuration</h2>
             <p className="mb-3 text-sm text-slate-400">
-              Add this to your Cursor settings (Settings → Features → MCP → Add New MCP Server):
+              Add this to your Copilot settings (Settings → Features → MCP → Add New MCP Server):
             </p>
             <div className="rounded-lg bg-slate-950 p-4 relative">
               <pre className="overflow-x-auto text-xs text-slate-300">
@@ -159,14 +161,31 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
         )}
 
         {/* Content */}
-        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
+        <div className="mb-8 rounded-lg border border-slate-800 bg-slate-900/40 p-6">
           <h2 className="mb-4 text-lg font-semibold text-slate-50">About This MCP Server</h2>
-          <div className="prose prose-invert max-w-none">
-            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-300">
-              {mcp.content}
-            </pre>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-8">
+            <MarkdownPreview content={mcp.content} />
           </div>
         </div>
+
+        {/* Full Documentation CTA */}
+        {mcp.githubUrl && (
+          <div className="rounded-lg border border-sky-500/20 bg-gradient-to-br from-sky-500/10 to-purple-500/10 p-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-500/20">
+              <BookOpen className="h-8 w-8 text-sky-400" />
+            </div>
+            <h3 className="mb-2 text-2xl font-bold text-slate-50">Need More Details?</h3>
+            <p className="mb-6 text-slate-400">
+              View the complete documentation, examples, changelog, and more on GitHub
+            </p>
+            <Button size="lg" variant="primary" asChild>
+              <a href={mcp.githubUrl} target="_blank" rel="noopener noreferrer">
+                <Github className="mr-2 h-5 w-5" />
+                View Full Documentation on GitHub
+              </a>
+            </Button>
+          </div>
+        )}
       </article>
     </div>
   );

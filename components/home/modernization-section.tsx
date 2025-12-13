@@ -15,23 +15,12 @@ type PromptLike = {
   tags: string[];
 };
 
-type WorkflowLike = {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-  difficulty: Difficulty;
-  tags: string[];
-};
-
 type ModernizationSectionProps = {
   prompts: PromptLike[];
-  workflows: WorkflowLike[];
 };
 
 export function ModernizationSection({
   prompts,
-  workflows,
 }: ModernizationSectionProps) {
   return (
     <section className="mt-20 rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-950/80 via-slate-950 to-slate-950/90 px-6 py-10 shadow-[0_0_60px_rgba(15,23,42,0.9)] sm:px-8 lg:px-10">
@@ -46,7 +35,7 @@ export function ModernizationSection({
             Use AI to upgrade legacy systems, safely.
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-slate-400 sm:text-[15px]">
-            Curated prompts and workflows to help you plan and execute
+            Curated prompts to help you plan and execute
             framework upgrades, language migrations, dependency updates,
             and large-scale refactors with GitHub Copilot.
           </p>
@@ -86,28 +75,21 @@ export function ModernizationSection({
               Browse modernization prompts
               <span className="ml-1 text-xs">↓</span>
             </button>
-            <button
-              onClick={() => {
-                const element = document.getElementById('migration-workflows');
-                if (element) {
-                  const yOffset = -80; // Offset for fixed header
-                  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                  window.scrollTo({ top: y, behavior: 'smooth' });
-                }
-              }}
+            <Link
+              href="/prompts?tags=modernization"
               className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-slate-200 hover:border-slate-500 transition-colors"
             >
-              View migration workflows
-            </button>
+              View all prompts
+            </Link>
           </div>
         </div>
 
         {/* Summary stats / reassurance */}
         <div className="mt-4 grid w-full max-w-xs grid-cols-2 gap-3 text-xs text-slate-300 md:mt-0">
           <StatCard label="Modernization prompts" value={`${prompts.length}+`} />
-          <StatCard label="Upgrade recipes" value={`${workflows.length}+`} />
           <StatCard label="Focus: production apps" value="Real-world use" />
           <StatCard label="Best for" value="Teams & codebases" />
+          <StatCard label="Safe upgrades" value="Step-by-step" />
         </div>
       </div>
 
@@ -126,23 +108,6 @@ export function ModernizationSection({
             )}
             {prompts.map((prompt) => (
               <MiniPromptCard key={prompt.id} prompt={prompt} />
-            ))}
-          </HorizontalRail>
-        </section>
-
-        {/* Workflows rail */}
-        <section id="migration-workflows">
-          <RailHeader
-            title="Migration Workflows"
-            subtitle="Step-by-step recipes for safe framework, language, and dependency changes."
-            href="/modernization/workflows"
-          />
-          <HorizontalRail>
-            {workflows.length === 0 && (
-              <EmptyRailPlaceholder kind="workflows" />
-            )}
-            {workflows.map((workflow) => (
-              <MiniWorkflowCard key={workflow.id} workflow={workflow} />
             ))}
           </HorizontalRail>
         </section>
@@ -197,7 +162,7 @@ function HorizontalRail({ children }: { children: React.ReactNode }) {
   );
 }
 
-function EmptyRailPlaceholder({ kind }: { kind: "prompts" | "workflows" }) {
+function EmptyRailPlaceholder({ kind }: { kind: "prompts" }) {
   return (
     <div className="flex h-24 flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/60 px-4 text-xs text-slate-500">
       No {kind} tagged for modernization yet. Seed a few and this rail will
@@ -233,30 +198,6 @@ function MiniPromptCard({ prompt }: { prompt: PromptLike }) {
   );
 }
 
-function MiniWorkflowCard({ workflow }: { workflow: WorkflowLike }) {
-  return (
-    <Link
-      href={`/workflows/${workflow.slug}`}
-      className="group flex w-80 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-xs transition hover:border-emerald-500/70 hover:bg-slate-900"
-    >
-      <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
-        Workflow
-      </div>
-      <h4 className="line-clamp-2 text-[13px] font-semibold text-slate-50 group-hover:text-emerald-200">
-        {workflow.title}
-      </h4>
-      <p className="mt-1 line-clamp-2 text-[11px] text-slate-400">
-        {workflow.description}
-      </p>
-      <div className="mt-3 flex flex-wrap items-center gap-1">
-        <Badge subtle>{formatDifficulty(workflow.difficulty)}</Badge>
-        {workflow.tags.slice(0, 2).map((tag) => (
-          <Badge key={tag}>{tag}</Badge>
-        ))}
-      </div>
-    </Link>
-  );
-}
 
 function Badge({
   children,

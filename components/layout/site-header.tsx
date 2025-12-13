@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { Menu, X, Github, LogOut, User } from 'lucide-react';
+import { Menu, X, Github, LogOut, User, Heart, Folder } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -17,12 +17,8 @@ export function SiteHeader() {
     { name: 'Prompts', href: '/prompts' },
     { name: 'Instructions', href: '/instructions' },
     { name: 'Agents', href: '/agents' },
-    { name: 'Workflows', href: '/workflows' },
     { name: 'Tools', href: '/tools' },
     { name: 'MCPs', href: '/mcps' },
-    { name: 'Recipes', href: '/recipes' },
-    { name: 'Migrations', href: '/migrations' },
-    { name: 'Paths', href: '/paths' },
     { name: 'Submit', href: '/submit' },
   ];
 
@@ -73,6 +69,18 @@ export function SiteHeader() {
                 <Link href="/dashboard" className="flex w-full items-center">
                   <User className="mr-2 h-4 w-4" />
                   Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link href="/dashboard/favorites" className="flex w-full items-center">
+                  <Heart className="mr-2 h-4 w-4" />
+                  Favorites
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link href="/dashboard/collections" className="flex w-full items-center">
+                  <Folder className="mr-2 h-4 w-4" />
+                  Collections
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -126,6 +134,20 @@ export function SiteHeader() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
+                  </Link>
+                  <Link
+                    href="/dashboard/favorites"
+                    className="block rounded-md px-3 py-2 text-base font-medium text-foreground/60 hover:bg-accent hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Favorites
+                  </Link>
+                  <Link
+                    href="/dashboard/collections"
+                    className="block rounded-md px-3 py-2 text-base font-medium text-foreground/60 hover:bg-accent hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Collections
                   </Link>
                   <button
                     onClick={() => {

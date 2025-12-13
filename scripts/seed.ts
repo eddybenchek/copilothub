@@ -1382,17 +1382,9 @@ Return the Vite config and updated package.json scripts.`,
 
   console.log('✅ Created', prompts.length, 'example prompts');
 
-  // Create example workflows
-  const workflows = getWorkflowsSeed(demoUser.id);
+  // Workflows have been migrated to prompts with "workflow" tag
 
-  for (const workflow of workflows) {
-    await prisma.workflow.upsert({
-      where: { slug: workflow.slug },
-      update: {},
-      create: workflow,
-    });
-  }
-
+  /*
   function getWorkflowsSeed(authorId: string) {
     return [
       // 1. PROJECT SETUP & SCAFFOLDING
@@ -2125,6 +2117,7 @@ const tools = getToolsSeed(demoUser.id);
       create: tool,
     });
   }
+  */
 
   function getToolsSeed(authorId: string) {
     return [
@@ -3007,9 +3000,10 @@ const tools = getToolsSeed(demoUser.id);
   }
   
 
-  console.log('✅ Created', tools.length, 'example tools');
+  // console.log('✅ Created', tools.length, 'example tools');
 
-  // Seed Code Recipes
+  // Recipes, Migrations, Paths have been removed - data deleted
+  /*
   const recipes = [
     {
       title: "React: Debounced Search Input with useEffect",
@@ -3158,15 +3152,7 @@ WHERE o.user_id = $1;`,
     },
   ];
 
-  for (const path of paths) {
-    await prisma.learningPath.upsert({
-      where: { slug: path.slug },
-      update: {},
-      create: path,
-    });
-  }
-
-  console.log('✅ Created', paths.length, 'learning paths');
+  */
 
   console.log('🎉 Seeding completed successfully!');
 }

@@ -50,13 +50,11 @@ model User {
   sessions      Session[]
   tools         Tool[]
   votes         Vote[]
-  workflows     Workflow[]
-  recipes       CodeRecipe[]
-  migrations    MigrationGuide[]
-  paths         LearningPath[]
   mcps          McpServer[]
   instructions  Instruction[]
   agents        Agent[]
+  favorites     Favorite[]
+  collections   Collection[]
 }
 
 model VerificationToken {
@@ -81,27 +79,6 @@ model Prompt {
   updatedAt   DateTime      @updatedAt
   author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   votes       Vote[]
-
-  @@index([authorId])
-  @@index([slug])
-  @@index([status])
-}
-
-model Workflow {
-  id          String        @id @default(cuid())
-  title       String
-  slug        String        @unique
-  description String
-  content     String
-  steps       String[]
-  tags        String[]
-  difficulty  Difficulty    @default(INTERMEDIATE)
-  status      ContentStatus @default(PENDING)
-  authorId    String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  votes       Vote[]
-  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([authorId])
   @@index([slug])
@@ -143,21 +120,13 @@ model Vote {
   value        Int
   createdAt    DateTime        @default(now())
   promptId      String?
-  workflowId    String?
   toolId        String?
-  recipeId      String?
-  migrationId   String?
-  pathId        String?
   mcpId         String?
   instructionId String?
   agentId       String?
   prompt        Prompt?         @relation(fields: [promptId], references: [id], onDelete: Cascade)
   tool          Tool?           @relation(fields: [toolId], references: [id], onDelete: Cascade)
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workflow      Workflow?       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  recipe        CodeRecipe?     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  migration     MigrationGuide? @relation(fields: [migrationId], references: [id], onDelete: Cascade)
-  path          LearningPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
   mcp           McpServer?      @relation(fields: [mcpId], references: [id], onDelete: Cascade)
   instruction   Instruction?    @relation(fields: [instructionId], references: [id], onDelete: Cascade)
   agent         Agent?          @relation(fields: [agentId], references: [id], onDelete: Cascade)
@@ -165,89 +134,6 @@ model Vote {
   @@unique([userId, targetId, targetType])
   @@index([userId])
   @@index([targetId])
-}
-
-model CodeRecipe {
-  id          String        @id @default(cuid())
-  title       String
-  slug        String        @unique
-  description String
-  codeSample  String
-  language    String
-  framework   String?
-  tags        String[]
-  difficulty  Difficulty    @default(INTERMEDIATE)
-  explanation String?
-  usageNotes  String?
-  status      ContentStatus @default(PENDING)
-  authorId    String
-  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  votes       Vote[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  @@index([slug])
-  @@index([status])
-  @@index([language])
-  @@index([framework])
-}
-
-model MigrationGuide {
-  id                    String        @id @default(cuid())
-  title                 String
-  slug                  String        @unique
-  description           String
-  fromStack             String
-  toStack               String
-  category              String
-  tags                  String[]
-  difficulty            Difficulty    @default(ADVANCED)
-  status                ContentStatus @default(PENDING)
-  overview              String?
-  risks                 String?
-  prerequisites         String?
-  steps                 String[]
-  relatedPromptSlugs    String[]      @default([])
-  relatedWorkflowSlugs  String[]      @default([])
-  relatedToolSlugs      String[]      @default([])
-  relatedRecipeSlugs    String[]      @default([])
-  authorId              String
-  author                User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  votes                 Vote[]
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-
-  @@index([slug])
-  @@index([status])
-  @@index([category])
-}
-
-model LearningPath {
-  id              String        @id @default(cuid())
-  title           String
-  slug            String        @unique
-  description     String
-  audience        String
-  level           Difficulty    @default(BEGINNER)
-  tags            String[]
-  overview        String?
-  goals           String?
-  steps           String[]
-  status          ContentStatus @default(PENDING)
-  promptSlugs     String[]      @default([])
-  workflowSlugs   String[]      @default([])
-  toolSlugs       String[]      @default([])
-  recipeSlugs     String[]      @default([])
-  migrationSlugs  String[]      @default([])
-  authorId        String
-  author          User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  votes           Vote[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  @@index([slug])
-  @@index([status])
-  @@index([audience])
 }
 
 model McpServer {
@@ -343,6 +229,39 @@ model Agent {
   @@index([authorId])
 }
 
+model Favorite {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetId    String      // ID of the content (Prompt, Tool, etc)
+  targetType  TargetType  // Allows favorite of Prompt, Tool, MCP, Instruction, Agent
+  createdAt   DateTime    @default(now())
+  @@unique([userId, targetType, targetId])
+}
+
+model Collection {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       CollectionItem[]
+  isPublic    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  @@index([userId])
+}
+
+model CollectionItem {
+  id          String      @id @default(cuid())
+  collectionId String
+  collection  Collection  @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  targetId    String
+  targetType  TargetType
+  addedAt     DateTime    @default(now())
+  @@unique([collectionId, targetType, targetId])
+}
+
 enum Role {
   USER
   ADMIN
@@ -363,11 +282,7 @@ enum Difficulty {
 
 enum TargetType {
   PROMPT
-  WORKFLOW
   TOOL
-  RECIPE
-  MIGRATION
-  PATH
   MCP
   INSTRUCTION
   AGENT

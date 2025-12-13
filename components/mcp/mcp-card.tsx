@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import clsx from "clsx";
+import { FavoriteButton } from "@/components/favorites/favorite-button";
 
 export type McpCardProps = {
   mcp: {
@@ -83,11 +84,16 @@ export function McpCard({ mcp }: McpCardProps) {
               <h3 className="text-base font-semibold text-slate-100 line-clamp-1">
                 {displayName}
               </h3>
-              {mcp.featured && (
-                <span className="shrink-0 rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-300">
-                  Featured
-                </span>
-              )}
+              <div className="flex items-center gap-2 shrink-0">
+                {mcp.featured && (
+                  <span className="shrink-0 rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-300">
+                    Featured
+                  </span>
+                )}
+                <div onClick={(e) => e.preventDefault()} className="relative z-10">
+                  <FavoriteButton targetId={mcp.id} targetType="MCP" size="sm" />
+                </div>
+              </div>
             </div>
             <p className="mb-3 line-clamp-2 text-sm text-slate-400">
               {displayDescription}

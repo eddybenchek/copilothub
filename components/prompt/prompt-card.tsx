@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Calendar, User } from 'lucide-react';
 import { CopyButton } from '@/components/copy-button';
+import { FavoriteButton } from '@/components/favorites/favorite-button';
 import type { PromptWithAuthor } from '@/lib/types';
 
 interface PromptCardProps {
@@ -20,11 +21,16 @@ export function PromptCard({ prompt }: PromptCardProps) {
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <CardTitle className="text-lg line-clamp-2">{prompt.title}</CardTitle>
-              {voteCount > 0 && (
-                <span className="shrink-0 inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2.5 py-1 text-xs text-slate-200">
-                  ↑ {voteCount}
-                </span>
-              )}
+              <div className="flex items-center gap-2 shrink-0">
+                {voteCount > 0 && (
+                  <span className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2.5 py-1 text-xs text-slate-200">
+                    ↑ {voteCount}
+                  </span>
+                )}
+                <div onClick={(e) => e.preventDefault()} className="relative z-10">
+                  <FavoriteButton targetId={prompt.id} targetType="PROMPT" size="sm" />
+                </div>
+              </div>
             </div>
             <CardDescription className="line-clamp-2">{prompt.description}</CardDescription>
           </CardHeader>

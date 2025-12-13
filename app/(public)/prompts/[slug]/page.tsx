@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Calendar, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/copy-button';
+import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { getPromptBySlug } from '@/lib/prisma-helpers';
 
 export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -48,6 +49,16 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
               {tag}
             </Badge>
           ))}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8 flex flex-wrap gap-3">
+          <CopyButton text={prompt.content} />
+          <AddToCollectionButton
+            targetId={prompt.id}
+            targetType="PROMPT"
+            targetTitle={prompt.title}
+          />
         </div>
 
         {/* Prompt Content */}

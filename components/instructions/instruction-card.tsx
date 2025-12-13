@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FileCode, Star, Download, Eye } from "lucide-react";
+import { FavoriteButton } from "@/components/favorites/favorite-button";
 import type { Instruction, User, Vote } from "@prisma/client";
 
 export type InstructionWithAuthor = Instruction & {
@@ -45,6 +46,9 @@ export function InstructionCard({ instruction }: InstructionCardProps) {
                   ↑ {voteCount}
                 </span>
               )}
+              <div onClick={(e) => e.preventDefault()} className="relative z-10">
+                <FavoriteButton targetId={instruction.id} targetType="INSTRUCTION" size="sm" />
+              </div>
             </div>
           </div>
           <CardDescription className="line-clamp-2 mt-2">

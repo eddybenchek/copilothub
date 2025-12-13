@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import clsx from "clsx";
+import { FavoriteButton } from "@/components/favorites/favorite-button";
 
 export type ToolCardProps = {
   tool: {
@@ -74,17 +75,23 @@ export function ToolCard({ tool }: ToolCardProps) {
             <h3 className="mb-0.5 text-base font-semibold text-slate-50">
               {displayName}
             </h3>
-            {displayUrl && (
-              <Link
-                href={displayUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300"
-              >
-                <ExternalLink className="h-3 w-3" />
-                <span className="hidden sm:inline">Website</span>
-              </Link>
-            )}
+            <div className="flex items-center gap-2 ml-auto">
+              {displayUrl && (
+                <Link
+                  href={displayUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  <span className="hidden sm:inline">Website</span>
+                </Link>
+              )}
+              <div onClick={(e) => e.preventDefault()} className="relative z-10">
+                <FavoriteButton targetId={tool.id} targetType="TOOL" size="sm" />
+              </div>
+            </div>
           </div>
           <p className="text-sm text-slate-400">
             {displayDescription}

@@ -3,31 +3,26 @@ import { Suspense } from 'react';
 import { ArrowRight, Sparkles, Zap, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PromptCard } from '@/components/prompt/prompt-card';
-import { WorkflowCard } from '@/components/workflow/workflow-card';
 import { ToolCard } from '@/components/tool/tool-card';
-import { RecipeCard } from '@/components/recipes/recipe-card';
-import { MigrationCard } from '@/components/migrations/migration-card';
-import { LearningPathCard } from '@/components/paths/learning-path-card';
 import { McpCard } from '@/components/mcp/mcp-card';
 import { InstructionCard } from '@/components/instructions/instruction-card';
 import { AgentCard } from '@/components/agents/agent-card';
 import { GlobalSearchDropdown } from '@/components/search/global-search-dropdown';
 import { ModernizationSection } from '@/components/home/modernization-section';
-import { getLatestPrompts, getLatestWorkflows, getLatestTools } from '@/lib/prisma-helpers';
+import { getLatestPrompts, getLatestTools } from '@/lib/prisma-helpers';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 
 export default async function HomePage() {
-  const [prompts, workflows, tools, modernizationPrompts, modernizationWorkflows, latestRecipes, latestMigrations, latestPaths, featuredMcps, featuredInstructions, featuredAgents] = await Promise.all([
+  const [prompts, tools, modernizationPrompts, featuredMcps, featuredInstructions, featuredAgents] = await Promise.all([
     getLatestPrompts(3),
-    getLatestWorkflows(3),
     getLatestTools(3),
     // Fetch modernization content
     db.prompt.findMany({
       where: {
         status: ContentStatus.APPROVED,
         tags: {
-          hasSome: ['modernization', 'migration', 'upgrade', 'refactor'],
+          hasSome: ['modernization', 'migration', 'upgrade', 'refactor', 'workflow'],
         },
       },
       take: 6,
@@ -41,54 +36,6 @@ export default async function HomePage() {
         description: true,
         difficulty: true,
         tags: true,
-      },
-    }),
-    db.workflow.findMany({
-      where: {
-        status: ContentStatus.APPROVED,
-        tags: {
-          hasSome: ['modernization', 'migration', 'upgrade', 'refactor'],
-        },
-      },
-      take: 6,
-      orderBy: {
-        createdAt: 'desc',
-      },
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        description: true,
-        difficulty: true,
-        tags: true,
-      },
-    }),
-    // Fetch new content types
-    db.codeRecipe.findMany({ 
-      where: { status: ContentStatus.APPROVED }, 
-      orderBy: { createdAt: "desc" }, 
-      take: 6,
-      include: {
-        author: true,
-        votes: true,
-      },
-    }),
-    db.migrationGuide.findMany({ 
-      where: { status: ContentStatus.APPROVED }, 
-      orderBy: { createdAt: "desc" }, 
-      take: 6,
-      include: {
-        author: true,
-        votes: true,
-      },
-    }),
-    db.learningPath.findMany({ 
-      where: { status: ContentStatus.APPROVED }, 
-      orderBy: { createdAt: "desc" }, 
-      take: 4,
-      include: {
-        author: true,
-        votes: true,
       },
     }),
     // Fetch featured MCPs
@@ -220,12 +167,13 @@ export default async function HomePage() {
       </section>
 
       {/* Modernization & Technical Migration Section */}
-      <div className="container mx-auto px-4">
-        <ModernizationSection
-          prompts={modernizationPrompts}
-          workflows={modernizationWorkflows}
-        />
-      </div>
+      {modernizationPrompts.length > 0 && (
+        <div className="container mx-auto px-4">
+          <ModernizationSection
+            prompts={modernizationPrompts}
+          />
+        </div>
+      )}
 
       {/* Featured Instructions */}
       {featuredInstructions.length > 0 && (
@@ -275,71 +223,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Code Recipes */}
-      <section className="border-y border-border bg-muted/50">
-        <div className="container mx-auto px-4 py-20">
-          <div className="mb-12 flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold">Code Recipes</h2>
-              <p className="mt-2 text-slate-400">Reusable patterns and snippets for real projects</p>
-            </div>
-            <Button variant="ghost" asChild>
-              <Link href="/recipes">
-                View all
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {latestRecipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Migration Catalog */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="mb-12 flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold">Migration Catalog</h2>
-            <p className="mt-2 text-slate-400">Structured guides for framework and language migrations</p>
-          </div>
-          <Button variant="ghost" asChild>
-            <Link href="/migrations">
-              View all
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {latestMigrations.map((migration) => (
-            <MigrationCard key={migration.id} migration={migration} />
-          ))}
-        </div>
-      </section>
-
-      {/* Learning Paths */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="mb-12 flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold">Learning Paths</h2>
-            <p className="mt-2 text-slate-400">Curated journeys to master AI-assisted development</p>
-          </div>
-          <Button variant="ghost" asChild>
-            <Link href="/paths">
-              View all
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {latestPaths.map((path) => (
-            <LearningPathCard key={path.id} path={path} />
-          ))}
-        </div>
-      </section>
-
       {/* Featured MCPs */}
       {featuredMcps.length > 0 && (
         <section className="border-y border-border bg-muted/50">
@@ -383,26 +266,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Latest Workflows */}
-      <section className="border-y border-border bg-muted/50">
-        <div className="container mx-auto px-4 py-20">
-          <div className="mb-12 flex items-center justify-between">
-            <h2 className="text-3xl font-bold transition-transform duration-200 group-hover:-translate-y-0.5">Latest Workflows</h2>
-            <Button variant="ghost" asChild>
-              <Link href="/workflows">
-                View all
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {workflows.map((workflow) => (
-              <WorkflowCard key={workflow.id} workflow={workflow} />
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Latest Tools */}
       <section className="container mx-auto px-4 py-20">
         <div className="mb-12 flex items-center justify-between">
@@ -426,8 +289,8 @@ export default async function HomePage() {
         <div className="container mx-auto px-4 py-20">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="mb-4 text-3xl font-bold">Ready to Get Started?</h2>
-            <p className="mb-8 text-lg text-muted-foreground">
-              Join our community and share your own prompts, workflows, and tools.
+            <p className="mb-8 text-muted-foreground">
+              Join our community and share your own prompts, instructions, agents, tools, and MCPs.
             </p>
             <Button size="lg" asChild>
               <Link href="/submit">

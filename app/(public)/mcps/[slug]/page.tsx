@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Calendar, User, ExternalLink, Github, Download, Copy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 import { CopyButton } from '@/components/copy-button';
@@ -113,6 +114,11 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
               </a>
             </Button>
           )}
+          <AddToCollectionButton
+            targetId={mcp.id}
+            targetType="MCP"
+            targetTitle={displayName}
+          />
         </div>
 
         {/* Installation Instructions */}

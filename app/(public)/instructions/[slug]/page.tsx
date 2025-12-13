@@ -10,7 +10,7 @@ import { DownloadButton } from "@/components/instructions/download-button";
 import { CopyButton } from "@/components/copy-button";
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button";
 import { ShareButton } from "@/components/share-button";
-import ReactMarkdown from "react-markdown";
+import { MarkdownPreview } from "@/components/markdown-preview";
 
 export default async function InstructionDetailPage({
   params,
@@ -118,8 +118,8 @@ export default async function InstructionDetailPage({
           </TabsList>
 
           <TabsContent value="preview">
-            <div className="prose prose-invert max-w-none rounded-lg border border-slate-800 bg-slate-900/40 p-6">
-              <ReactMarkdown>{instruction.content}</ReactMarkdown>
+            <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-8">
+              <MarkdownPreview content={instruction.content} />
             </div>
           </TabsContent>
 

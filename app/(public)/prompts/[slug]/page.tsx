@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import { Calendar, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/copy-button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
@@ -21,25 +20,12 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
-            <Badge variant="secondary">{prompt.difficulty}</Badge>
             {voteCount > 0 && (
               <Badge variant="outline">↑ {voteCount} votes</Badge>
             )}
           </div>
           <h1 className="mb-4 text-4xl font-bold">{prompt.title}</h1>
           <p className="text-xl text-muted-foreground">{prompt.description}</p>
-        </div>
-
-        {/* Meta */}
-        <div className="mb-8 flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-y border-border py-4">
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span>{prompt.author.name || 'Anonymous'}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span>{new Date(prompt.createdAt).toLocaleDateString()}</span>
-          </div>
         </div>
 
         {/* Tags */}

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Calendar, User } from 'lucide-react';
 import { CopyButton } from '@/components/copy-button';
 import { FavoriteButton } from '@/components/favorites/favorite-button';
 import type { PromptWithAuthor } from '@/lib/types';
@@ -54,20 +53,7 @@ export function PromptCard({ prompt }: PromptCardProps) {
               </div>
 
               {/* Meta */}
-              <div className="flex items-center justify-between gap-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <User className="h-3 w-3" />
-                    <span>{prompt.author.name || 'Anonymous'}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>{new Date(prompt.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  <span className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2.5 py-1 text-xs text-slate-200">
-                    {prompt.difficulty}
-                  </span>
-                </div>
+              <div className="flex items-center justify-end gap-4 text-xs text-muted-foreground">
                 <div onClick={(e) => e.preventDefault()}>
                   <CopyButton text={prompt.content} />
                 </div>

@@ -17,7 +17,6 @@ type AgentCardProps = {
     languages: string[];
     frameworks: string[];
     tags: string[];
-    difficulty: string;
     featured?: boolean;
     downloads?: number;
   };

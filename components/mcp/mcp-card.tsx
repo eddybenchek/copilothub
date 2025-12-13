@@ -38,13 +38,6 @@ export function McpCard({ mcp }: McpCardProps) {
   const displayDescription = mcp.shortDescription || mcp.description || "";
   const displayUrl = mcp.websiteUrl || mcp.githubUrl || "";
 
-  const createdAt =
-    mcp.createdAt instanceof Date
-      ? mcp.createdAt
-      : mcp.createdAt
-      ? new Date(mcp.createdAt)
-      : null;
-
   const initials = displayName
     .split(" ")
     .filter(w => w.length > 0)
@@ -116,22 +109,6 @@ export function McpCard({ mcp }: McpCardProps) {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <div className="flex items-center gap-3">
-                {mcp.authorName && (
-                  <span className="truncate">{mcp.authorName}</span>
-                )}
-                {createdAt && (
-                  <span>{createdAt.toLocaleDateString()}</span>
-                )}
-              </div>
-              {mcp.difficulty && (
-                <span className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2 py-0.5 text-[10px] text-slate-300">
-                  {mcp.difficulty}
-                </span>
-              )}
-            </div>
           </div>
         </div>
       </Link>

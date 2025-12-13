@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Calendar, User, ExternalLink, Github, Download, Copy, BookOpen } from 'lucide-react';
+import { ExternalLink, Github, Download, Copy, BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
@@ -43,7 +43,6 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
-            <Badge variant="secondary">{mcp.difficulty}</Badge>
             {mcp.category && (
               <Badge variant="outline" className="capitalize">{mcp.category}</Badge>
             )}
@@ -58,23 +57,6 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
           </div>
           <h1 className="mb-4 text-4xl font-bold text-slate-50">{displayName}</h1>
           <p className="text-xl text-slate-400">{mcp.description}</p>
-        </div>
-
-        {/* Meta */}
-        <div className="mb-8 flex flex-wrap items-center gap-4 text-sm text-slate-400 border-y border-slate-800 py-4">
-          {mcp.author && (
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span>{mcp.author.name || mcp.authorName || 'Anonymous'}</span>
-            </div>
-          )}
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span>{new Date(mcp.createdAt).toLocaleDateString()}</span>
-          </div>
-          {mcp.category && (
-            <Badge variant="outline">{mcp.category}</Badge>
-          )}
         </div>
 
         {/* Tags */}

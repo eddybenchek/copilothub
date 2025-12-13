@@ -213,15 +213,6 @@ export default async function InstructionDetailPage({
           </div>
         )}
 
-        {/* Author Info */}
-        <div className="border-t border-slate-800 pt-8">
-          <div className="flex items-center gap-3 text-sm text-slate-400">
-            <span>Created by</span>
-            <span className="font-medium text-slate-200">{instruction.author.name || "Anonymous"}</span>
-            <span>•</span>
-            <span>{new Date(instruction.createdAt).toLocaleDateString()}</span>
-          </div>
-        </div>
       </article>
     </div>
   );

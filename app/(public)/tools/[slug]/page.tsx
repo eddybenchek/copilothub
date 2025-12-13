@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Calendar, User, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
@@ -21,25 +21,12 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
-            <Badge variant="secondary">{tool.difficulty}</Badge>
             {voteCount > 0 && (
               <Badge variant="outline">↑ {voteCount} votes</Badge>
             )}
           </div>
           <h1 className="mb-4 text-4xl font-bold">{tool.title}</h1>
           <p className="text-xl text-muted-foreground">{tool.description}</p>
-        </div>
-
-        {/* Meta */}
-        <div className="mb-8 flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-y border-border py-4">
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span>{tool.author.name || 'Anonymous'}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span>{new Date(tool.createdAt).toLocaleDateString()}</span>
-          </div>
         </div>
 
         {/* Tags */}

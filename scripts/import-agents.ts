@@ -73,11 +73,13 @@ async function fetchAwesomeCopilotAgents(): Promise<CopilotAgent[]> {
             const vsCodeUrl = `vscode:chat-agent/install?url=${encodeURIComponent(rawUrl)}`;
             const vsCodeInsidersUrl = `vscode-insiders:chat-agent/install?url=${encodeURIComponent(rawUrl)}`;
             
+            const agentName = nameMatch.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            
             agents.push({
-              name: nameMatch.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+              name: agentName,
               description: description.substring(0, 200),
               content: content,
-              category: extractCategory(content),
+              category: extractCategory(content, agentName),
               mcpServers: extractMcpServers(content),
               languages: extractLanguages(content),
               frameworks: extractFrameworks(content),
@@ -100,17 +102,108 @@ async function fetchAwesomeCopilotAgents(): Promise<CopilotAgent[]> {
   }
 }
 
-function extractCategory(content: string): string | undefined {
+function extractCategory(content: string, name: string): string | undefined {
   const lowerContent = content.toLowerCase();
+  const lowerName = name.toLowerCase();
   
-  if (lowerContent.includes('security') || lowerContent.includes('vulnerability')) return 'Security';
-  if (lowerContent.includes('test') || lowerContent.includes('testing')) return 'Testing';
-  if (lowerContent.includes('accessibility') || lowerContent.includes('a11y')) return 'Accessibility';
-  if (lowerContent.includes('refactor') || lowerContent.includes('cleanup')) return 'Maintenance';
-  if (lowerContent.includes('documentation') || lowerContent.includes('docs')) return 'Documentation';
-  if (lowerContent.includes('frontend') || lowerContent.includes('ui')) return 'Frontend';
-  if (lowerContent.includes('backend') || lowerContent.includes('api')) return 'Backend';
-  if (lowerContent.includes('database') || lowerContent.includes('sql')) return 'Database';
+  // Priority-based category extraction - check most specific first
+  // Use both name and content, but prioritize name for accuracy
+  
+  // Infrastructure & DevOps (check first as it's very specific)
+  if (lowerName.includes('terraform') || lowerName.includes('azure') || lowerName.includes('bicep') || 
+      lowerName.includes('infrastructure') || lowerName.includes('devops') || lowerName.includes('deploy')) {
+    return 'Infrastructure';
+  }
+  
+  // Cloud & Platform
+  if (lowerName.includes('azure') || lowerName.includes('aws') || lowerName.includes('gcp') || 
+      lowerName.includes('cloud') || lowerName.includes('platform')) {
+    return 'Cloud';
+  }
+  
+  // Database
+  if (lowerName.includes('database') || lowerName.includes('dba') || lowerName.includes('sql') || 
+      lowerName.includes('postgres') || lowerName.includes('mongodb') || lowerName.includes('neo4j') ||
+      lowerContent.includes('database administrator') || lowerContent.includes('dba')) {
+    return 'Database';
+  }
+  
+  // Language Experts (MCP Experts)
+  if (lowerName.includes('mcp expert') || lowerName.includes('expert') && 
+      (lowerName.includes('typescript') || lowerName.includes('python') || lowerName.includes('go') || 
+       lowerName.includes('rust') || lowerName.includes('java') || lowerName.includes('csharp') ||
+       lowerName.includes('php') || lowerName.includes('ruby') || lowerName.includes('swift') ||
+       lowerName.includes('kotlin') || lowerName.includes('clojure'))) {
+    return 'Language Expert';
+  }
+  
+  // Security (be more specific - avoid false positives)
+  if (lowerName.includes('security') || lowerName.includes('sentinel') || lowerName.includes('sec') ||
+      (lowerContent.includes('security vulnerability') || lowerContent.includes('security audit') ||
+       lowerContent.includes('vulnerability scan') || lowerContent.includes('security testing'))) {
+    return 'Security';
+  }
+  
+  // Testing (be more specific - only if it's actually about testing)
+  if (lowerName.includes('test') || lowerName.includes('tester') || lowerName.includes('tdd') ||
+      (lowerContent.includes('write tests') || lowerContent.includes('test suite') ||
+       lowerContent.includes('unit test') || lowerContent.includes('integration test') ||
+       lowerContent.includes('test coverage') || lowerContent.includes('testing framework'))) {
+    return 'Testing';
+  }
+  
+  // Frontend
+  if (lowerName.includes('frontend') || lowerName.includes('react') || lowerName.includes('vue') ||
+      lowerName.includes('angular') || lowerName.includes('ui') || lowerName.includes('nextjs')) {
+    return 'Frontend';
+  }
+  
+  // Backend
+  if (lowerName.includes('backend') || lowerName.includes('api') || lowerName.includes('server') ||
+      lowerName.includes('express') || lowerName.includes('django') || lowerName.includes('flask')) {
+    return 'Backend';
+  }
+  
+  // Architecture & Planning
+  if (lowerName.includes('architect') || lowerName.includes('architecture') || lowerName.includes('plan') ||
+      lowerName.includes('planner') || lowerName.includes('blueprint') || lowerName.includes('design')) {
+    return 'Architecture';
+  }
+  
+  // Business Intelligence & Data
+  if (lowerName.includes('power bi') || lowerName.includes('dax') || lowerName.includes('data modeling') ||
+      lowerName.includes('analytics') || lowerName.includes('kusto')) {
+    return 'Business Intelligence';
+  }
+  
+  // Maintenance & Refactoring
+  if (lowerName.includes('refactor') || lowerName.includes('cleanup') || lowerName.includes('janitor') ||
+      lowerName.includes('maintenance') || lowerName.includes('remediation') || lowerName.includes('tech debt')) {
+    return 'Maintenance';
+  }
+  
+  // Documentation
+  if (lowerName.includes('documentation') || lowerName.includes('docs') || lowerName.includes('adr') ||
+      lowerName.includes('readme') || lowerName.includes('i18n')) {
+    return 'Documentation';
+  }
+  
+  // Accessibility
+  if (lowerName.includes('accessibility') || lowerName.includes('a11y')) {
+    return 'Accessibility';
+  }
+  
+  // Framework-specific
+  if (lowerName.includes('laravel') || lowerName.includes('drupal') || lowerName.includes('shopify') ||
+      lowerName.includes('semantic kernel') || lowerName.includes('electron')) {
+    return 'Framework';
+  }
+  
+  // Monitoring & Observability
+  if (lowerName.includes('monitoring') || lowerName.includes('observability') || lowerName.includes('dynatrace') ||
+      lowerName.includes('elasticsearch') || lowerName.includes('pagerduty')) {
+    return 'Monitoring';
+  }
   
   return undefined;
 }

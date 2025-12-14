@@ -11,7 +11,10 @@ interface PromptCardProps {
 }
 
 export function PromptCard({ prompt }: PromptCardProps) {
-  const voteCount = prompt.votes.reduce((sum, vote) => sum + vote.value, 0);
+  // Support both voteCount (from optimized API) and votes array (from legacy)
+  const voteCount = (prompt as any).voteCount !== undefined 
+    ? (prompt as any).voteCount 
+    : prompt.votes.reduce((sum, vote) => sum + vote.value, 0);
 
   return (
     <div className="animate-fadeUp">

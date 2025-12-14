@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { McpCard } from '@/components/mcp/mcp-card';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import type { McpWithAuthor } from '@/lib/types';
 import clsx from 'clsx';
 
@@ -14,16 +14,67 @@ export default function McpsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const fetchMcps = useCallback(async (reset = false) => {
+    const currentOffset = reset ? 0 : offset;
+    
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      const response = await fetch(`/api/mcps?offset=${currentOffset}&limit=20`);
+      const data = await response.json();
+      
+      if (reset) {
+        setMcps(data.mcps || []);
+      } else {
+        setMcps(prev => [...prev, ...(data.mcps || [])]);
+      }
+      
+      setHasMore(data.hasMore || false);
+      setOffset(data.nextOffset || currentOffset + (data.mcps?.length || 0));
+    } catch (error) {
+      console.error('Error fetching MCPs:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [offset]);
 
   useEffect(() => {
-    fetch('/api/mcps')
-      .then((res) => res.json())
-      .then((data) => {
-        setMcps(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    fetchMcps(true);
   }, []);
+
+  useEffect(() => {
+    if (!hasMore || loading || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          fetchMcps(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [hasMore, loading, loadingMore, fetchMcps]);
 
   // Build dynamic categories from MCP data
   const { categories, categoryCounts } = useMemo(() => {
@@ -151,24 +202,33 @@ export default function McpsPage() {
 
       {/* Results */}
       {loading ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="h-48 animate-pulse rounded-2xl border border-slate-800 bg-slate-900/40"
-            />
-          ))}
+        <div className="text-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-slate-400 mb-4" />
+          <p className="text-slate-400">Loading MCP servers...</p>
         </div>
       ) : filteredAndSortedMcps.length === 0 ? (
         <div className="py-20 text-center">
           <p className="text-slate-400">No MCP servers found matching your filters.</p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredAndSortedMcps.map((mcp) => (
-            <McpCard key={mcp.id} mcp={mcp} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredAndSortedMcps.map((mcp) => (
+              <McpCard key={mcp.id} mcp={mcp} />
+            ))}
+          </div>
+          
+          {hasMore && (
+            <div ref={loadMoreRef} className="mt-8 flex justify-center">
+              {loadingMore && (
+                <div className="flex items-center gap-2 text-slate-400">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm">Loading more...</span>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </main>
   );

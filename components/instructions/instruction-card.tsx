@@ -17,7 +17,10 @@ export type InstructionCardProps = {
 };
 
 export function InstructionCard({ instruction }: InstructionCardProps) {
-  const voteCount = instruction.votes.reduce((sum, vote) => sum + vote.value, 0);
+  // Support both voteCount (from optimized API) and votes array (from legacy)
+  const voteCount = (instruction as any).voteCount !== undefined 
+    ? (instruction as any).voteCount 
+    : instruction.votes.reduce((sum, vote) => sum + vote.value, 0);
 
   return (
     <Link href={`/instructions/${instruction.slug}`} className="animate-fadeUp">

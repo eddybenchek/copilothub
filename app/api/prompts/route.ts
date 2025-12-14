@@ -4,20 +4,77 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { createPromptSchema } from '@/lib/validation';
 import { slugify } from '@/lib/slug';
+import { ContentStatus } from '@prisma/client';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const offset = parseInt(searchParams.get('offset') || '0');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50); // Max 50 per request
+    
+    // Optimized query: Only fetch needed fields, no votes relation
     const prompts = await db.prompt.findMany({
-      where: { status: 'APPROVED' },
-      include: {
-        author: true,
-        votes: true,
+      where: { status: ContentStatus.APPROVED },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        tags: true,
+        difficulty: true,
+        createdAt: true,
+        updatedAt: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
     });
 
-    return NextResponse.json(prompts);
+    // Batch fetch vote counts for all prompts in one query
+    const promptIds = prompts.map(p => p.id);
+    const voteCounts = promptIds.length > 0 ? await db.vote.groupBy({
+      by: ['targetId'],
+      where: {
+        targetId: { in: promptIds },
+      },
+      _sum: {
+        value: true,
+      },
+    }) : [];
+
+    // Create a map for O(1) lookup
+    const voteMap = new Map(
+      voteCounts.map(v => [v.targetId, v._sum.value || 0])
+    );
+
+    // Attach vote counts to prompts
+    const promptsWithVotes = prompts.map(prompt => ({
+      ...prompt,
+      voteCount: voteMap.get(prompt.id) || 0,
+      votes: [], // Empty array for compatibility with existing types
+    }));
+
+    // Check if there are more items
+    const hasMore = prompts.length === limit;
+
+    return NextResponse.json({
+      prompts: promptsWithVotes,
+      hasMore,
+      nextOffset: hasMore ? offset + limit : null,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+      },
+    });
   } catch (error) {
+    console.error('Error fetching prompts:', error);
     return NextResponse.json({ error: 'Failed to fetch prompts' }, { status: 500 });
   }
 }

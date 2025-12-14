@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { ToolCard } from '@/components/tool/tool-card';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import type { ToolWithAuthor } from '@/lib/types';
 import clsx from 'clsx';
 
@@ -24,16 +24,67 @@ export default function ToolsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const fetchTools = useCallback(async (reset = false) => {
+    const currentOffset = reset ? 0 : offset;
+    
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      const response = await fetch(`/api/tools?offset=${currentOffset}&limit=20`);
+      const data = await response.json();
+      
+      if (reset) {
+        setTools(data.tools || []);
+      } else {
+        setTools(prev => [...prev, ...(data.tools || [])]);
+      }
+      
+      setHasMore(data.hasMore || false);
+      setOffset(data.nextOffset || currentOffset + (data.tools?.length || 0));
+    } catch (error) {
+      console.error('Error fetching tools:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [offset]);
 
   useEffect(() => {
-    fetch('/api/tools')
-      .then((res) => res.json())
-      .then((data) => {
-        setTools(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    fetchTools(true);
   }, []);
+
+  useEffect(() => {
+    if (!hasMore || loading || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          fetchTools(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [hasMore, loading, loadingMore, fetchTools]);
 
   // Build category counts from tags
   const categoryCounts = useMemo(() => {
@@ -174,6 +225,7 @@ export default function ToolsPage() {
         {/* Grid / Loading / Empty States */}
         {loading ? (
           <div className="text-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-slate-400 mb-4" />
             <p className="text-slate-400">Loading tools...</p>
           </div>
         ) : filteredAndSortedTools.length === 0 ? (
@@ -185,11 +237,24 @@ export default function ToolsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {filteredAndSortedTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-6 md:grid-cols-2">
+              {filteredAndSortedTools.map((tool) => (
+                <ToolCard key={tool.id} tool={tool} />
+              ))}
+            </div>
+            
+            {hasMore && (
+              <div ref={loadMoreRef} className="mt-8 flex justify-center">
+                {loadingMore && (
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm">Loading more...</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

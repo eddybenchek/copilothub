@@ -3,9 +3,11 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { PromptCard } from '@/components/prompt/prompt-card';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { PromptWithAuthor } from '@/lib/types';
+
+const GITHUB_REPO_URL = 'https://github.com/eddybenchek/copilothub';
 
 type SortOption = 'recent';
 
@@ -203,8 +205,15 @@ export default function PromptsPage() {
             </p>
           </div>
 
-          <Button asChild size="sm">
-            <Link href="/submit">Submit prompt</Link>
+          <Button asChild size="sm" variant="outline" className="gap-2">
+            <a 
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Github className="h-4 w-4" />
+              Contribute on GitHub
+            </a>
           </Button>
         </div>
 

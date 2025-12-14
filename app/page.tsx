@@ -121,7 +121,13 @@ export default async function HomePage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/submit">Submit Your Own</Link>
+              <a 
+                href="https://github.com/eddybenchek/copilothub"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Contribute on GitHub
+              </a>
             </Button>
           </div>
         </div>
@@ -289,10 +295,15 @@ export default async function HomePage() {
               Join our community and share your own prompts, instructions, agents, tools, and MCPs.
             </p>
             <Button size="lg" asChild>
-              <Link href="/submit">
-                Submit Your Contribution
+              <a 
+                href="https://github.com/eddybenchek/copilothub"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center"
+              >
+                Contribute on GitHub
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              </a>
             </Button>
           </div>
         </div>

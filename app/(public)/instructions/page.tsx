@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { InstructionCard } from "@/components/instructions/instruction-card";
-import { Loader2 } from 'lucide-react';
+import { Loader2, Github } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type { InstructionWithAuthor } from '@/components/instructions/instruction-card';
+
+const GITHUB_REPO_URL = 'https://github.com/eddybenchek/copilothub';
 
 export default function InstructionsPage() {
   const [instructions, setInstructions] = useState<InstructionWithAuthor[]>([]);
@@ -76,10 +79,24 @@ export default function InstructionsPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
       <header className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-slate-50">Copilot Instructions</h1>
-        <p className="text-slate-400">
-          Comprehensive coding standards and best practices that apply to specific file patterns
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold text-slate-50">Copilot Instructions</h1>
+            <p className="text-slate-400">
+              Comprehensive coding standards and best practices that apply to specific file patterns
+            </p>
+          </div>
+          <Button asChild size="sm" variant="outline" className="gap-2">
+            <a 
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Github className="h-4 w-4" />
+              Contribute on GitHub
+            </a>
+          </Button>
+        </div>
       </header>
 
       {/* Stats */}

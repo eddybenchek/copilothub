@@ -34,9 +34,14 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/submit" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Submit Content
-                </Link>
+                <a 
+                  href="https://github.com/eddybenchek/copilothub"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Contribute on GitHub
+                </a>
               </li>
             </ul>
           </div>
@@ -46,7 +51,7 @@ export function SiteFooter() {
             <h4 className="text-sm font-semibold">Community</h4>
             <div className="flex space-x-4">
               <a
-                href="https://github.com"
+                href="https://github.com/eddybenchek/copilothub"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"

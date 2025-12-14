@@ -19,7 +19,6 @@ export function SiteHeader() {
     { name: 'Agents', href: '/agents' },
     { name: 'Tools', href: '/tools' },
     { name: 'MCPs', href: '/mcps' },
-    { name: 'Submit', href: '/submit' },
   ];
 
   return (

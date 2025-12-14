@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/copy-button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
+import { VoteButton } from '@/components/votes/vote-button';
 import { getPromptBySlug } from '@/lib/prisma-helpers';
 
 export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -38,7 +39,12 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-8 flex flex-wrap items-center gap-3">
+          <VoteButton
+            targetId={prompt.id}
+            targetType="PROMPT"
+            initialVoteCount={voteCount}
+          />
           <CopyButton text={prompt.content} />
           <AddToCollectionButton
             targetId={prompt.id}

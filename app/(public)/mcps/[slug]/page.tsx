@@ -3,6 +3,7 @@ import { ExternalLink, Github, Download, Copy, BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
+import { VoteButton } from '@/components/votes/vote-button';
 import { MarkdownPreview } from '@/components/markdown-preview';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
@@ -69,7 +70,12 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-8 flex flex-wrap gap-4">
+        <div className="mb-8 flex flex-wrap items-center gap-4">
+          <VoteButton
+            targetId={mcp.id}
+            targetType="MCP"
+            initialVoteCount={voteCount}
+          />
           <CopyButton 
             text={mcp.configExample || JSON.stringify({
               name: mcp.slug,

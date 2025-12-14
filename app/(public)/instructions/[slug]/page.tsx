@@ -10,6 +10,7 @@ import { DownloadButton } from "@/components/instructions/download-button";
 import { CopyButton } from "@/components/copy-button";
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button";
 import { ShareButton } from "@/components/share-button";
+import { VoteButton } from "@/components/votes/vote-button";
 import { MarkdownPreview } from "@/components/markdown-preview";
 
 export default async function InstructionDetailPage({
@@ -93,7 +94,12 @@ export default async function InstructionDetailPage({
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-8 flex flex-wrap items-center gap-3">
+          <VoteButton
+            targetId={instruction.id}
+            targetType="INSTRUCTION"
+            initialVoteCount={voteCount}
+          />
           <CopyButton text={instruction.content} />
           <DownloadButton instruction={instruction} />
           <AddToCollectionButton

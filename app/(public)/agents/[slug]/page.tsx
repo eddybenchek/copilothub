@@ -8,6 +8,7 @@ import { CodeBlock } from "@/components/ui/code-block";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button";
 import { ShareButton } from "@/components/share-button";
+import { VoteButton } from "@/components/votes/vote-button";
 import { MarkdownPreview } from "@/components/markdown-preview";
 import { AgentDownloadButton } from "@/components/agents/download-button";
 import Link from "next/link";
@@ -33,6 +34,7 @@ export default async function AgentDetailPage({
   const downloads = agent.downloads || 0;
   const views = agent.views || 0;
   const mcpCount = agent.mcpServers?.length || 0;
+  const voteCount = agent.votes.reduce((sum, vote) => sum + vote.value, 0);
 
   // Fetch actual MCP servers from database to validate links
   const mcpSlugs = agent.mcpServers.map((name) => 
@@ -101,7 +103,12 @@ export default async function AgentDetailPage({
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-8 flex flex-wrap items-center gap-3">
+          <VoteButton
+            targetId={agent.id}
+            targetType="AGENT"
+            initialVoteCount={voteCount}
+          />
           {agent.vsCodeInstallUrl && (
             <a href={agent.vsCodeInstallUrl} target="_blank" rel="noopener noreferrer">
               <Button size="lg" className="bg-purple-600 hover:bg-purple-700">

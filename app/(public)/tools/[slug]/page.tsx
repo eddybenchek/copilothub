@@ -3,6 +3,7 @@ import { ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
+import { VoteButton } from '@/components/votes/vote-button';
 import { getToolBySlug } from '@/lib/prisma-helpers';
 
 export default async function ToolDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -39,7 +40,12 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-8 flex flex-wrap items-center gap-3">
+          <VoteButton
+            targetId={tool.id}
+            targetType="TOOL"
+            initialVoteCount={voteCount}
+          />
           {tool.url && (
             <Button asChild>
               <a href={tool.url} target="_blank" rel="noopener noreferrer">

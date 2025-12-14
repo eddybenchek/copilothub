@@ -65,6 +65,8 @@ export function McpCard({ mcp }: McpCardProps) {
                 width={32}
                 height={32}
                 className="rounded-lg"
+                loading="lazy"
+                unoptimized={mcp.logo.startsWith('http')}
               />
             ) : (
               <span className="text-sm font-semibold text-slate-300">{initials}</span>

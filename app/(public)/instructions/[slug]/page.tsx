@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 import { db } from "@/lib/db";
 import { ContentStatus } from "@prisma/client";
 import { FileCode, Download, Copy, Star, Share2, Eye } from "lucide-react";
@@ -12,6 +13,49 @@ import { AddToCollectionButton } from "@/components/collections/add-to-collectio
 import { ShareButton } from "@/components/share-button";
 import { VoteButton } from "@/components/votes/vote-button";
 import { MarkdownPreview } from "@/components/markdown-preview";
+import { getBaseUrl, createMetadata, createStructuredData } from "@/lib/metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const instruction = await db.instruction.findUnique({
+    where: { slug },
+    include: { author: true },
+  });
+
+  if (!instruction || instruction.status !== ContentStatus.APPROVED) {
+    return {};
+  }
+
+  const url = `${getBaseUrl()}/instructions/${slug}`;
+  const description = instruction.description || `Copilot instruction: ${instruction.title}`;
+
+  return createMetadata({
+    title: instruction.title,
+    description,
+    openGraph: {
+      title: instruction.title,
+      description,
+      url,
+      type: 'article',
+      publishedTime: instruction.createdAt.toISOString(),
+      modifiedTime: instruction.updatedAt.toISOString(),
+      authors: instruction.author.name ? [instruction.author.name] : undefined,
+      tags: [...instruction.tags, ...(instruction.language ? [instruction.language] : []), ...(instruction.framework ? [instruction.framework] : [])],
+      images: [
+        {
+          url: `${getBaseUrl()}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: instruction.title,
+        },
+      ],
+    },
+    twitter: {
+      title: instruction.title,
+      description,
+    },
+  });
+}
 
 export default async function InstructionDetailPage({
   params,
@@ -39,10 +83,32 @@ export default async function InstructionDetailPage({
   });
 
   const voteCount = instruction.votes.reduce((sum, vote) => sum + vote.value, 0);
+  
+  const structuredData = createStructuredData('TechArticle', {
+    headline: instruction.title,
+    description: instruction.description,
+    author: {
+      '@type': 'Person',
+      name: instruction.author.name || 'Anonymous',
+    },
+    datePublished: instruction.createdAt.toISOString(),
+    dateModified: instruction.updatedAt.toISOString(),
+    url: `${getBaseUrl()}/instructions/${slug}`,
+    keywords: [...instruction.tags, ...(instruction.language ? [instruction.language] : []), ...(instruction.framework ? [instruction.framework] : [])].join(', '),
+    about: {
+      '@type': 'SoftwareApplication',
+      name: 'GitHub Copilot',
+    },
+  });
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <article className="mx-auto max-w-4xl">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="container mx-auto px-4 py-12">
+        <article className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-3">
@@ -221,6 +287,7 @@ export default async function InstructionDetailPage({
 
       </article>
     </div>
+    </>
   );
 }
 

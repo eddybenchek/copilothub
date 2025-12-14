@@ -1,9 +1,50 @@
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/copy-button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { VoteButton } from '@/components/votes/vote-button';
 import { getPromptBySlug } from '@/lib/prisma-helpers';
+import { getBaseUrl, createMetadata, createStructuredData } from '@/lib/metadata';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const prompt = await getPromptBySlug(slug);
+
+  if (!prompt) {
+    return {};
+  }
+
+  const url = `${getBaseUrl()}/prompts/${slug}`;
+  const description = prompt.description || `AI prompt: ${prompt.title}`;
+
+  return createMetadata({
+    title: prompt.title,
+    description,
+    openGraph: {
+      title: prompt.title,
+      description,
+      url,
+      type: 'article',
+      publishedTime: prompt.createdAt.toISOString(),
+      modifiedTime: prompt.updatedAt.toISOString(),
+      authors: prompt.author.name ? [prompt.author.name] : undefined,
+      tags: prompt.tags,
+      images: [
+        {
+          url: `${getBaseUrl()}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: prompt.title,
+        },
+      ],
+    },
+    twitter: {
+      title: prompt.title,
+      description,
+    },
+  });
+}
 
 export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -14,10 +55,27 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
   }
 
   const voteCount = prompt.votes.reduce((sum, vote) => sum + vote.value, 0);
+  const structuredData = createStructuredData('Article', {
+    headline: prompt.title,
+    description: prompt.description,
+    author: {
+      '@type': 'Person',
+      name: prompt.author.name || 'Anonymous',
+    },
+    datePublished: prompt.createdAt.toISOString(),
+    dateModified: prompt.updatedAt.toISOString(),
+    url: `${getBaseUrl()}/prompts/${slug}`,
+    keywords: prompt.tags.join(', '),
+  });
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <article className="mx-auto max-w-4xl">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="container mx-auto px-4 py-12">
+        <article className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
@@ -65,6 +123,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
         </div>
       </article>
     </div>
+    </>
   );
 }
 

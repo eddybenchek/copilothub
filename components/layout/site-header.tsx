@@ -38,6 +38,7 @@ export function SiteHeader() {
           alt="CopilotHub"
           width={240}
           height={48}
+          priority
         />
       </Link>
 

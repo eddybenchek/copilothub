@@ -598,6 +598,51 @@ function extractTags(content: string, name: string, category?: string): string[]
   return [...new Set(tags)].slice(0, 4);
 }
 
+/**
+ * Find author by GitHub username
+ */
+async function findAuthorByGitHubUsername(githubUsername: string | null | undefined) {
+  if (!githubUsername) return null;
+  
+  try {
+    const user = await prisma.user.findFirst({
+      where: { 
+        githubUsername: githubUsername.toLowerCase().trim()
+      },
+    });
+    return user;
+  } catch (error) {
+    console.error(`Error finding author by GitHub username ${githubUsername}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Extract GitHub username from file path or commit
+ * For awesome-copilot repo, we'll try to get it from commit history
+ */
+async function extractGitHubUsernameFromFile(filePath: string): Promise<string | null> {
+  try {
+    // Try to get the last commit author for this file
+    const owner = 'github';
+    const repo = 'awesome-copilot';
+    
+    const { data: commits } = await octokit.repos.listCommits({
+      owner,
+      repo,
+      path: filePath,
+      per_page: 1,
+    });
+    
+    if (commits && commits.length > 0 && commits[0].author?.login) {
+      return commits[0].author.login;
+    }
+  } catch (error) {
+    // Silently fail - we'll use default author
+  }
+  return null;
+}
+
 async function importAgents() {
   console.log('🚀 Starting import of agents from awesome-copilot...\n');
   
@@ -639,6 +684,23 @@ async function importAgents() {
     const slug = agent.name.toLowerCase().replace(/\s+/g, '-');
     
     try {
+      // Try to find author by GitHub username from commit history
+      // Extract file path from downloadUrl
+      const filePathMatch = agent.downloadUrl.match(/github\.com\/[^/]+\/[^/]+\/main\/(.+)$/);
+      let author = defaultAuthor;
+      
+      if (filePathMatch) {
+        const filePath = filePathMatch[1];
+        const githubUsername = await extractGitHubUsernameFromFile(filePath);
+        if (githubUsername) {
+          const matchedAuthor = await findAuthorByGitHubUsername(githubUsername);
+          if (matchedAuthor) {
+            author = matchedAuthor;
+            console.log(`  📌 Matched author: ${githubUsername} for "${agent.name}"`);
+          }
+        }
+      }
+
       const existing = await prisma.agent.findUnique({
         where: { slug },
       });
@@ -657,6 +719,8 @@ async function importAgents() {
             vsCodeInstallUrl: agent.vsCodeInstallUrl,
             vsCodeInsidersUrl: agent.vsCodeInsidersUrl,
             downloadUrl: agent.downloadUrl,
+            // Update author if we found a match
+            authorId: author.id,
           },
         });
         console.log(`✅ Updated agent: "${agent.name}"`);
@@ -678,7 +742,7 @@ async function importAgents() {
             vsCodeInstallUrl: agent.vsCodeInstallUrl,
             vsCodeInsidersUrl: agent.vsCodeInsidersUrl,
             downloadUrl: agent.downloadUrl,
-            authorId: defaultAuthor.id,
+            authorId: author.id,
           },
         });
         console.log(`✅ Imported agent: "${agent.name}"`);

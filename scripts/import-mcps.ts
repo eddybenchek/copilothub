@@ -390,10 +390,44 @@ async function fetchMcpServers(): Promise<McpServerData[]> {
   }
 }
 
+/**
+ * Extract GitHub username from GitHub URL
+ * Format: https://github.com/username/repo
+ */
+function extractGitHubUsernameFromUrl(githubUrl: string | null | undefined): string | null {
+  if (!githubUrl) return null;
+  
+  try {
+    const match = githubUrl.match(/github\.com\/([^/]+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Find author by GitHub username
+ */
+async function findAuthorByGitHubUsername(githubUsername: string | null | undefined) {
+  if (!githubUsername) return null;
+  
+  try {
+    const user = await prisma.user.findFirst({
+      where: { 
+        githubUsername: githubUsername.toLowerCase().trim()
+      },
+    });
+    return user;
+  } catch (error) {
+    console.error(`Error finding author by GitHub username ${githubUsername}:`, error);
+    return null;
+  }
+}
+
 async function main() {
   console.log('🚀 Starting MCP servers import...');
 
-  // Get or create import user
+  // Get or create import user (fallback)
   const importUser = await prisma.user.upsert({
     where: { email: 'import@copilothub.com' },
     update: {},
@@ -410,6 +444,7 @@ async function main() {
 
   let imported = 0;
   let skipped = 0;
+  let matchedAuthors = 0;
 
   for (const mcpData of mcps) {
     try {
@@ -429,6 +464,19 @@ async function main() {
         continue;
       }
 
+      // Try to find author by GitHub username
+      const githubUsername = extractGitHubUsernameFromUrl(mcpData.githubUrl);
+      let author = importUser;
+      
+      if (githubUsername) {
+        const matchedAuthor = await findAuthorByGitHubUsername(githubUsername);
+        if (matchedAuthor) {
+          author = matchedAuthor;
+          matchedAuthors++;
+          console.log(`  📌 Matched author: ${githubUsername} for "${mcpData.name}"`);
+        }
+      }
+
       // Create MCP server
       await (prisma as any).mcpServer.create({
         data: {
@@ -444,7 +492,7 @@ async function main() {
           configExample: mcpData.configExample,
           difficulty: Difficulty.INTERMEDIATE,
           status: ContentStatus.APPROVED,
-          authorId: importUser.id,
+          authorId: author.id,
         },
       });
 
@@ -458,6 +506,7 @@ async function main() {
   console.log(`\n✅ Import complete!`);
   console.log(`   Imported: ${imported}`);
   console.log(`   Skipped: ${skipped}`);
+  console.log(`   Matched authors: ${matchedAuthors}`);
 }
 
 main()

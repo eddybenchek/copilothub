@@ -42,6 +42,7 @@ model User {
   email         String?           @unique
   emailVerified DateTime?
   image         String?
+  githubUsername String?          @unique
   role          Role              @default(USER)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -55,6 +56,8 @@ model User {
   agents        Agent[]
   favorites     Favorite[]
   collections   Collection[]
+  
+  @@index([githubUsername])
 }
 
 model VerificationToken {

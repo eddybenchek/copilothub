@@ -64,9 +64,71 @@ async function fetchAwesomeCopilotAgents(): Promise<CopilotAgent[]> {
             // Extract title from filename
             const nameMatch = file.name.replace('.agent.md', '').replace(/-/g, ' ');
             
-            // Extract description from first paragraph
+            // Extract description from first paragraph - try multiple patterns
+            let description = '';
+            
+            // Pattern 1: Standard markdown - paragraph after title
             const descMatch = content.match(/^#\s+[^\n]+\n\n(.+?)(?:\n\n|$)/);
-            const description = descMatch?.[1]?.replace(/\n/g, ' ') || nameMatch;
+            if (descMatch?.[1]) {
+              description = descMatch[1].replace(/\n/g, ' ').trim();
+            }
+            
+            // Pattern 2: Any text after title before next heading (if pattern 1 failed)
+            if (!description || description.length < 10) {
+              const altMatch = content.match(/^#\s+[^\n]+\n+([^\n#]+)/);
+              if (altMatch?.[1]) {
+                const altDesc = altMatch[1].trim().replace(/\n/g, ' ');
+                if (altDesc.length > 10 && altDesc.toLowerCase() !== nameMatch.toLowerCase()) {
+                  description = altDesc;
+                }
+              }
+            }
+            
+            // Pattern 3: Blockquote after title
+            if (!description || description.length < 10) {
+              const blockquoteMatch = content.match(/^#\s+[^\n]+\n+>\s*(.+)/);
+              if (blockquoteMatch?.[1]) {
+                const blockquoteDesc = blockquoteMatch[1].trim().replace(/\n/g, ' ');
+                if (blockquoteDesc.length > 10) {
+                  description = blockquoteDesc;
+                }
+              }
+            }
+            
+            // Pattern 4: Extract first meaningful sentence from content (skip title)
+            if (!description || description.length < 10 || description.toLowerCase() === nameMatch.toLowerCase()) {
+              const contentWithoutTitle = content.replace(/^#\s+[^\n]+\n+/, '').trim();
+              // Try to find first sentence (ending with . ! or ?)
+              const sentenceMatch = contentWithoutTitle.match(/^([^.!?\n]+[.!?])/);
+              if (sentenceMatch?.[1]) {
+                const sentence = sentenceMatch[1].trim();
+                if (sentence.length > 20 && sentence.toLowerCase() !== nameMatch.toLowerCase()) {
+                  description = sentence;
+                }
+              }
+            }
+            
+            // Pattern 5: Extract first paragraph that's not the title
+            if (!description || description.length < 10 || description.toLowerCase() === nameMatch.toLowerCase()) {
+              const paragraphs = content.split(/\n\n+/);
+              for (const para of paragraphs.slice(1)) { // Skip first paragraph (title)
+                const cleanPara = para.replace(/^#+\s+/, '').trim().replace(/\n/g, ' ');
+                if (cleanPara.length > 20 && 
+                    cleanPara.toLowerCase() !== nameMatch.toLowerCase() &&
+                    !cleanPara.match(/^[A-Z\s]+$/)) { // Not all caps (likely not a heading)
+                  description = cleanPara.substring(0, 200); // Limit length
+                  break;
+                }
+              }
+            }
+            
+            // Fallback: Use generic description if nothing found or if it matches title
+            if (!description || description.length < 10 || description.toLowerCase() === nameMatch.toLowerCase()) {
+              description = `AI agent for ${nameMatch}`;
+            }
+            
+            // Clean up description
+            description = description.trim().substring(0, 200);
             
             // Generate URLs
             const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${file.path}`;
@@ -78,7 +140,7 @@ async function fetchAwesomeCopilotAgents(): Promise<CopilotAgent[]> {
             const category = extractCategory(content, agentName);
             agents.push({
               name: agentName,
-              description: description.substring(0, 200),
+              description: description, // Already trimmed and limited to 200 chars above
               content: content,
               category: category,
               mcpServers: extractMcpServers(content),

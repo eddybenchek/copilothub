@@ -140,7 +140,9 @@ export default async function AgentDetailPage({
               )}
             </div>
           </div>
-          <p className="text-xl text-slate-400">{agent.description}</p>
+          {agent.description.toLowerCase() !== agent.title.toLowerCase() && (
+            <p className="text-xl text-slate-400">{agent.description}</p>
+          )}
         </div>
 
         {/* Metadata Bar */}

@@ -50,9 +50,11 @@ export function AgentCard({ agent }: AgentCardProps) {
               </div>
             </div>
           </div>
-          <CardDescription className="line-clamp-2 mt-2">
-            {agent.description}
-          </CardDescription>
+          {agent.description.toLowerCase() !== agent.title.toLowerCase() && (
+            <CardDescription className="line-clamp-2 mt-2">
+              {agent.description}
+            </CardDescription>
+          )}
         </CardHeader>
         <CardContent className="p-6 pt-0">
           {/* MCP Requirements */}

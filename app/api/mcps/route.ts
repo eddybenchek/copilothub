@@ -90,6 +90,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Restrict to ADMIN only - MCPs can only be added by administrators
+    if (session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { 
+          error: 'Forbidden: Only administrators can create MCP servers. Regular users cannot submit MCPs via the API. Please contact us for paid submissions or submit via GitHub PR.' 
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { title, description, content, githubUrl, websiteUrl, tags, category, installCommand, configExample } = body;
 

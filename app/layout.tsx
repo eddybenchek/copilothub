@@ -22,6 +22,11 @@ export const metadata: Metadata = {
   authors: [{ name: 'CopilotHub' }],
   creator: 'CopilotHub',
   publisher: 'CopilotHub',
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',

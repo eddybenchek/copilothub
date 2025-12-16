@@ -29,6 +29,19 @@ export const createToolSchema = z.object({
   difficulty: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
 });
 
+// Instruction validation
+export const createInstructionSchema = z.object({
+  title: z.string().min(3).max(100),
+  description: z.string().min(10).max(500),
+  content: z.string().min(20).max(10000),
+  filePattern: z.string().max(200).optional(),
+  language: z.string().max(50).optional(),
+  framework: z.string().max(50).optional(),
+  scope: z.enum(['file', 'project', 'workspace']).optional(),
+  tags: z.array(z.string()).min(1).max(10),
+  difficulty: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
+});
+
 // Vote validation
 export const voteSchema = z.object({
   targetId: z.string().cuid(),

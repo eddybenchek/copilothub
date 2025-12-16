@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { createInstructionSchema } from '@/lib/validation';
+import { slugify } from '@/lib/slug';
 import { ContentStatus } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
@@ -79,6 +83,61 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching instructions:', error);
     return NextResponse.json({ error: 'Failed to fetch instructions' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const validatedData = createInstructionSchema.parse(body);
+
+    // Generate slug
+    const slug = slugify(validatedData.title);
+
+    // Check if slug exists
+    const existingInstruction = await db.instruction.findUnique({
+      where: { slug },
+    });
+
+    const finalSlug = existingInstruction
+      ? `${slug}-${Math.random().toString(36).substring(2, 6)}`
+      : slug;
+
+    // Create instruction
+    const instruction = await db.instruction.create({
+      data: {
+        title: validatedData.title,
+        slug: finalSlug,
+        description: validatedData.description,
+        content: validatedData.content,
+        filePattern: validatedData.filePattern || null,
+        language: validatedData.language || null,
+        framework: validatedData.framework || null,
+        scope: validatedData.scope || null,
+        tags: validatedData.tags,
+        difficulty: validatedData.difficulty,
+        authorId: session.user.id,
+        status: ContentStatus.PENDING,
+      },
+      include: {
+        author: true,
+        votes: true,
+      },
+    });
+
+    return NextResponse.json(instruction, { status: 201 });
+  } catch (error) {
+    console.error('Error creating instruction:', error);
+    return NextResponse.json(
+      { error: 'Failed to create instruction' },
+      { status: 500 }
+    );
   }
 }
 

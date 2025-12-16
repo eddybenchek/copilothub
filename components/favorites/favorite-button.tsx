@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { TargetType } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
+import { analytics } from '@/lib/analytics';
 
 interface FavoriteButtonProps {
   targetId: string;
@@ -74,6 +75,10 @@ export function FavoriteButton({
         const data = await response.json();
         setIsFavorited(data.favorited);
         addToast(data.favorited ? 'Saved to favorites' : 'Removed from favorites', 'success');
+        
+        // Track analytics
+        const contentType = targetType.toLowerCase() as 'prompt' | 'instruction' | 'agent' | 'mcp' | 'tool';
+        analytics.trackFavorite(contentType, targetId, data.favorited ? 'added' : 'removed');
       } else {
         const error = await response.json();
         addToast(error.error || 'Failed to update favorite', 'error');

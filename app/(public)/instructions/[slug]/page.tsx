@@ -13,6 +13,7 @@ import { AddToCollectionButton } from "@/components/collections/add-to-collectio
 import { ShareButton } from "@/components/share-button";
 import { VoteButton } from "@/components/votes/vote-button";
 import { MarkdownPreview } from "@/components/markdown-preview";
+import { ContentViewTracker } from "@/components/analytics/content-view-tracker";
 import { getBaseUrl, createMetadata, createStructuredData } from "@/lib/metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -103,6 +104,7 @@ export default async function InstructionDetailPage({
 
   return (
     <>
+      <ContentViewTracker type="instruction" id={instruction.id} title={instruction.title} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -166,7 +168,7 @@ export default async function InstructionDetailPage({
             targetType="INSTRUCTION"
             initialVoteCount={voteCount}
           />
-          <CopyButton text={instruction.content} />
+          <CopyButton text={instruction.content} contentType="instruction" contentId={instruction.id} />
           <DownloadButton instruction={instruction} />
           <AddToCollectionButton
             targetId={instruction.id}

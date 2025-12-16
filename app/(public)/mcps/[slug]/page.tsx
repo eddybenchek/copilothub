@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { ExternalLink, Github, Download, Copy, BookOpen } from 'lucide-react';
+import { ExternalLink as ExternalLinkIcon, Github, Download, Copy, BookOpen } from 'lucide-react';
+import { ExternalLink } from '@/components/analytics/external-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
@@ -155,18 +156,18 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
           </CopyButton>
           {mcp.githubUrl && (
             <Button size="lg" variant="outline" asChild>
-              <a href={mcp.githubUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink href={mcp.githubUrl} type="github">
                 <Github className="mr-2 h-4 w-4" />
                 View on GitHub
-              </a>
+              </ExternalLink>
             </Button>
           )}
           {mcp.websiteUrl && (
             <Button size="lg" variant="outline" asChild>
-              <a href={mcp.websiteUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="mr-2 h-4 w-4" />
+              <ExternalLink href={mcp.websiteUrl} type="website">
+                <ExternalLinkIcon className="mr-2 h-4 w-4" />
                 Visit Website
-              </a>
+              </ExternalLink>
             </Button>
           )}
           <AddToCollectionButton
@@ -232,10 +233,10 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
               View the complete documentation, examples, changelog, and more on GitHub
             </p>
             <Button size="lg" variant="primary" asChild>
-              <a href={mcp.githubUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink href={mcp.githubUrl} type="github">
                 <Github className="mr-2 h-5 w-5" />
                 View Full Documentation on GitHub
-              </a>
+              </ExternalLink>
             </Button>
           </div>
         )}

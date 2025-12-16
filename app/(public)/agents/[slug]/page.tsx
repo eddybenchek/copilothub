@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { db } from "@/lib/db";
 import { ContentStatus } from "@prisma/client";
-import { Bot, Download, Plug, Eye, Star, Share2, ExternalLink } from "lucide-react";
+import { Bot, Download, Plug, Eye, Star, Share2, ExternalLink as ExternalLinkIcon } from "lucide-react";
+import { ExternalLink } from "@/components/analytics/external-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/code-block";
@@ -12,6 +13,7 @@ import { ShareButton } from "@/components/share-button";
 import { VoteButton } from "@/components/votes/vote-button";
 import { MarkdownPreview } from "@/components/markdown-preview";
 import { AgentDownloadButton } from "@/components/agents/download-button";
+import { ContentViewTracker } from "@/components/analytics/content-view-tracker";
 import { getBaseUrl, createMetadata, createStructuredData } from "@/lib/metadata";
 import Link from "next/link";
 
@@ -181,20 +183,20 @@ export default async function AgentDetailPage({
             initialVoteCount={voteCount}
           />
           {agent.vsCodeInstallUrl && (
-            <a href={agent.vsCodeInstallUrl} target="_blank" rel="noopener noreferrer">
+            <ExternalLink href={agent.vsCodeInstallUrl} type="other">
               <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
                 <Download className="mr-2 h-5 w-5" />
                 Install in VS Code
               </Button>
-            </a>
+            </ExternalLink>
           )}
           {agent.vsCodeInsidersUrl && (
-            <a href={agent.vsCodeInsidersUrl} target="_blank" rel="noopener noreferrer">
+            <ExternalLink href={agent.vsCodeInsidersUrl} type="other">
               <Button size="lg" variant="outline" className="border-teal-500/40 text-teal-300 hover:bg-teal-500/10">
                 <Download className="mr-2 h-5 w-5" />
                 Install in VS Code Insiders
               </Button>
-            </a>
+            </ExternalLink>
           )}
           <AgentDownloadButton agent={agent} />
           <ShareButton title={agent.title} />
@@ -227,7 +229,7 @@ export default async function AgentDetailPage({
                     <span className="text-sm font-medium text-slate-200 group-hover:text-teal-300">
                       {mcp.name}
                     </span>
-                    <ExternalLink className="h-3.5 w-3.5 text-slate-500 group-hover:text-teal-400" />
+                    <ExternalLinkIcon className="h-3.5 w-3.5 text-slate-500 group-hover:text-teal-400" />
                   </Link>
                 ))
               ) : (

@@ -12,6 +12,7 @@ import { ModernizationSection } from '@/components/home/modernization-section';
 import { getLatestPrompts, getLatestTools, getTopCategories, getPromptsByCategory, getLatestContent } from '@/lib/prisma-helpers';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
+import { CategoryLinkButton } from '@/components/analytics/category-link-button';
 import type { InstructionWithAuthor, AgentWithAuthor, McpWithAuthor } from '@/lib/types';
 
 export default async function HomePage() {
@@ -157,12 +158,7 @@ export default async function HomePage() {
                         {prompts.length}+ prompts for {categoryDisplayName} development
                       </p>
                     </div>
-                    <Button variant="ghost" asChild>
-                      <Link href={`/prompts?tags=${category}`}>
-                        View all
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
+                    <CategoryLinkButton category={category} />
                   </div>
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {prompts.slice(0, 6).map((prompt) => (

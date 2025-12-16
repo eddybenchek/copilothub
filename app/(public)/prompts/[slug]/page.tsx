@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/copy-button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { VoteButton } from '@/components/votes/vote-button';
+import { ContentViewTracker } from '@/components/analytics/content-view-tracker';
 import { getPromptBySlug } from '@/lib/prisma-helpers';
 import { getBaseUrl, createMetadata, createStructuredData } from '@/lib/metadata';
 
@@ -70,6 +71,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
 
   return (
     <>
+      <ContentViewTracker type="prompt" id={prompt.id} title={prompt.title} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -103,7 +105,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
             targetType="PROMPT"
             initialVoteCount={voteCount}
           />
-          <CopyButton text={prompt.content} />
+          <CopyButton text={prompt.content} contentType="prompt" contentId={prompt.id} />
           <AddToCollectionButton
             targetId={prompt.id}
             targetType="PROMPT"
@@ -115,7 +117,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
         <div className="mb-4 rounded-lg border border-border bg-muted/50 p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Prompt</h2>
-            <CopyButton text={prompt.content} />
+            <CopyButton text={prompt.content} contentType="prompt" contentId={prompt.id} />
           </div>
           <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
             {prompt.content}

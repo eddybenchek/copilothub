@@ -87,7 +87,7 @@ export function SiteFooter() {
                 <span className="sr-only">GitHub</span>
               </a>
             </div>
-            <div className="pt-2">
+            {/* <div className="pt-2">
               <a 
                 href="https://github.com/eddybenchek/copilothub"
                 target="_blank"
@@ -96,7 +96,7 @@ export function SiteFooter() {
               >
                 Contribute on GitHub →
               </a>
-            </div>
+            </div> */}
             <p className="text-xs text-muted-foreground pt-4">
               © {new Date().getFullYear()} CopilotHub.
             </p>

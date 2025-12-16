@@ -7,6 +7,7 @@ import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import { TargetType } from '@prisma/client';
+import { analytics } from '@/lib/analytics';
 
 interface VoteButtonProps {
   targetId: string;
@@ -112,6 +113,10 @@ export function VoteButton({
           throw new Error('Failed to vote');
         }
       }
+
+      // Track analytics
+      const contentType = targetType.toLowerCase() as 'prompt' | 'instruction' | 'agent' | 'mcp' | 'tool';
+      analytics.trackVote(contentType, targetId, value);
     } catch (error) {
       // Revert optimistic update on error
       setUserVote(previousVote);

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { Button } from './ui/button';
+import { analytics } from '@/lib/analytics';
 
 interface CopyButtonProps {
   text: string;
@@ -10,15 +11,22 @@ interface CopyButtonProps {
   size?: "sm" | "md" | "lg";
   variant?: "primary" | "outline" | "ghost" | "destructive";
   children?: React.ReactNode;
+  contentType?: 'prompt' | 'instruction' | 'agent';
+  contentId?: string;
 }
 
-export function CopyButton({ text, className, size = "sm", variant = "outline", children }: CopyButtonProps) {
+export function CopyButton({ text, className, size = "sm", variant = "outline", children, contentType, contentId }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    
+    // Track analytics if content type and ID are provided
+    if (contentType && contentId) {
+      analytics.trackCopy(contentType, contentId, text.length);
+    }
   };
 
   return (

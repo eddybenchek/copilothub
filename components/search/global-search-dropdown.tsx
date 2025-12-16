@@ -8,6 +8,7 @@ import type { SearchResults, SearchType } from "@/lib/search-types";
 import { highlightMatch } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
+import { analytics } from "@/lib/analytics";
 
 // Caps for preview suggestions in dropdown
 const MAX_PROMPT_SUGGESTIONS = 5;
@@ -95,6 +96,16 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
         if (hasUserTyped) {
           setOpen(true);
           setActiveIndex(data.results ? 0 : -1);
+          
+          // Track search analytics
+          if (debouncedQuery.trim()) {
+            const totalResults = (data.results?.prompts?.length || 0) +
+                                (data.results?.tools?.length || 0) +
+                                (data.results?.mcps?.length || 0) +
+                                (data.results?.instructions?.length || 0) +
+                                (data.results?.agents?.length || 0);
+            analytics.trackSearch(debouncedQuery, totalResults, searchType);
+          }
         }
       })
       .catch((err) => {
@@ -140,6 +151,14 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
 
   const goToResult = (result: FlattenedResult) => {
     closeDropdown();
+    
+    // Track result click
+    analytics.trackContentView(
+      result.type as 'prompt' | 'instruction' | 'agent' | 'mcp' | 'tool',
+      result.id,
+      result.title,
+      { source: 'search' }
+    );
 
     if (result.type === "prompt") {
       router.push(`/prompts/${result.slug}`);

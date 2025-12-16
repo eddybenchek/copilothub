@@ -90,6 +90,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Restrict to ADMIN only - Tools can only be added by administrators
+    if (session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { 
+          error: 'Forbidden: Only administrators can create tools. Regular users cannot submit tools via the API. Please contact us for paid submissions or submit via GitHub PR.' 
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const validatedData = createToolSchema.parse(body);
 

@@ -49,15 +49,15 @@ export function McpCard({ mcp }: McpCardProps) {
   return (
     <div
       className={clsx(
-        "flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm transition duration-150",
-        "hover:border-sky-500/40 hover:shadow-[0_0_18px_rgba(56,189,248,0.25)] hover:scale-[1.01] cursor-pointer",
-        mcp.featured && "ring-2 ring-sky-500/20"
+        "flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm transition duration-150",
+        "hover:border-primary/40 hover:shadow-[0_0_18px_rgba(59,130,246,0.25)] dark:hover:shadow-[0_0_18px_rgba(56,189,248,0.25)] hover:scale-[1.01] cursor-pointer",
+        mcp.featured && "ring-2 ring-primary/20"
       )}
     >
       <Link href={`/mcps/${mcp.slug || mcp.title?.toLowerCase().replace(/\s+/g, "-") || mcp.id}`}>
         <div className="flex items-start gap-4">
           {/* Logo */}
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-muted border border-border backdrop-blur-sm">
             {mcp.logo ? (
               <Image
                 src={mcp.logo}
@@ -69,19 +69,19 @@ export function McpCard({ mcp }: McpCardProps) {
                 unoptimized={mcp.logo.startsWith('http')}
               />
             ) : (
-              <span className="text-sm font-semibold text-slate-300">{initials}</span>
+              <span className="text-sm font-semibold text-muted-foreground">{initials}</span>
             )}
           </div>
 
           {/* Content */}
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-start justify-between gap-2">
-              <h3 className="text-base font-semibold text-slate-100 line-clamp-1">
+              <h3 className="text-base font-semibold text-card-foreground line-clamp-1">
                 {displayName}
               </h3>
               <div className="flex items-center gap-2 shrink-0">
                 {mcp.featured && (
-                  <span className="shrink-0 rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-300">
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                     Featured
                   </span>
                 )}
@@ -90,7 +90,7 @@ export function McpCard({ mcp }: McpCardProps) {
                 </div>
               </div>
             </div>
-            <p className="mb-3 line-clamp-2 text-sm text-slate-400">
+            <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
               {displayDescription}
             </p>
 
@@ -99,13 +99,13 @@ export function McpCard({ mcp }: McpCardProps) {
               {mcp.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2 py-0.5 text-[10px] text-slate-200 capitalize"
+                  className="inline-flex items-center rounded-full bg-muted border border-border backdrop-blur-sm px-2 py-0.5 text-[10px] text-muted-foreground capitalize"
                 >
                   {tag}
                 </span>
               ))}
               {mcp.tags.length > 3 && (
-                <span className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2 py-0.5 text-[10px] text-slate-400">
+                <span className="inline-flex items-center rounded-full bg-muted border border-border backdrop-blur-sm px-2 py-0.5 text-[10px] text-muted-foreground">
                   +{mcp.tags.length - 3}
                 </span>
               )}
@@ -122,7 +122,7 @@ export function McpCard({ mcp }: McpCardProps) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
         >
           <ExternalLink className="h-3 w-3" />
           <span>View Repository</span>

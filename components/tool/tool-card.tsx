@@ -39,15 +39,15 @@ export function ToolCard({ tool }: ToolCardProps) {
   return (
     <div
       className={clsx(
-        "flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm transition duration-150",
-        "hover:border-sky-500/40 hover:shadow-[0_0_18px_rgba(56,189,248,0.25)] hover:scale-[1.01] cursor-pointer",
+        "flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm transition duration-150",
+        "hover:border-primary/40 hover:shadow-[0_0_18px_rgba(59,130,246,0.25)] dark:hover:shadow-[0_0_18px_rgba(56,189,248,0.25)] hover:scale-[1.01] cursor-pointer",
         tool.featured &&
-          "border-sky-500/50 shadow-[0_0_22px_rgba(56,189,248,0.28)]",
+          "border-primary/50 shadow-[0_0_22px_rgba(59,130,246,0.28)] dark:shadow-[0_0_22px_rgba(56,189,248,0.28)]",
       )}
     >
       {/* Top: logo + title + website link */}
       <div className="flex min-h-[48px] items-start gap-4">
-        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-slate-700/60 bg-slate-800/60">
+        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted">
           {tool.logo ? (
             <Image
               src={tool.logo}
@@ -59,7 +59,7 @@ export function ToolCard({ tool }: ToolCardProps) {
               unoptimized={tool.logo.startsWith('http')}
             />
           ) : (
-            <span className="text-xs font-semibold text-slate-200">
+            <span className="text-xs font-semibold text-muted-foreground">
               {initials}
             </span>
           )}
@@ -67,7 +67,7 @@ export function ToolCard({ tool }: ToolCardProps) {
 
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2">
-            <h3 className="mb-0.5 text-base font-semibold text-slate-50">
+            <h3 className="mb-0.5 text-base font-semibold text-card-foreground">
               {displayName}
             </h3>
             <div className="flex items-center gap-2 ml-auto">
@@ -76,7 +76,7 @@ export function ToolCard({ tool }: ToolCardProps) {
                   href={displayUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300"
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink className="h-3 w-3" />
@@ -88,7 +88,7 @@ export function ToolCard({ tool }: ToolCardProps) {
               </div>
             </div>
           </div>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted-foreground">
             {displayDescription}
           </p>
         </div>
@@ -100,7 +100,7 @@ export function ToolCard({ tool }: ToolCardProps) {
           {tool.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2.5 py-1 text-xs text-slate-200"
+              className="inline-flex items-center rounded-full bg-muted border border-border backdrop-blur-sm px-2.5 py-1 text-xs text-muted-foreground"
             >
               {tag}
             </span>

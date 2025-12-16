@@ -28,13 +28,13 @@ export function InstructionCard({ instruction }: InstructionCardProps) {
         <CardHeader className="p-6">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="rounded-lg bg-sky-500/10 p-2 shrink-0">
-                <FileCode className="h-5 w-5 text-sky-400" />
+              <div className="rounded-lg bg-primary/10 dark:bg-primary/10 p-2 shrink-0">
+                <FileCode className="h-5 w-5 text-primary" />
               </div>
               <div className="min-w-0 flex-1">
                 <CardTitle className="text-lg line-clamp-1">{instruction.title}</CardTitle>
                 {instruction.filePattern && (
-                  <code className="text-xs text-slate-400 block truncate mt-0.5">
+                  <code className="text-xs text-muted-foreground block truncate mt-0.5">
                     {instruction.filePattern}
                   </code>
                 )}
@@ -45,7 +45,7 @@ export function InstructionCard({ instruction }: InstructionCardProps) {
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               )}
               {voteCount > 0 && (
-                <span className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2 py-0.5 text-xs text-slate-200">
+                <span className="inline-flex items-center rounded-full bg-muted border border-border backdrop-blur-sm px-2 py-0.5 text-xs text-muted-foreground">
                   ↑ {voteCount}
                 </span>
               )}

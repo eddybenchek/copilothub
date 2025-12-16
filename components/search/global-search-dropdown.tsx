@@ -252,11 +252,11 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       <form onSubmit={handleSubmitFull}>
         <div
           className={cn(
-            "flex items-center rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm shadow-[0_0_0_1px_rgba(56,189,248,0.0)] transition-all duration-300",
-            "focus-within:shadow-[0_0_20px_rgba(59,130,246,0.3)] focus-within:border-sky-500 focus-within:scale-[1.01]"
+            "flex items-center rounded-2xl border border-border bg-card px-4 py-3 text-sm shadow-sm transition-all duration-300",
+            "focus-within:shadow-[0_0_20px_rgba(59,130,246,0.3)] focus-within:border-primary focus-within:scale-[1.01]"
           )}
         >
-          <Search className="mr-2 h-5 w-5 text-slate-400" />
+          <Search className="mr-2 h-5 w-5 text-muted-foreground" />
           <input
             ref={inputRef}
             value={query}
@@ -266,7 +266,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
             }}
             onKeyDown={handleKeyDown}
             placeholder="Search prompts, instructions, agents, workflows, tools, MCPs..."
-            className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
           {query && (
             <button
@@ -279,7 +279,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
                 setHasUserTyped(false);
                 inputRef.current?.focus();
               }}
-              className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+              className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="h-3 w-3" />
             </button>
@@ -288,7 +288,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       </form>
 
       {open && hasResults && (
-        <div className="absolute z-30 mt-2 w-full rounded-xl border border-slate-800/80 bg-slate-950/95 shadow-2xl backdrop-blur-xl">
+        <div className="absolute z-30 mt-2 w-full rounded-xl border border-border bg-popover shadow-2xl backdrop-blur-xl">
           {/* Scrollable content container */}
           <div className="relative max-h-[60vh] overflow-y-auto">
             <SearchDropdownSection
@@ -353,7 +353,7 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
             />
             
             {/* Bottom fade gradient */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-950/95 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-popover to-transparent" />
           </div>
 
           {/* View all results button */}
@@ -361,10 +361,10 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
             <button
               type="button"
               onClick={handleViewAllResults}
-              className="w-full border-t border-slate-800/70 px-4 py-3 text-xs text-slate-400 hover:text-slate-100 hover:bg-slate-900/60 flex items-center justify-center gap-2 transition-colors"
+              className="w-full border-t border-border px-4 py-3 text-xs text-muted-foreground hover:text-foreground hover:bg-accent flex items-center justify-center gap-2 transition-colors"
             >
               <span>View all {totalCount} results for</span>
-              <span className="font-medium text-slate-100">&ldquo;{query}&rdquo;</span>
+              <span className="font-medium text-foreground">&ldquo;{query}&rdquo;</span>
               <span>→</span>
             </button>
           )}
@@ -372,11 +372,11 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
       )}
 
       {open && !loading && !hasResults && debouncedQuery && (
-        <div className="absolute z-30 mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/95 p-4 text-sm text-slate-400 backdrop-blur-sm">
-          <div className="font-medium text-slate-200">
+        <div className="absolute z-30 mt-2 w-full rounded-2xl border border-border bg-popover p-4 text-sm text-muted-foreground backdrop-blur-sm">
+          <div className="font-medium text-foreground">
             No results for &ldquo;{debouncedQuery}&rdquo;
           </div>
-          <ul className="mt-2 list-disc pl-5 text-xs text-slate-400 space-y-1">
+          <ul className="mt-2 list-disc pl-5 text-xs text-muted-foreground space-y-1">
             <li>Try a different keyword or tag (e.g. &ldquo;typescript&rdquo;, &ldquo;api&rdquo;)</li>
             <li>Remove difficulty filters on the search page</li>
             <li>Browse all prompts or tools from the navigation</li>
@@ -425,12 +425,12 @@ function SearchDropdownSection({
   return (
     <div>
       {/* Sticky section header */}
-      <div className="sticky top-0 z-10 bg-slate-950/95 border-b border-slate-800/70 px-3 py-2 backdrop-blur-sm">
+      <div className="sticky top-0 z-10 bg-popover border-b border-border px-3 py-2 backdrop-blur-sm">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-[0.16em] text-slate-500 font-medium">
+          <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-medium">
             {icon} {label}
           </span>
-          <span className="text-[10px] text-slate-600">{totalCount}</span>
+          <span className="text-[10px] text-muted-foreground">{totalCount}</span>
         </div>
       </div>
 
@@ -450,21 +450,21 @@ function SearchDropdownSection({
                 className={cn(
                   "flex w-full flex-col items-start rounded-lg px-2 py-1.5 text-left text-xs transition",
                   isActive
-                    ? "bg-sky-600/20 text-sky-100"
-                    : "text-slate-200 hover:bg-slate-800/80"
+                    ? "bg-primary/20 text-primary-foreground"
+                    : "text-foreground hover:bg-accent"
                 )}
               >
                 <div className="font-medium">
                   {parts.map((p, i) => (
                     <span
                       key={i}
-                      className={p.match ? "text-sky-400" : undefined}
+                      className={p.match ? "text-primary" : undefined}
                     >
                       {p.text}
                     </span>
                   ))}
                 </div>
-                <div className="line-clamp-1 text-[11px] text-slate-400">
+                <div className="line-clamp-1 text-[11px] text-muted-foreground">
                   {item.description}
                 </div>
               </button>
@@ -478,7 +478,7 @@ function SearchDropdownSection({
         <button
           type="button"
           onClick={onViewAll}
-          className="w-full px-3 pb-2 pt-1 text-[11px] text-slate-500 hover:text-sky-400 text-left transition-colors"
+          className="w-full px-3 pb-2 pt-1 text-[11px] text-muted-foreground hover:text-primary text-left transition-colors"
         >
           View all {totalCount} {label.toLowerCase()} →
         </button>

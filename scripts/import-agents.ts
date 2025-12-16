@@ -670,7 +670,7 @@ async function findAuthorByGitHubUsername(githubUsername: string | null | undefi
     const user = await prisma.user.findFirst({
       where: { 
         githubUsername: githubUsername.toLowerCase().trim()
-      },
+      } as any, // Type assertion needed until Prisma types fully update
     });
     return user;
   } catch (error) {

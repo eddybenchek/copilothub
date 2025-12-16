@@ -135,8 +135,8 @@ export default function McpsPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
       <header className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-slate-50">MCP Servers</h1>
-        <p className="text-slate-400">
+        <h1 className="mb-2 text-3xl font-bold text-foreground">MCP Servers</h1>
+        <p className="text-muted-foreground">
           Discover Model Context Protocol servers to extend your AI coding environment
         </p>
       </header>
@@ -145,13 +145,13 @@ export default function McpsPage() {
       <div className="mb-8 space-y-4">
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search MCP servers..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded-lg border border-slate-800 bg-slate-900/40 px-10 py-3 text-slate-100 placeholder:text-slate-500 focus:border-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+            className="w-full rounded-lg border border-border bg-card px-10 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
@@ -164,8 +164,8 @@ export default function McpsPage() {
               className={clsx(
                 'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
                 categoryFilter === category.key
-                  ? 'border-sky-500 bg-sky-500/10 text-sky-300'
-                  : 'border-slate-700 bg-slate-900/40 text-slate-300 hover:border-slate-600'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-card text-foreground/80 hover:border-primary/50 hover:bg-accent'
               )}
             >
               {category.label}
@@ -184,15 +184,15 @@ export default function McpsPage() {
 
         {/* Sort and Count */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="text-sm text-slate-400">
+          <div className="text-sm text-muted-foreground">
             {filteredAndSortedMcps.length} {filteredAndSortedMcps.length === 1 ? 'server' : 'servers'}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-400">Sort by:</span>
+            <span className="text-sm text-muted-foreground">Sort by:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-1.5 text-sm text-slate-100 focus:border-sky-500/40 focus:outline-none"
+              className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
             >
               <option value="recent">Most Recent</option>
             </select>
@@ -203,12 +203,12 @@ export default function McpsPage() {
       {/* Results */}
       {loading ? (
         <div className="text-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-slate-400 mb-4" />
-          <p className="text-slate-400">Loading MCP servers...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">Loading MCP servers...</p>
         </div>
       ) : filteredAndSortedMcps.length === 0 ? (
         <div className="py-20 text-center">
-          <p className="text-slate-400">No MCP servers found matching your filters.</p>
+          <p className="text-muted-foreground">No MCP servers found matching your filters.</p>
         </div>
       ) : (
         <>

@@ -106,7 +106,7 @@ export default async function HomePage() {
           <div className="mb-12">
             <Suspense fallback={
               <div className="relative">
-                <div className="h-12 w-full rounded-lg border border-slate-800 bg-slate-900/40 animate-pulse"></div>
+                <div className="h-12 w-full rounded-lg border border-border bg-card animate-pulse"></div>
               </div>
             }>
               <GlobalSearchDropdown />

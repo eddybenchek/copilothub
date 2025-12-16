@@ -3,14 +3,30 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { Menu, X, Github, LogOut, User, Heart, Folder } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, Github, LogOut, User, Heart, Folder, ChevronDown, FileText, Info } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 export function SiteHeader() {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+  
+  // Close more menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+        setMoreMenuOpen(false);
+      }
+    }
+    if (moreMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [moreMenuOpen]);
 
   const navigation = [
     { name: 'Search', href: '/search' },
@@ -19,6 +35,11 @@ export function SiteHeader() {
     { name: 'Agents', href: '/agents' },
     { name: 'Tools', href: '/tools' },
     { name: 'MCPs', href: '/mcps' },
+  ];
+
+  const moreMenu = [
+    { name: 'Rules', href: '/rules', icon: FileText },
+    { name: 'About', href: '/about', icon: Info },
   ];
 
   return (
@@ -52,10 +73,39 @@ export function SiteHeader() {
               {item.name}
             </Link>
           ))}
+          {/* More Dropdown */}
+          <div className="relative" ref={moreMenuRef}>
+            <button 
+              onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+              className="flex items-center gap-1 text-sm font-medium text-foreground/60 transition-colors duration-150 hover:text-sky-400 border-b-2 border-transparent hover:border-sky-500/60"
+            >
+              More
+              <ChevronDown className={`h-4 w-4 transition-transform ${moreMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {moreMenuOpen && (
+              <div className="absolute right-0 z-50 mt-2 w-48 rounded-md border border-border bg-popover p-1 shadow-md">
+                {moreMenu.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => setMoreMenuOpen(false)}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Auth Section */}
         <div className="hidden md:flex md:items-center md:space-x-4">
+          <ThemeToggle />
           {session ? (
             <DropdownMenu
               trigger={
@@ -125,6 +175,27 @@ export function SiteHeader() {
                 {item.name}
               </Link>
             ))}
+            <div className="flex items-center justify-between px-3 py-2 border-t border-border mt-2 pt-2">
+              <span className="text-sm font-medium text-foreground/60">Theme</span>
+              <ThemeToggle />
+            </div>
+            <div className="border-t border-border pt-2 mt-2">
+              <div className="px-3 py-2 text-xs font-semibold text-foreground/40 uppercase">More</div>
+              {moreMenu.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-foreground/60 hover:bg-accent hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
             <div className="pt-4 border-t border-border">
               {session ? (
                 <>

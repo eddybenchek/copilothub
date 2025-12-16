@@ -31,13 +31,13 @@ export function AgentCard({ agent }: AgentCardProps) {
         <CardHeader className="p-6">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-3 flex-1">
-              <div className="rounded-lg bg-purple-500/10 p-2">
-                <Bot className="h-5 w-5 text-purple-400" />
+              <div className="rounded-lg bg-purple-500/10 dark:bg-purple-500/10 p-2">
+                <Bot className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <CardTitle className="text-lg line-clamp-1">{agent.title}</CardTitle>
                 {agent.category && (
-                  <p className="text-xs text-slate-500 capitalize mt-0.5">{agent.category}</p>
+                  <p className="text-xs text-muted-foreground capitalize mt-0.5">{agent.category}</p>
                 )}
               </div>
             </div>
@@ -50,9 +50,11 @@ export function AgentCard({ agent }: AgentCardProps) {
               </div>
             </div>
           </div>
-          <CardDescription className="line-clamp-2 mt-2">
-            {agent.description}
-          </CardDescription>
+          {agent.description.toLowerCase() !== agent.title.toLowerCase() && (
+            <CardDescription className="line-clamp-2 mt-2">
+              {agent.description}
+            </CardDescription>
+          )}
         </CardHeader>
         <CardContent className="p-6 pt-0">
           {/* MCP Requirements */}
@@ -89,7 +91,7 @@ export function AgentCard({ agent }: AgentCardProps) {
           
           {/* Downloads */}
           {agent.downloads !== undefined && agent.downloads > 0 && (
-            <div className="mt-3 flex items-center gap-1 text-xs text-slate-500">
+            <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
               <Download className="h-3.5 w-3.5" />
               <span>{agent.downloads} installs</span>
             </div>

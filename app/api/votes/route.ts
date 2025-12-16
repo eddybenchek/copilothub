@@ -4,6 +4,43 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { voteSchema } from '@/lib/validation';
 
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const targetId = searchParams.get('targetId');
+    const targetType = searchParams.get('targetType');
+
+    if (!targetId || !targetType) {
+      return NextResponse.json({ error: 'targetId and targetType required' }, { status: 400 });
+    }
+
+    const vote = await db.vote.findFirst({
+      where: {
+        userId: session.user.id,
+        targetId,
+        targetType: targetType as any,
+      },
+      select: {
+        value: true,
+      },
+    });
+
+    return NextResponse.json(vote || null);
+  } catch (error) {
+    console.error('Error fetching vote:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch vote' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

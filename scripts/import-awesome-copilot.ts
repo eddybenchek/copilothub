@@ -11,6 +11,7 @@ interface CopilotInstruction {
   name: string;
   description: string;
   content: string;
+  filePath?: string; // Store file path for GitHub username extraction
   filePattern?: string;
   language?: string;
   framework?: string;
@@ -70,6 +71,7 @@ async function fetchAwesomeCopilotInstructions() {
               name: title,
               description: description,
               content: content,
+              filePath: file.path, // Store file path
               filePattern: extractFilePattern(content),
               language: extractLanguage(file.name, content),
               framework: extractFramework(content),
@@ -180,6 +182,49 @@ function extractTags(content: string): string[] {
   return [...new Set(tags)]; // Remove duplicates
 }
 
+/**
+ * Extract GitHub username from file path or commit
+ */
+async function extractGitHubUsernameFromFile(filePath: string): Promise<string | null> {
+  try {
+    const owner = 'github';
+    const repo = 'awesome-copilot';
+    
+    const { data: commits } = await octokit.repos.listCommits({
+      owner,
+      repo,
+      path: filePath,
+      per_page: 1,
+    });
+    
+    if (commits && commits.length > 0 && commits[0].author?.login) {
+      return commits[0].author.login;
+    }
+  } catch (error) {
+    // Silently fail - we'll use default author
+  }
+  return null;
+}
+
+/**
+ * Find author by GitHub username
+ */
+async function findAuthorByGitHubUsername(githubUsername: string | null | undefined) {
+  if (!githubUsername) return null;
+  
+  try {
+    const user = await prisma.user.findFirst({
+      where: { 
+        githubUsername: githubUsername.toLowerCase().trim()
+      } as any, // Type assertion needed until Prisma types fully update
+    });
+    return user;
+  } catch (error) {
+    console.error(`Error finding author by GitHub username ${githubUsername}:`, error);
+    return null;
+  }
+}
+
 async function importInstructions() {
   console.log('🚀 Starting awesome-copilot instructions import...\n');
   
@@ -216,11 +261,26 @@ async function importInstructions() {
 
   let imported = 0;
   let updated = 0;
+  let matchedAuthors = 0;
 
   for (const instruction of instructions) {
     const slug = instruction.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     
     try {
+      // Try to find author by GitHub username from commit history
+      const filePath = instruction.filePath || `instructions/${slug}.md`;
+      const githubUsername = await extractGitHubUsernameFromFile(filePath);
+      let author = defaultAuthor;
+      
+      if (githubUsername) {
+        const matchedAuthor = await findAuthorByGitHubUsername(githubUsername);
+        if (matchedAuthor) {
+          author = matchedAuthor;
+          matchedAuthors++;
+          console.log(`  📌 Matched author: ${githubUsername} for "${instruction.name}"`);
+        }
+      }
+
       const existing = await prisma.instruction.findUnique({ where: { slug } });
       
       if (existing) {
@@ -233,6 +293,8 @@ async function importInstructions() {
             filePattern: instruction.filePattern,
             language: instruction.language,
             framework: instruction.framework,
+            // Update author if we found a match
+            authorId: author.id,
           },
         });
         updated++;
@@ -251,7 +313,7 @@ async function importInstructions() {
             difficulty: Difficulty.INTERMEDIATE,
             status: ContentStatus.APPROVED,
             featured: false,
-            authorId: defaultAuthor.id,
+            authorId: author.id,
           },
         });
         imported++;
@@ -265,7 +327,8 @@ async function importInstructions() {
   console.log(`\n🎉 Import complete!`);
   console.log(`   ✅ Imported: ${imported}`);
   console.log(`   🔄 Updated: ${updated}`);
-  console.log(`   📊 Total: ${imported + updated}\n`);
+  console.log(`   📊 Total: ${imported + updated}`);
+  console.log(`   👤 Matched authors: ${matchedAuthors}\n`);
 }
 
 importInstructions()

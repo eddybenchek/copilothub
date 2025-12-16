@@ -74,3 +74,24 @@ export function DropdownMenuSeparator() {
   return <div className="my-1 h-px bg-border" />;
 }
 
+export function DropdownMenuTrigger({ asChild, children, ...props }: { asChild?: boolean; children: React.ReactNode; [key: string]: any }) {
+  return <div {...props}>{children}</div>;
+}
+
+export function DropdownMenuContent({ align = 'end', className, children }: { align?: 'start' | 'end'; className?: string; children: React.ReactNode }) {
+  return (
+    <div
+      className={classNames(
+        'absolute z-50 mt-2 w-56 rounded-md border border-border bg-popover p-1 shadow-md',
+        {
+          'right-0': align === 'end',
+          'left-0': align === 'start',
+        },
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+

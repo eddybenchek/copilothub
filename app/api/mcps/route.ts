@@ -5,19 +5,79 @@ import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 import { slugify } from '@/lib/slug';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const offset = parseInt(searchParams.get('offset') || '0');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+    
+    // Optimized query: Only fetch needed fields
     const mcps = await db.mcpServer.findMany({
       where: { status: ContentStatus.APPROVED },
-      include: {
-        author: true,
-        votes: true,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        shortDescription: true,
+        tags: true,
+        category: true,
+        difficulty: true,
+        createdAt: true,
+        updatedAt: true,
+        githubUrl: true,
+        websiteUrl: true,
+        logo: true,
+        name: true,
+        featured: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
     });
 
-    return NextResponse.json(mcps);
+    // Batch fetch vote counts
+    const mcpIds = mcps.map(m => m.id);
+    const voteCounts = mcpIds.length > 0 ? await db.vote.groupBy({
+      by: ['targetId'],
+      where: {
+        targetId: { in: mcpIds },
+      },
+      _sum: {
+        value: true,
+      },
+    }) : [];
+
+    const voteMap = new Map(
+      voteCounts.map(v => [v.targetId, v._sum.value || 0])
+    );
+
+    const mcpsWithVotes = mcps.map(mcp => ({
+      ...mcp,
+      voteCount: voteMap.get(mcp.id) || 0,
+      votes: [],
+    }));
+
+    const hasMore = mcps.length === limit;
+
+    return NextResponse.json({
+      mcps: mcpsWithVotes,
+      hasMore,
+      nextOffset: hasMore ? offset + limit : null,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+      },
+    });
   } catch (error) {
+    console.error('Error fetching MCP servers:', error);
     return NextResponse.json({ error: 'Failed to fetch MCP servers' }, { status: 500 });
   }
 }

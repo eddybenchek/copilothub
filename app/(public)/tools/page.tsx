@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { ToolCard } from '@/components/tool/tool-card';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import type { ToolWithAuthor } from '@/lib/types';
 import clsx from 'clsx';
 
@@ -24,16 +24,67 @@ export default function ToolsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const fetchTools = useCallback(async (reset = false) => {
+    const currentOffset = reset ? 0 : offset;
+    
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      const response = await fetch(`/api/tools?offset=${currentOffset}&limit=20`);
+      const data = await response.json();
+      
+      if (reset) {
+        setTools(data.tools || []);
+      } else {
+        setTools(prev => [...prev, ...(data.tools || [])]);
+      }
+      
+      setHasMore(data.hasMore || false);
+      setOffset(data.nextOffset || currentOffset + (data.tools?.length || 0));
+    } catch (error) {
+      console.error('Error fetching tools:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [offset]);
 
   useEffect(() => {
-    fetch('/api/tools')
-      .then((res) => res.json())
-      .then((data) => {
-        setTools(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    fetchTools(true);
   }, []);
+
+  useEffect(() => {
+    if (!hasMore || loading || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          fetchTools(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [hasMore, loading, loadingMore, fetchTools]);
 
   // Build category counts from tags
   const categoryCounts = useMemo(() => {
@@ -139,8 +190,8 @@ export default function ToolsPage() {
         {/* Header row */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-semibold text-slate-50">All Tools</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-3xl font-semibold text-foreground">All Tools</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               Discover essential tools to enhance your AI-powered development workflow.
             </p>
           </div>
@@ -149,11 +200,11 @@ export default function ToolsPage() {
         {/* Search bar */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search tools..."
-              className="w-full max-w-md rounded-full bg-slate-900 border border-slate-700/70 pl-11 pr-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/60"
+              className="w-full max-w-md rounded-full bg-card border border-border pl-11 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/60"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -165,7 +216,7 @@ export default function ToolsPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="rounded-full bg-slate-900 border border-slate-700 px-4 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/60"
+            className="rounded-full bg-card border border-border px-4 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/60"
           >
             <option value="recent">Most Recent</option>
           </select>
@@ -174,22 +225,36 @@ export default function ToolsPage() {
         {/* Grid / Loading / Empty States */}
         {loading ? (
           <div className="text-center py-12">
-            <p className="text-slate-400">Loading tools...</p>
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">Loading tools...</p>
           </div>
         ) : filteredAndSortedTools.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-slate-400">
+            <p className="text-muted-foreground">
               {query || categoryFilter !== 'all'
                 ? 'No tools match your filters.'
                 : 'No tools found. Be the first to submit one!'}
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {filteredAndSortedTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-6 md:grid-cols-2">
+              {filteredAndSortedTools.map((tool) => (
+                <ToolCard key={tool.id} tool={tool} />
+              ))}
+            </div>
+            
+            {hasMore && (
+              <div ref={loadMoreRef} className="mt-8 flex justify-center">
+                {loadingMore && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm">Loading more...</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
@@ -211,12 +276,12 @@ function SidebarItem({ label, count, active, onClick }: SidebarItemProps) {
       className={clsx(
         "flex w-full items-center justify-between rounded-full px-3 py-1.5 text-sm transition",
         active
-          ? "bg-slate-100 text-slate-900 font-medium"
-          : "text-slate-300 hover:bg-slate-800/80 hover:text-slate-50"
+          ? "bg-primary text-primary-foreground font-medium"
+          : "text-foreground/80 hover:bg-accent hover:text-foreground"
       )}
     >
       <span>{label}</span>
-      <span className="text-xs text-slate-500">{count}</span>
+      <span className="text-xs text-muted-foreground">{count}</span>
     </button>
   );
 }
@@ -235,8 +300,8 @@ function PillFilter({ label, active, onClick }: PillFilterProps) {
       className={clsx(
         "whitespace-nowrap rounded-full border px-3 py-1 text-xs transition",
         active
-          ? "bg-sky-500/20 border-sky-500/70 text-sky-200"
-          : "bg-slate-900 border-slate-700 text-slate-300"
+          ? "bg-primary/20 border-primary/70 text-primary"
+          : "bg-card border-border text-foreground/80"
       )}
     >
       {label}

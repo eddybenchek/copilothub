@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { PromptCard } from '@/components/prompt/prompt-card';
-import { Search } from 'lucide-react';
+import { Search, Loader2, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { PromptWithAuthor } from '@/lib/types';
+
+const GITHUB_REPO_URL = 'https://github.com/eddybenchek/copilothub';
 
 type SortOption = 'recent';
 
@@ -15,17 +17,71 @@ export default function PromptsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  
+  // Ref for intersection observer
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Fetch prompts on mount
+  // Fetch prompts function
+  const fetchPrompts = useCallback(async (reset = false) => {
+    const currentOffset = reset ? 0 : offset;
+    
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      const response = await fetch(`/api/prompts?offset=${currentOffset}&limit=20`);
+      const data = await response.json();
+      
+      if (reset) {
+        setPrompts(data.prompts || []);
+      } else {
+        setPrompts(prev => [...prev, ...(data.prompts || [])]);
+      }
+      
+      setHasMore(data.hasMore || false);
+      setOffset(data.nextOffset || currentOffset + (data.prompts?.length || 0));
+    } catch (error) {
+      console.error('Error fetching prompts:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [offset]);
+
+  // Initial fetch
   useEffect(() => {
-    fetch('/api/prompts')
-      .then((res) => res.json())
-      .then((data) => {
-        setPrompts(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    fetchPrompts(true);
   }, []);
+
+  // Infinite scroll with Intersection Observer
+  useEffect(() => {
+    if (!hasMore || loading || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          fetchPrompts(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [hasMore, loading, loadingMore, fetchPrompts]);
 
   // Build category counts from tags
   const categoryCounts = useMemo(() => {
@@ -149,8 +205,15 @@ export default function PromptsPage() {
             </p>
           </div>
 
-          <Button asChild size="sm">
-            <Link href="/submit">Submit prompt</Link>
+          <Button asChild size="sm" variant="outline" className="gap-2">
+            <a 
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Github className="h-4 w-4" />
+              Contribute on GitHub
+            </a>
           </Button>
         </div>
 
@@ -182,6 +245,7 @@ export default function PromptsPage() {
         {/* Grid */}
         {loading ? (
           <div className="text-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-slate-400 mb-4" />
             <p className="text-slate-400">Loading prompts...</p>
           </div>
         ) : filteredAndSortedPrompts.length === 0 ? (
@@ -191,11 +255,25 @@ export default function PromptsPage() {
               : 'No prompts found. Be the first to submit one!'}
           </p>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {filteredAndSortedPrompts.map((prompt) => (
-              <PromptCard key={prompt.id} prompt={prompt} />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-4 md:grid-cols-2">
+              {filteredAndSortedPrompts.map((prompt) => (
+                <PromptCard key={prompt.id} prompt={prompt} />
+              ))}
+            </div>
+            
+            {/* Infinite scroll trigger */}
+            {hasMore && (
+              <div ref={loadMoreRef} className="mt-8 flex justify-center">
+                {loadingMore && (
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm">Loading more...</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

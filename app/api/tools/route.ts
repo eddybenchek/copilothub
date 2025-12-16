@@ -4,20 +4,80 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { createToolSchema } from '@/lib/validation';
 import { slugify } from '@/lib/slug';
+import { ContentStatus } from '@prisma/client';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const offset = parseInt(searchParams.get('offset') || '0');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+    
+    // Optimized query: Only fetch needed fields
     const tools = await db.tool.findMany({
-      where: { status: 'APPROVED' },
-      include: {
-        author: true,
-        votes: true,
+      where: { status: ContentStatus.APPROVED },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        shortDescription: true,
+        tags: true,
+        difficulty: true,
+        createdAt: true,
+        updatedAt: true,
+        url: true,
+        websiteUrl: true,
+        logo: true,
+        name: true,
+        featured: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
     });
 
-    return NextResponse.json(tools);
+    // Batch fetch vote counts
+    const toolIds = tools.map(t => t.id);
+    const voteCounts = toolIds.length > 0 ? await db.vote.groupBy({
+      by: ['targetId'],
+      where: {
+        targetId: { in: toolIds },
+      },
+      _sum: {
+        value: true,
+      },
+    }) : [];
+
+    const voteMap = new Map(
+      voteCounts.map(v => [v.targetId, v._sum.value || 0])
+    );
+
+    const toolsWithVotes = tools.map(tool => ({
+      ...tool,
+      voteCount: voteMap.get(tool.id) || 0,
+      votes: [],
+    }));
+
+    const hasMore = tools.length === limit;
+
+    return NextResponse.json({
+      tools: toolsWithVotes,
+      hasMore,
+      nextOffset: hasMore ? offset + limit : null,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+      },
+    });
   } catch (error) {
+    console.error('Error fetching tools:', error);
     return NextResponse.json({ error: 'Failed to fetch tools' }, { status: 500 });
   }
 }

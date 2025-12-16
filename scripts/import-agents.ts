@@ -64,9 +64,71 @@ async function fetchAwesomeCopilotAgents(): Promise<CopilotAgent[]> {
             // Extract title from filename
             const nameMatch = file.name.replace('.agent.md', '').replace(/-/g, ' ');
             
-            // Extract description from first paragraph
+            // Extract description from first paragraph - try multiple patterns
+            let description = '';
+            
+            // Pattern 1: Standard markdown - paragraph after title
             const descMatch = content.match(/^#\s+[^\n]+\n\n(.+?)(?:\n\n|$)/);
-            const description = descMatch?.[1]?.replace(/\n/g, ' ') || nameMatch;
+            if (descMatch?.[1]) {
+              description = descMatch[1].replace(/\n/g, ' ').trim();
+            }
+            
+            // Pattern 2: Any text after title before next heading (if pattern 1 failed)
+            if (!description || description.length < 10) {
+              const altMatch = content.match(/^#\s+[^\n]+\n+([^\n#]+)/);
+              if (altMatch?.[1]) {
+                const altDesc = altMatch[1].trim().replace(/\n/g, ' ');
+                if (altDesc.length > 10 && altDesc.toLowerCase() !== nameMatch.toLowerCase()) {
+                  description = altDesc;
+                }
+              }
+            }
+            
+            // Pattern 3: Blockquote after title
+            if (!description || description.length < 10) {
+              const blockquoteMatch = content.match(/^#\s+[^\n]+\n+>\s*(.+)/);
+              if (blockquoteMatch?.[1]) {
+                const blockquoteDesc = blockquoteMatch[1].trim().replace(/\n/g, ' ');
+                if (blockquoteDesc.length > 10) {
+                  description = blockquoteDesc;
+                }
+              }
+            }
+            
+            // Pattern 4: Extract first meaningful sentence from content (skip title)
+            if (!description || description.length < 10 || description.toLowerCase() === nameMatch.toLowerCase()) {
+              const contentWithoutTitle = content.replace(/^#\s+[^\n]+\n+/, '').trim();
+              // Try to find first sentence (ending with . ! or ?)
+              const sentenceMatch = contentWithoutTitle.match(/^([^.!?\n]+[.!?])/);
+              if (sentenceMatch?.[1]) {
+                const sentence = sentenceMatch[1].trim();
+                if (sentence.length > 20 && sentence.toLowerCase() !== nameMatch.toLowerCase()) {
+                  description = sentence;
+                }
+              }
+            }
+            
+            // Pattern 5: Extract first paragraph that's not the title
+            if (!description || description.length < 10 || description.toLowerCase() === nameMatch.toLowerCase()) {
+              const paragraphs = content.split(/\n\n+/);
+              for (const para of paragraphs.slice(1)) { // Skip first paragraph (title)
+                const cleanPara = para.replace(/^#+\s+/, '').trim().replace(/\n/g, ' ');
+                if (cleanPara.length > 20 && 
+                    cleanPara.toLowerCase() !== nameMatch.toLowerCase() &&
+                    !cleanPara.match(/^[A-Z\s]+$/)) { // Not all caps (likely not a heading)
+                  description = cleanPara.substring(0, 200); // Limit length
+                  break;
+                }
+              }
+            }
+            
+            // Fallback: Use generic description if nothing found or if it matches title
+            if (!description || description.length < 10 || description.toLowerCase() === nameMatch.toLowerCase()) {
+              description = `AI agent for ${nameMatch}`;
+            }
+            
+            // Clean up description
+            description = description.trim().substring(0, 200);
             
             // Generate URLs
             const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${file.path}`;
@@ -78,7 +140,7 @@ async function fetchAwesomeCopilotAgents(): Promise<CopilotAgent[]> {
             const category = extractCategory(content, agentName);
             agents.push({
               name: agentName,
-              description: description.substring(0, 200),
+              description: description, // Already trimmed and limited to 200 chars above
               content: content,
               category: category,
               mcpServers: extractMcpServers(content),
@@ -598,6 +660,51 @@ function extractTags(content: string, name: string, category?: string): string[]
   return [...new Set(tags)].slice(0, 4);
 }
 
+/**
+ * Find author by GitHub username
+ */
+async function findAuthorByGitHubUsername(githubUsername: string | null | undefined) {
+  if (!githubUsername) return null;
+  
+  try {
+    const user = await prisma.user.findFirst({
+      where: { 
+        githubUsername: githubUsername.toLowerCase().trim()
+      } as any, // Type assertion needed until Prisma types fully update
+    });
+    return user;
+  } catch (error) {
+    console.error(`Error finding author by GitHub username ${githubUsername}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Extract GitHub username from file path or commit
+ * For awesome-copilot repo, we'll try to get it from commit history
+ */
+async function extractGitHubUsernameFromFile(filePath: string): Promise<string | null> {
+  try {
+    // Try to get the last commit author for this file
+    const owner = 'github';
+    const repo = 'awesome-copilot';
+    
+    const { data: commits } = await octokit.repos.listCommits({
+      owner,
+      repo,
+      path: filePath,
+      per_page: 1,
+    });
+    
+    if (commits && commits.length > 0 && commits[0].author?.login) {
+      return commits[0].author.login;
+    }
+  } catch (error) {
+    // Silently fail - we'll use default author
+  }
+  return null;
+}
+
 async function importAgents() {
   console.log('🚀 Starting import of agents from awesome-copilot...\n');
   
@@ -639,6 +746,23 @@ async function importAgents() {
     const slug = agent.name.toLowerCase().replace(/\s+/g, '-');
     
     try {
+      // Try to find author by GitHub username from commit history
+      // Extract file path from downloadUrl
+      const filePathMatch = agent.downloadUrl.match(/github\.com\/[^/]+\/[^/]+\/main\/(.+)$/);
+      let author = defaultAuthor;
+      
+      if (filePathMatch) {
+        const filePath = filePathMatch[1];
+        const githubUsername = await extractGitHubUsernameFromFile(filePath);
+        if (githubUsername) {
+          const matchedAuthor = await findAuthorByGitHubUsername(githubUsername);
+          if (matchedAuthor) {
+            author = matchedAuthor;
+            console.log(`  📌 Matched author: ${githubUsername} for "${agent.name}"`);
+          }
+        }
+      }
+
       const existing = await prisma.agent.findUnique({
         where: { slug },
       });
@@ -657,6 +781,8 @@ async function importAgents() {
             vsCodeInstallUrl: agent.vsCodeInstallUrl,
             vsCodeInsidersUrl: agent.vsCodeInsidersUrl,
             downloadUrl: agent.downloadUrl,
+            // Update author if we found a match
+            authorId: author.id,
           },
         });
         console.log(`✅ Updated agent: "${agent.name}"`);
@@ -678,7 +804,7 @@ async function importAgents() {
             vsCodeInstallUrl: agent.vsCodeInstallUrl,
             vsCodeInsidersUrl: agent.vsCodeInsidersUrl,
             downloadUrl: agent.downloadUrl,
-            authorId: defaultAuthor.id,
+            authorId: author.id,
           },
         });
         console.log(`✅ Imported agent: "${agent.name}"`);

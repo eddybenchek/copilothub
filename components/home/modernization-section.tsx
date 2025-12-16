@@ -20,7 +20,7 @@ export function ModernizationSection({
   prompts,
 }: ModernizationSectionProps) {
   return (
-    <section className="mt-20 rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-950/80 via-slate-950 to-slate-950/90 px-6 py-10 shadow-[0_0_60px_rgba(15,23,42,0.9)] sm:px-8 lg:px-10">
+    <section className="mt-20 rounded-3xl border border-border bg-gradient-to-b from-card via-card to-card dark:from-slate-950/80 dark:via-slate-950 dark:to-slate-950/90 px-6 py-10 shadow-lg dark:shadow-[0_0_60px_rgba(15,23,42,0.9)] sm:px-8 lg:px-10">
       {/* Header */}
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-xl">
@@ -28,17 +28,17 @@ export function ModernizationSection({
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Modernization & Technical Migration
           </div>
-          <h2 className="mt-4 text-2xl font-semibold text-slate-50 sm:text-3xl">
+          <h2 className="mt-4 text-2xl font-semibold text-foreground sm:text-3xl">
             Use AI to upgrade legacy systems, safely.
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-slate-400 sm:text-[15px]">
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
             Curated prompts to help you plan and execute
             framework upgrades, language migrations, dependency updates,
             and large-scale refactors with GitHub Copilot.
           </p>
 
           {/* Use-case pills */}
-          <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-slate-300">
+          <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-foreground/90">
             {[
               "React / Next.js upgrades",
               "JavaScript → TypeScript",
@@ -49,7 +49,7 @@ export function ModernizationSection({
             ].map((label) => (
               <span
                 key={label}
-                className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1"
+                className="rounded-full border border-border bg-muted px-3 py-1"
               >
                 {label}
               </span>
@@ -67,14 +67,14 @@ export function ModernizationSection({
                   window.scrollTo({ top: y, behavior: 'smooth' });
                 }
               }}
-              className="inline-flex items-center justify-center rounded-full bg-sky-500 px-4 py-2 font-medium text-slate-950 hover:bg-sky-400 transition-colors"
+              className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               Browse modernization prompts
               <span className="ml-1 text-xs">↓</span>
             </button>
             <Link
               href="/prompts?tags=modernization"
-              className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-slate-200 hover:border-slate-500 transition-colors"
+              className="inline-flex items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-card-foreground hover:border-primary/50 transition-colors"
             >
               View all prompts
             </Link>
@@ -82,7 +82,7 @@ export function ModernizationSection({
         </div>
 
         {/* Summary stats / reassurance */}
-        <div className="mt-4 grid w-full max-w-xs grid-cols-2 gap-3 text-xs text-slate-300 md:mt-0">
+        <div className="mt-4 grid w-full max-w-xs grid-cols-2 gap-3 text-xs text-foreground/90 md:mt-0">
           <StatCard label="Modernization prompts" value={`${prompts.length}+`} />
           <StatCard label="Focus: production apps" value="Real-world use" />
           <StatCard label="Best for" value="Teams & codebases" />
@@ -115,9 +115,9 @@ export function ModernizationSection({
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-3 py-3">
-      <div className="text-[11px] text-slate-400">{label}</div>
-      <div className="mt-1 text-sm font-semibold text-slate-50">{value}</div>
+    <div className="rounded-2xl border border-border bg-card px-3 py-3">
+      <div className="text-[11px] text-muted-foreground">{label}</div>
+      <div className="mt-1 text-sm font-semibold text-card-foreground">{value}</div>
     </div>
   );
 }
@@ -134,14 +134,14 @@ function RailHeader({
   return (
     <div className="flex items-baseline justify-between gap-4">
       <div>
-        <h3 className="text-sm font-semibold text-slate-100 sm:text-base">
+        <h3 className="text-sm font-semibold text-foreground sm:text-base">
           {title}
         </h3>
-        <p className="mt-1 text-xs text-slate-400">{subtitle}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
       </div>
       <Link
         href={href}
-        className="text-[11px] font-medium text-sky-400 hover:text-sky-300"
+        className="text-[11px] font-medium text-primary hover:text-primary/80"
       >
         View all →
       </Link>
@@ -161,7 +161,7 @@ function HorizontalRail({ children }: { children: React.ReactNode }) {
 
 function EmptyRailPlaceholder({ kind }: { kind: "prompts" }) {
   return (
-    <div className="flex h-24 flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/60 px-4 text-xs text-slate-500">
+    <div className="flex h-24 flex-1 items-center justify-center rounded-2xl border border-dashed border-border bg-muted px-4 text-xs text-muted-foreground">
       No {kind} tagged for modernization yet. Seed a few and this rail will
       showcase them automatically.
     </div>
@@ -174,15 +174,15 @@ function MiniPromptCard({ prompt }: { prompt: PromptLike }) {
   return (
     <Link
       href={`/prompts/${prompt.slug}`}
-      className="group flex w-72 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-xs transition hover:border-sky-500/70 hover:bg-slate-900"
+      className="group flex w-72 flex-col rounded-2xl border border-border bg-card p-4 text-xs transition hover:border-primary/70 hover:bg-accent"
     >
-      <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+      <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         Prompt
       </div>
-      <h4 className="line-clamp-2 text-[13px] font-semibold text-slate-50 group-hover:text-sky-200">
+      <h4 className="line-clamp-2 text-[13px] font-semibold text-card-foreground group-hover:text-primary">
         {prompt.title}
       </h4>
-      <p className="mt-1 line-clamp-2 text-[11px] text-slate-400">
+      <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">
         {prompt.description}
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-1">
@@ -207,8 +207,8 @@ function Badge({
       className={cn(
         "inline-flex items-center rounded-full px-2 py-0.5 text-[10px]",
         subtle
-          ? "border border-slate-700 bg-slate-900/80 text-slate-300"
-          : "border border-slate-700 bg-slate-900/80 text-slate-200"
+          ? "border border-border bg-muted text-muted-foreground"
+          : "border border-border bg-muted text-muted-foreground"
       )}
     >
       {children}

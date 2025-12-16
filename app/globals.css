@@ -3,13 +3,59 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Light mode colors - improved contrast and readability */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 20% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 210 20% 98%;
+    --ring: 210 100% 56%;
+  }
+
+  .dark {
+    /* Dark mode colors (GitHub Copilot inspired) */
+    --background: 222 47% 5%;
+    --foreground: 213 31% 84%;
+    --card: 222 47% 9%;
+    --card-foreground: 213 31% 84%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 213 31% 84%;
+    --primary: 210 100% 70%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 47% 13%;
+    --secondary-foreground: 213 31% 84%;
+    --muted: 222 47% 9%;
+    --muted-foreground: 210 10% 55%;
+    --accent: 222 47% 13%;
+    --accent-foreground: 213 31% 84%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 28% 17%;
+    --input: 222 47% 13%;
+    --ring: 210 100% 70%;
+  }
+  
   * {
     border-color: hsl(var(--border));
   }
   
   body {
-    background-color: #0d1117;
-    color: #c9d1d9;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

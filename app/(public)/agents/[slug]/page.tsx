@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 import { db } from "@/lib/db";
 import { ContentStatus } from "@prisma/client";
 import { Bot, Download, Plug, Eye, Star, Share2, ExternalLink } from "lucide-react";
@@ -8,9 +9,53 @@ import { CodeBlock } from "@/components/ui/code-block";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button";
 import { ShareButton } from "@/components/share-button";
+import { VoteButton } from "@/components/votes/vote-button";
 import { MarkdownPreview } from "@/components/markdown-preview";
 import { AgentDownloadButton } from "@/components/agents/download-button";
+import { getBaseUrl, createMetadata, createStructuredData } from "@/lib/metadata";
 import Link from "next/link";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const agent = await db.agent.findUnique({
+    where: { slug },
+    include: { author: true },
+  });
+
+  if (!agent || agent.status !== ContentStatus.APPROVED) {
+    return {};
+  }
+
+  const url = `${getBaseUrl()}/agents/${slug}`;
+  const description = agent.description || `AI agent: ${agent.title}`;
+
+  return createMetadata({
+    title: agent.title,
+    description,
+    openGraph: {
+      title: agent.title,
+      description,
+      url,
+      type: 'article',
+      publishedTime: agent.createdAt.toISOString(),
+      modifiedTime: agent.updatedAt.toISOString(),
+      authors: agent.author.name ? [agent.author.name] : undefined,
+      tags: [...agent.tags, ...(agent.category ? [agent.category] : [])],
+      images: [
+        {
+          url: `${getBaseUrl()}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: agent.title,
+        },
+      ],
+    },
+    twitter: {
+      title: agent.title,
+      description,
+    },
+  });
+}
 
 export default async function AgentDetailPage({
   params,
@@ -33,6 +78,27 @@ export default async function AgentDetailPage({
   const downloads = agent.downloads || 0;
   const views = agent.views || 0;
   const mcpCount = agent.mcpServers?.length || 0;
+  const voteCount = agent.votes.reduce((sum, vote) => sum + vote.value, 0);
+  
+  const structuredData = createStructuredData('SoftwareApplication', {
+    name: agent.title,
+    description: agent.description,
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Any',
+    author: {
+      '@type': 'Person',
+      name: agent.author.name || 'Anonymous',
+    },
+    datePublished: agent.createdAt.toISOString(),
+    dateModified: agent.updatedAt.toISOString(),
+    url: `${getBaseUrl()}/agents/${slug}`,
+    keywords: [...agent.tags, ...agent.languages, ...agent.frameworks].join(', '),
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+  });
 
   // Fetch actual MCP servers from database to validate links
   const mcpSlugs = agent.mcpServers.map((name) => 
@@ -52,8 +118,13 @@ export default async function AgentDetailPage({
   });
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <article className="mx-auto max-w-4xl">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="container mx-auto px-4 py-12">
+        <article className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-3">
@@ -69,7 +140,9 @@ export default async function AgentDetailPage({
               )}
             </div>
           </div>
-          <p className="text-xl text-slate-400">{agent.description}</p>
+          {agent.description.toLowerCase() !== agent.title.toLowerCase() && (
+            <p className="text-xl text-slate-400">{agent.description}</p>
+          )}
         </div>
 
         {/* Metadata Bar */}
@@ -101,7 +174,12 @@ export default async function AgentDetailPage({
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-8 flex flex-wrap items-center gap-3">
+          <VoteButton
+            targetId={agent.id}
+            targetType="AGENT"
+            initialVoteCount={voteCount}
+          />
           {agent.vsCodeInstallUrl && (
             <a href={agent.vsCodeInstallUrl} target="_blank" rel="noopener noreferrer">
               <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
@@ -286,6 +364,7 @@ export default async function AgentDetailPage({
         </div>
       </article>
     </div>
+    </>
   );
 }
 

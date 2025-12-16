@@ -11,7 +11,10 @@ interface PromptCardProps {
 }
 
 export function PromptCard({ prompt }: PromptCardProps) {
-  const voteCount = prompt.votes.reduce((sum, vote) => sum + vote.value, 0);
+  // Support both voteCount (from optimized API) and votes array (from legacy)
+  const voteCount = (prompt as any).voteCount !== undefined 
+    ? (prompt as any).voteCount 
+    : prompt.votes.reduce((sum, vote) => sum + vote.value, 0);
 
   return (
     <div className="animate-fadeUp">
@@ -22,7 +25,7 @@ export function PromptCard({ prompt }: PromptCardProps) {
               <CardTitle className="text-lg line-clamp-2">{prompt.title}</CardTitle>
               <div className="flex items-center gap-2 shrink-0">
                 {voteCount > 0 && (
-                  <span className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2.5 py-1 text-xs text-slate-200">
+                  <span className="inline-flex items-center rounded-full bg-muted border border-border backdrop-blur-sm px-2.5 py-1 text-xs text-muted-foreground">
                     ↑ {voteCount}
                   </span>
                 )}
@@ -40,13 +43,13 @@ export function PromptCard({ prompt }: PromptCardProps) {
                 {prompt.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2.5 py-1 text-xs text-slate-200"
+                    className="inline-flex items-center rounded-full bg-muted border border-border backdrop-blur-sm px-2.5 py-1 text-xs text-muted-foreground"
                   >
                     {tag}
                   </span>
                 ))}
                 {prompt.tags.length > 3 && (
-                  <span className="inline-flex items-center rounded-full bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm px-2.5 py-1 text-xs text-slate-200">
+                  <span className="inline-flex items-center rounded-full bg-muted border border-border backdrop-blur-sm px-2.5 py-1 text-xs text-muted-foreground">
                     +{prompt.tags.length - 3}
                   </span>
                 )}

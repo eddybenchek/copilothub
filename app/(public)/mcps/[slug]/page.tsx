@@ -1,12 +1,57 @@
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import { ExternalLink, Github, Download, Copy, BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
+import { VoteButton } from '@/components/votes/vote-button';
 import { MarkdownPreview } from '@/components/markdown-preview';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 import { CopyButton } from '@/components/copy-button';
+import { getBaseUrl, createMetadata, createStructuredData } from '@/lib/metadata';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const mcp = await db.mcpServer.findUnique({
+    where: { slug },
+    include: { author: true },
+  });
+
+  if (!mcp || mcp.status !== ContentStatus.APPROVED) {
+    return {};
+  }
+
+  const url = `${getBaseUrl()}/mcps/${slug}`;
+  const description = mcp.description || `MCP Server: ${mcp.title}`;
+
+  return createMetadata({
+    title: mcp.title,
+    description,
+    openGraph: {
+      title: mcp.title,
+      description,
+      url,
+      type: 'article',
+      publishedTime: mcp.createdAt.toISOString(),
+      modifiedTime: mcp.updatedAt.toISOString(),
+      authors: mcp.author.name ? [mcp.author.name] : undefined,
+      tags: [...mcp.tags, ...(mcp.category ? [mcp.category] : [])],
+      images: [
+        {
+          url: `${getBaseUrl()}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: mcp.title,
+        },
+      ],
+    },
+    twitter: {
+      title: mcp.title,
+      description,
+    },
+  });
+}
 
 export default async function McpDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -24,11 +69,27 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
     notFound();
   }
 
-  if (!mcp) {
-    notFound();
-  }
-
   const voteCount = mcp.votes.reduce((sum, vote) => sum + vote.value, 0);
+  
+  const structuredData = createStructuredData('SoftwareApplication', {
+    name: mcp.title,
+    description: mcp.description,
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Any',
+    author: {
+      '@type': 'Person',
+      name: mcp.author.name || 'Anonymous',
+    },
+    datePublished: mcp.createdAt.toISOString(),
+    dateModified: mcp.updatedAt.toISOString(),
+    url: `${getBaseUrl()}/mcps/${slug}`,
+    keywords: [...mcp.tags, ...(mcp.category ? [mcp.category] : [])].join(', '),
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+  });
 
   // Extract just the repo name and format it
   const rawName = mcp.title;
@@ -38,8 +99,13 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <article className="mx-auto max-w-4xl">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="container mx-auto px-4 py-12">
+        <article className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
@@ -69,7 +135,12 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-8 flex flex-wrap gap-4">
+        <div className="mb-8 flex flex-wrap items-center gap-4">
+          <VoteButton
+            targetId={mcp.id}
+            targetType="MCP"
+            initialVoteCount={voteCount}
+          />
           <CopyButton 
             text={mcp.configExample || JSON.stringify({
               name: mcp.slug,
@@ -170,6 +241,7 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
         )}
       </article>
     </div>
+    </>
   );
 }
 

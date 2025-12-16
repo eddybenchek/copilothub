@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { FileText, CheckCircle, XCircle, AlertCircle, Github, Code, Sparkles } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, AlertCircle, Github, Code, Sparkles, DollarSign, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -78,7 +78,7 @@ export default function RulesPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <div className="mb-2 flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-teal-400" />
@@ -90,9 +90,9 @@ export default function RulesPage() {
                   Specialized AI agents for specific development tasks or domains.
                 </CardDescription>
               </CardContent>
-            </Card>
+            </Card> */}
 
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <div className="mb-2 flex items-center gap-2">
                   <Code className="h-5 w-5 text-green-400" />
@@ -103,6 +103,79 @@ export default function RulesPage() {
                 <CardDescription className="text-slate-300">
                   Development tools, extensions, and MCP servers that enhance AI-powered workflows.
                 </CardDescription>
+              </CardContent>
+            </Card> */}
+          </div>
+        </div>
+
+        {/* Licensing & Attribution */}
+        <div className="mb-8">
+          <h2 className="mb-6 text-3xl font-bold text-slate-50">Contribution Fees & Attribution</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="border-green-500/30 bg-green-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-400">
+                  <Info className="h-5 w-5" />
+                  Prompts & Instructions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-3 text-slate-300">
+                  <strong className="text-green-400">Free to contribute!</strong> You can submit your own prompts 
+                  and instructions at no cost. Share your knowledge with the community.
+                </p>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-400" />
+                    <span>No contribution fees required</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-400" />
+                    <span>Submit your original content or properly licensed material</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-400" />
+                    <span>Open to all contributors - individuals and companies</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-amber-500/30 bg-amber-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-amber-400">
+                  <DollarSign className="h-5 w-5" />
+                  Agents, Tools & MCPs
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-3 text-slate-300">
+                  <strong className="text-amber-400">Paid contributions required.</strong> If you or your company 
+                  want to add agents, tools, or MCP servers to CopilotHub, a contribution fee applies.
+                </p>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                    <span>Contribution fee required for listing</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                    <span>Contact us for pricing and payment details</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                    <span>Applies to both individuals and companies</span>
+                  </li>
+                </ul>
+                <div className="mt-4 pt-4 border-t border-amber-500/20">
+                  <p className="text-xs text-slate-400">
+                    For contribution inquiries, please contact us through our{' '}
+                    <Link href="/submit" className="text-amber-400 hover:text-amber-300 underline">
+                      submission page
+                    </Link>
+                    {' '}or GitHub repository.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>

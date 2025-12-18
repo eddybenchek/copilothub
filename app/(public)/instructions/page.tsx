@@ -14,6 +14,9 @@ export default function InstructionsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [featuredCount, setFeaturedCount] = useState(0);
+  const [languageCount, setLanguageCount] = useState(0);
   
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +49,26 @@ export default function InstructionsPage() {
     }
   }, [offset]);
 
+  // Fetch stats (total instructions, featured, languages) separately so they are accurate
+  useEffect(() => {
+    fetch('/api/instructions/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data.total === 'number') {
+          setTotalCount(data.total);
+        }
+        if (typeof data.featured === 'number') {
+          setFeaturedCount(data.featured);
+        }
+        if (typeof data.languages === 'number') {
+          setLanguageCount(data.languages);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching instruction stats:', error);
+      });
+  }, []);
+
   useEffect(() => {
     fetchInstructions(true);
   }, []);
@@ -73,8 +96,13 @@ export default function InstructionsPage() {
     };
   }, [hasMore, loading, loadingMore, fetchInstructions]);
 
-  const featuredCount = instructions.filter(i => i.featured).length;
-  const languageCount = new Set(instructions.map(i => i.language).filter(Boolean)).size;
+  // Fallbacks if stats endpoint hasn't loaded yet
+  const effectiveTotal = totalCount || instructions.length;
+  const effectiveFeatured =
+    featuredCount || instructions.filter((i) => i.featured).length;
+  const effectiveLanguages =
+    languageCount ||
+    new Set(instructions.map((i) => i.language).filter(Boolean)).size;
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
@@ -102,15 +130,15 @@ export default function InstructionsPage() {
       {/* Stats */}
       <div className="mb-8 flex flex-wrap gap-4">
         <div className="rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-2">
-          <div className="text-2xl font-bold text-slate-50">{instructions.length}</div>
+          <div className="text-2xl font-bold text-slate-50">{effectiveTotal}</div>
           <div className="text-xs text-slate-400">Total Instructions</div>
         </div>
         <div className="rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-2">
-          <div className="text-2xl font-bold text-slate-50">{featuredCount}</div>
+          <div className="text-2xl font-bold text-slate-50">{effectiveFeatured}</div>
           <div className="text-xs text-slate-400">Featured</div>
         </div>
         <div className="rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-2">
-          <div className="text-2xl font-bold text-slate-50">{languageCount}</div>
+          <div className="text-2xl font-bold text-slate-50">{effectiveLanguages}</div>
           <div className="text-xs text-slate-400">Languages</div>
         </div>
       </div>

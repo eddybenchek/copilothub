@@ -17,8 +17,22 @@ export default function McpsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [initialized, setInitialized] = useState(false);
+  const [apiCategoryKeys, setApiCategoryKeys] = useState<string[]>([]);
+  const [apiCategoryCounts, setApiCategoryCounts] = useState<Record<string, number>>({});
+  const [totalCount, setTotalCount] = useState(0);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const fetchMcps = useCallback(async (reset = false) => {
     const currentOffset = reset ? 0 : offset;
@@ -30,7 +44,20 @@ export default function McpsPage() {
     }
 
     try {
-      const response = await fetch(`/api/mcps?offset=${currentOffset}&limit=20`);
+      const params = new URLSearchParams({
+        offset: currentOffset.toString(),
+        limit: '20',
+      });
+
+      if (categoryFilter !== 'all') {
+        params.append('category', categoryFilter);
+      }
+
+      if (debouncedQuery.trim()) {
+        params.append('query', debouncedQuery.trim());
+      }
+
+      const response = await fetch(`/api/mcps?${params.toString()}`);
       const data = await response.json();
       
       if (reset) {
@@ -40,18 +67,76 @@ export default function McpsPage() {
       }
       
       setHasMore(data.hasMore || false);
-      setOffset(data.nextOffset || currentOffset + (data.mcps?.length || 0));
+      setOffset(data.nextOffset || (reset ? (data.mcps?.length || 0) : currentOffset + (data.mcps?.length || 0)));
+      setInitialized(true);
     } catch (error) {
       console.error('Error fetching MCPs:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [offset]);
+  }, [offset, categoryFilter, debouncedQuery]);
+
+  // Fetch MCP stats (total + category counts) separately
+  useEffect(() => {
+    fetch('/api/mcps/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.categories)) {
+          setApiCategoryKeys(data.categories);
+        }
+        if (data.counts) {
+          setApiCategoryCounts(data.counts);
+        }
+        if (typeof data.total === 'number') {
+          setTotalCount(data.total);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching MCP stats:', error);
+      });
+  }, []);
 
   useEffect(() => {
     fetchMcps(true);
   }, []);
+
+  // Refetch when category or search query changes
+  useEffect(() => {
+    // Skip on initial mount (handled by initial fetch above)
+    if (!initialized) return;
+
+    setOffset(0);
+    setLoading(true);
+
+    const params = new URLSearchParams({
+      offset: '0',
+      limit: '20',
+    });
+
+    if (categoryFilter !== 'all') {
+      params.append('category', categoryFilter);
+    }
+
+    if (debouncedQuery.trim()) {
+      params.append('query', debouncedQuery.trim());
+    }
+
+    fetch(`/api/mcps?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setMcps(data.mcps || []);
+        setHasMore(data.hasMore || false);
+        setOffset(data.nextOffset || (data.mcps?.length || 0));
+      })
+      .catch((error) => {
+        console.error('Error fetching MCPs:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryFilter, debouncedQuery, initialized]);
 
   useEffect(() => {
     if (!hasMore || loading || loadingMore) return;
@@ -76,50 +161,46 @@ export default function McpsPage() {
     };
   }, [hasMore, loading, loadingMore, fetchMcps]);
 
-  // Build dynamic categories from MCP data
-  const { categories, categoryCounts } = useMemo(() => {
+  // Build dynamic categories from MCP data (fallback when stats haven't loaded)
+  const { derivedCategoryKeys, derivedCategoryCounts } = useMemo(() => {
     const counts: Record<string, number> = {};
     const catSet = new Set<string>();
-    
+
     for (const mcp of mcps) {
       const category = (mcp.category || 'other').toLowerCase();
+      if (!category) continue;
       catSet.add(category);
       counts[category] = (counts[category] ?? 0) + 1;
     }
-    
+
     const sortedCategories = Array.from(catSet).sort();
-    const categoryOptions = [
-      { key: 'all', label: 'All' },
-      ...sortedCategories.map(cat => ({
-        key: cat,
-        label: cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')
-      }))
-    ];
-    
-    return { categories: categoryOptions, categoryCounts: counts };
+    return { derivedCategoryKeys: sortedCategories, derivedCategoryCounts: counts };
   }, [mcps]);
+
+  const displayCategoryKeys =
+    apiCategoryKeys.length > 0 ? apiCategoryKeys : derivedCategoryKeys;
+
+  const categories = useMemo(
+    () => [
+      { key: 'all', label: 'All' },
+      ...displayCategoryKeys.map((cat) => ({
+        key: cat,
+        label: cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' '),
+      })),
+    ],
+    [displayCategoryKeys]
+  );
+
+  const getCategoryCount = (key: string) =>
+    key === 'all'
+      ? totalCount || mcps.length
+      : apiCategoryCounts[key] ?? derivedCategoryCounts[key] ?? 0;
 
   const filteredAndSortedMcps = useMemo(() => {
     let result = mcps;
 
-    // Category filter
-    if (categoryFilter !== "all") {
-      result = result.filter((mcp) => {
-        const tags = (mcp.tags ?? []).map((t: string) => t.toLowerCase());
-        return tags.includes(categoryFilter) || mcp.category?.toLowerCase() === categoryFilter;
-      });
-    }
-
-    // Search filter
-    if (query) {
-      result = result.filter((mcp) =>
-        (mcp.title + ' ' + mcp.description + ' ' + mcp.tags.join(' '))
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      );
-    }
-
-    // Sorting
+    // Category & search filtering are now handled server-side via the API.
+    // Only apply sorting client-side.
     result = [...result].sort((a, b) => {
       switch (sortBy) {
         case 'recent':
@@ -130,7 +211,17 @@ export default function McpsPage() {
     });
 
     return result;
-  }, [mcps, query, categoryFilter, sortBy]);
+  }, [mcps, sortBy]);
+
+  // Total or filtered count for the \"X servers\" label
+  const serversCountLabel = useMemo(() => {
+    // When no filters are applied, show total from stats (or fallback)
+    if (categoryFilter === 'all' && !debouncedQuery.trim()) {
+      return totalCount || mcps.length;
+    }
+    // Otherwise show count of filtered results
+    return filteredAndSortedMcps.length;
+  }, [categoryFilter, debouncedQuery, filteredAndSortedMcps.length, mcps.length, totalCount]);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
@@ -169,15 +260,9 @@ export default function McpsPage() {
               )}
             >
               {category.label}
-              {category.key === 'all' ? (
-                <span className="ml-2 text-xs opacity-70">({mcps.length})</span>
-              ) : (
-                categoryCounts[category.key] && (
-                  <span className="ml-2 text-xs opacity-70">
-                    ({categoryCounts[category.key]})
-                  </span>
-                )
-              )}
+              <span className="ml-2 text-xs opacity-70">
+                ({getCategoryCount(category.key)})
+              </span>
             </button>
           ))}
         </div>
@@ -185,7 +270,7 @@ export default function McpsPage() {
         {/* Sort and Count */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground">
-            {filteredAndSortedMcps.length} {filteredAndSortedMcps.length === 1 ? 'server' : 'servers'}
+            {serversCountLabel} {serversCountLabel === 1 ? 'server' : 'servers'}
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Sort by:</span>

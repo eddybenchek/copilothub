@@ -11,10 +11,40 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const offset = parseInt(searchParams.get('offset') || '0');
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+    const category = searchParams.get('category');
+    const query = searchParams.get('query');
+    
+    // Build where clause
+    const whereConditions: any[] = [{ status: ContentStatus.APPROVED }];
+    
+    // Add category filter if provided
+    if (category && category !== 'all') {
+      whereConditions.push({
+        tags: {
+          has: category.toLowerCase(),
+        },
+      });
+    }
+    
+    // Add search query filter if provided
+    if (query && query.trim()) {
+      const searchTerm = query.trim();
+      whereConditions.push({
+        OR: [
+          { title: { contains: searchTerm, mode: 'insensitive' as const } },
+          { description: { contains: searchTerm, mode: 'insensitive' as const } },
+          { content: { contains: searchTerm, mode: 'insensitive' as const } },
+          { tags: { has: searchTerm.toLowerCase() } },
+        ],
+      });
+    }
+    
+    // Combine all conditions with AND
+    const where = whereConditions.length > 1 ? { AND: whereConditions } : whereConditions[0];
     
     // Optimized query: Only fetch needed fields
     const tools = await db.tool.findMany({
-      where: { status: ContentStatus.APPROVED },
+      where,
       select: {
         id: true,
         title: true,

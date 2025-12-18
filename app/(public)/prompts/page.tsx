@@ -20,9 +20,21 @@ export default function PromptsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [totalCount, setTotalCount] = useState(0);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   
   // Ref for intersection observer
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   // Fetch prompts function
   const fetchPrompts = useCallback(async (reset = false) => {
@@ -35,7 +47,21 @@ export default function PromptsPage() {
     }
 
     try {
-      const response = await fetch(`/api/prompts?offset=${currentOffset}&limit=20`);
+      // Build query params
+      const params = new URLSearchParams({
+        offset: currentOffset.toString(),
+        limit: '20',
+      });
+      
+      if (selectedCategory !== 'all') {
+        params.append('category', selectedCategory);
+      }
+      
+      if (debouncedQuery.trim()) {
+        params.append('query', debouncedQuery.trim());
+      }
+      
+      const response = await fetch(`/api/prompts?${params.toString()}`);
       const data = await response.json();
       
       if (reset) {
@@ -45,19 +71,74 @@ export default function PromptsPage() {
       }
       
       setHasMore(data.hasMore || false);
-      setOffset(data.nextOffset || currentOffset + (data.prompts?.length || 0));
+      setOffset(data.nextOffset || (reset ? (data.prompts?.length || 0) : currentOffset + (data.prompts?.length || 0)));
     } catch (error) {
       console.error('Error fetching prompts:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [offset]);
+  }, [offset, selectedCategory, debouncedQuery]);
+
+  // Fetch category counts separately (lightweight, shows accurate totals)
+  useEffect(() => {
+    fetch('/api/prompts/categories')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.counts) {
+          setCategoryCounts(data.counts);
+        }
+        if (data.total !== undefined) {
+          setTotalCount(data.total);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching category counts:', error);
+      });
+  }, []);
 
   // Initial fetch
   useEffect(() => {
     fetchPrompts(true);
   }, []);
+
+  // Refetch when category or search query changes
+  useEffect(() => {
+    // Skip on initial mount (handled by initial fetch above)
+    if (prompts.length === 0) return;
+    
+    // Reset offset and fetch with new filters
+    setOffset(0);
+    setLoading(true);
+    
+    const params = new URLSearchParams({
+      offset: '0',
+      limit: '20',
+    });
+    
+    if (selectedCategory !== 'all') {
+      params.append('category', selectedCategory);
+    }
+    
+    if (debouncedQuery.trim()) {
+      params.append('query', debouncedQuery.trim());
+    }
+    
+    fetch(`/api/prompts?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setPrompts(data.prompts || []);
+        setHasMore(data.hasMore || false);
+        setOffset(data.nextOffset || (data.prompts?.length || 0));
+      })
+      .catch((error) => {
+        console.error('Error fetching prompts:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, debouncedQuery]);
 
   // Infinite scroll with Intersection Observer
   useEffect(() => {
@@ -83,41 +164,14 @@ export default function PromptsPage() {
     };
   }, [hasMore, loading, loadingMore, fetchPrompts]);
 
-  // Build category counts from tags
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    
-    for (const prompt of prompts) {
-      for (const tag of prompt.tags) {
-        const normalizedTag = tag.toLowerCase();
-        // Extract category from tags like "category:code-generation"
-        if (normalizedTag.startsWith('category:')) {
-          const category = normalizedTag.replace('category:', '');
-          counts[category] = (counts[category] ?? 0) + 1;
-        }
-      }
-    }
-    return counts;
-  }, [prompts]);
+  // Category counts are now fetched separately from the API
+  // This ensures accurate totals even before all prompts are loaded
 
   const filteredAndSortedPrompts = useMemo(() => {
     let result = prompts;
 
-    // Category filter
-    if (selectedCategory !== 'all') {
-      result = result.filter((prompt) =>
-        prompt.tags.some((tag) => tag.toLowerCase() === `category:${selectedCategory}`)
-      );
-    }
-
-    // Search filter
-    if (query) {
-      result = result.filter((prompt) =>
-        (prompt.title + ' ' + prompt.description + ' ' + prompt.tags.join(' '))
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      );
-    }
+    // Category and search filtering are now done server-side via API
+    // Only apply sorting client-side
 
     // Sorting
     result = [...result].sort((a, b) => {
@@ -130,7 +184,7 @@ export default function PromptsPage() {
     });
 
     return result;
-  }, [prompts, query, selectedCategory, sortBy]);
+  }, [prompts, sortBy]);
 
   const CATEGORY_LABELS: Record<string, string> = {
     'code-generation': 'Code Generation',
@@ -154,7 +208,7 @@ export default function PromptsPage() {
         <div className="space-y-1">
           <SidebarItem
             label="All"
-            count={prompts.length}
+            count={totalCount || prompts.length}
             active={selectedCategory === 'all'}
             onClick={() => setSelectedCategory('all')}
           />

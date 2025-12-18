@@ -7,10 +7,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const offset = parseInt(searchParams.get('offset') || '0');
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+    const category = searchParams.get('category');
+
+    // Build where clause
+    const whereConditions: any[] = [{ status: ContentStatus.APPROVED }];
+
+    // Add category filter if provided
+    if (category && category !== 'all') {
+      whereConditions.push({
+        category,
+      });
+    }
+
+    const where = whereConditions.length > 1 ? { AND: whereConditions } : whereConditions[0];
     
     // Optimized query: Only fetch needed fields
     const agents = await db.agent.findMany({
-      where: { status: ContentStatus.APPROVED },
+      where,
       select: {
         id: true,
         title: true,

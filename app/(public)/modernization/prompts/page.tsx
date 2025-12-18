@@ -28,17 +28,41 @@ export default function ModernizationPromptsPage() {
 
   // Fetch all prompts and filter for modernization
   useEffect(() => {
-    fetch('/api/prompts')
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchAllPrompts = async () => {
+      try {
+        let allPrompts: PromptWithAuthor[] = [];
+        let offset = 0;
+        let hasMore = true;
+        const limit = 50; // Max per request
+
+        // Fetch all prompts in batches
+        while (hasMore) {
+          const response = await fetch(`/api/prompts?offset=${offset}&limit=${limit}`);
+          const data = await response.json();
+          
+          if (data.prompts && Array.isArray(data.prompts)) {
+            allPrompts = [...allPrompts, ...data.prompts];
+            hasMore = data.hasMore || false;
+            offset = data.nextOffset || offset + data.prompts.length;
+          } else {
+            hasMore = false;
+          }
+        }
+
         // Filter for modernization prompts only
-        const modernizationPrompts = data.filter((prompt: PromptWithAuthor) =>
+        const modernizationPrompts = allPrompts.filter((prompt: PromptWithAuthor) =>
           prompt.tags.some((tag: string) => tag.toLowerCase() === 'category:modernization')
         );
+        
         setPrompts(modernizationPrompts);
+      } catch (error) {
+        console.error('Error fetching prompts:', error);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+
+    fetchAllPrompts();
   }, []);
 
   const filteredPrompts = useMemo(() => {

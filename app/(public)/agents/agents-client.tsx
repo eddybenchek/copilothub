@@ -24,55 +24,96 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [totalCount, setTotalCount] = useState(0);
   
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const fetchAgents = useCallback(async (reset = false) => {
-    const currentOffset = reset ? 0 : offset;
-    
-    if (reset) {
-      setLoading(true);
-      setOffset(0);
-    } else {
-      setLoadingMore(true);
-    }
+  const fetchAgents = useCallback(
+    async (reset = false) => {
+      const currentOffset = reset ? 0 : offset;
 
-    try {
-      const response = await fetch(`/api/agents?offset=${currentOffset}&limit=20`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.statusText}`);
+      if (reset) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
       }
-      
-      const data = await response.json();
-      
-      // Ensure we have valid data
-      if (!data || !Array.isArray(data.agents)) {
-        console.error('Invalid API response:', data);
+
+      try {
+        const params = new URLSearchParams({
+          offset: currentOffset.toString(),
+          limit: '20',
+        });
+
+        if (selectedCategory !== 'all') {
+          params.append('category', selectedCategory);
+        }
+
+        const response = await fetch(`/api/agents?${params.toString()}`);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Ensure we have valid data
+        if (!data || !Array.isArray(data.agents)) {
+          console.error('Invalid API response:', data);
+          if (reset) {
+            setAgents([]);
+          }
+          return;
+        }
+
+        if (reset) {
+          setAgents(data.agents);
+        } else {
+          setAgents((prev) =>
+            Array.isArray(prev) ? [...prev, ...data.agents] : data.agents
+          );
+        }
+
+        setHasMore(data.hasMore || false);
+        setOffset(
+          data.nextOffset ||
+            (reset
+              ? (data.agents?.length || 0)
+              : currentOffset + data.agents.length)
+        );
+      } catch (error) {
+        console.error('Error fetching agents:', error);
         if (reset) {
           setAgents([]);
         }
-        return;
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-      
-      if (reset) {
-        setAgents(data.agents);
-      } else {
-        setAgents(prev => Array.isArray(prev) ? [...prev, ...data.agents] : data.agents);
-      }
-      
-      setHasMore(data.hasMore || false);
-      setOffset(data.nextOffset || currentOffset + data.agents.length);
-    } catch (error) {
-      console.error('Error fetching agents:', error);
-      if (reset) {
-        setAgents([]);
-      }
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [offset]);
+    },
+    [offset, selectedCategory]
+  );
+
+  // Fetch stats (total agents and category counts) separately so they are accurate
+  useEffect(() => {
+    fetch('/api/agents/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.categories)) {
+          setCategories(data.categories);
+        }
+        if (data.counts) {
+          setCategoryCounts(data.counts);
+        }
+        if (typeof data.total === 'number') {
+          setTotalCount(data.total);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching agent stats:', error);
+      });
+  }, []);
 
   useEffect(() => {
     if (!initialAgents) {
@@ -80,6 +121,13 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Refetch when category changes
+  useEffect(() => {
+    if (!agents || agents.length === 0) return;
+    fetchAgents(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory]);
 
   useEffect(() => {
     if (!hasMore || loading || loadingMore) return;
@@ -104,16 +152,15 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
     };
   }, [hasMore, loading, loadingMore, fetchAgents]);
 
-  // Get categories
-  const categories = useMemo(() => {
+  // Local fallbacks derived from currently loaded agents
+  const derivedCategories = useMemo(() => {
     if (!agents || !Array.isArray(agents)) return [];
     return Array.from(
       new Set(agents.map((a) => a.category).filter(Boolean))
     ).sort() as string[];
   }, [agents]);
 
-  // Count agents per category
-  const categoryCounts = useMemo(() => {
+  const derivedCategoryCounts = useMemo(() => {
     if (!agents || !Array.isArray(agents)) return {};
     return agents.reduce((acc, agent) => {
       const cat = agent.category || 'Other';
@@ -122,12 +169,18 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
     }, {} as Record<string, number>);
   }, [agents]);
 
-  // Filter agents by category
+  const effectiveTotal = totalCount || (agents?.length || 0);
+  const displayCategories =
+    categories.length > 0 ? categories : derivedCategories;
+
+  const getCategoryCount = (category: string) =>
+    categoryCounts[category] ?? derivedCategoryCounts[category] ?? 0;
+
+  // Agents to display (category filtering is now handled server-side)
   const filteredAgents = useMemo(() => {
     if (!agents || !Array.isArray(agents)) return [];
-    if (selectedCategory === 'all') return agents;
-    return agents.filter((agent) => agent.category === selectedCategory);
-  }, [agents, selectedCategory]);
+    return agents;
+  }, [agents]);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
@@ -137,11 +190,11 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
           Specialized assistants that extend GitHub Copilot for complex development tasks
         </p>
         <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-          <span>{agents?.length || 0} agents available</span>
-          {categories.length > 0 && (
+          <span>{effectiveTotal} agents available</span>
+          {displayCategories.length > 0 && (
             <>
               <span>•</span>
-              <span>{categories.length} categories</span>
+              <span>{displayCategories.length} categories</span>
             </>
           )}
         </div>
@@ -163,7 +216,7 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
       ) : (
         <>
           {/* Category Navigation */}
-          {categories.length > 0 && (
+          {displayCategories.length > 0 && (
             <div className="mb-8 flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedCategory('all')}
@@ -173,9 +226,9 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
                     : 'border-slate-700/40 bg-slate-800/60 text-slate-300 hover:border-purple-500/40 hover:bg-slate-700/60'
                 }`}
               >
-                All ({agents?.length || 0})
+                All ({effectiveTotal})
               </button>
-              {categories.map((category) => (
+              {displayCategories.map((category) => (
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
@@ -185,7 +238,7 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
                       : 'border-slate-700/40 bg-slate-800/60 text-slate-300 hover:border-purple-500/40 hover:bg-slate-700/60'
                   }`}
                 >
-                  {category} ({categoryCounts[category]})
+                  {category} ({getCategoryCount(category)})
                 </button>
               ))}
             </div>

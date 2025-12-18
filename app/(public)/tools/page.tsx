@@ -27,8 +27,20 @@ export default function ToolsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [totalCount, setTotalCount] = useState(0);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search query for better UX and to reduce API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const fetchTools = useCallback(async (reset = false) => {
     const currentOffset = reset ? 0 : offset;
@@ -40,7 +52,20 @@ export default function ToolsPage() {
     }
 
     try {
-      const response = await fetch(`/api/tools?offset=${currentOffset}&limit=20`);
+      const params = new URLSearchParams({
+        offset: currentOffset.toString(),
+        limit: '20',
+      });
+
+      if (categoryFilter !== 'all') {
+        params.append('category', categoryFilter);
+      }
+
+      if (debouncedQuery.trim()) {
+        params.append('query', debouncedQuery.trim());
+      }
+
+      const response = await fetch(`/api/tools?${params.toString()}`);
       const data = await response.json();
       
       if (reset) {
@@ -50,18 +75,72 @@ export default function ToolsPage() {
       }
       
       setHasMore(data.hasMore || false);
-      setOffset(data.nextOffset || currentOffset + (data.tools?.length || 0));
+      setOffset(data.nextOffset || (reset ? (data.tools?.length || 0) : currentOffset + (data.tools?.length || 0)));
     } catch (error) {
       console.error('Error fetching tools:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [offset]);
+  }, [offset, categoryFilter, debouncedQuery]);
+
+  // Fetch category counts and total count separately so they are accurate
+  useEffect(() => {
+    fetch('/api/tools/categories')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.counts) {
+          setCategoryCounts(data.counts);
+        }
+        if (data.total !== undefined) {
+          setTotalCount(data.total);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching tool category counts:', error);
+      });
+  }, []);
 
   useEffect(() => {
     fetchTools(true);
   }, []);
+
+  // Refetch when category or search query changes
+  useEffect(() => {
+    // Skip on initial mount (handled by initial fetch above)
+    if (tools.length === 0) return;
+
+    setOffset(0);
+    setLoading(true);
+
+    const params = new URLSearchParams({
+      offset: '0',
+      limit: '20',
+    });
+
+    if (categoryFilter !== 'all') {
+      params.append('category', categoryFilter);
+    }
+
+    if (debouncedQuery.trim()) {
+      params.append('query', debouncedQuery.trim());
+    }
+
+    fetch(`/api/tools?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTools(data.tools || []);
+        setHasMore(data.hasMore || false);
+        setOffset(data.nextOffset || (data.tools?.length || 0));
+      })
+      .catch((error) => {
+        console.error('Error fetching tools:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryFilter, debouncedQuery]);
 
   useEffect(() => {
     if (!hasMore || loading || loadingMore) return;
@@ -86,46 +165,11 @@ export default function ToolsPage() {
     };
   }, [hasMore, loading, loadingMore, fetchTools]);
 
-  // Build category counts from tags
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    
-    for (const tool of tools) {
-      for (const tag of tool.tags) {
-        const normalizedTag = tag.toLowerCase();
-        // Check if this tag matches any of our category keys
-        const matchedCategory = CATEGORY_OPTIONS.find(
-          (cat) => cat.key !== 'all' && cat.key === normalizedTag
-        );
-        if (matchedCategory) {
-          counts[matchedCategory.key] = (counts[matchedCategory.key] ?? 0) + 1;
-        }
-      }
-    }
-    return counts;
-  }, [tools]);
-
   const filteredAndSortedTools = useMemo(() => {
     let result = tools;
 
-    // Category filter
-    if (categoryFilter !== "all") {
-      result = result.filter((tool) => {
-        const tags = (tool.tags ?? []).map((t: string) => t.toLowerCase());
-        return tags.includes(categoryFilter);
-      });
-    }
-
-    // Search filter
-    if (query) {
-      result = result.filter((tool) =>
-        (tool.title + ' ' + tool.description + ' ' + tool.tags.join(' '))
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      );
-    }
-
-    // Sorting
+    // Category and search filtering are now done server-side via the API.
+    // Only apply sorting client-side.
     result = [...result].sort((a, b) => {
       switch (sortBy) {
         case 'recent':
@@ -149,7 +193,7 @@ export default function ToolsPage() {
         <div className="space-y-1">
           <SidebarItem
             label="All tools"
-            count={tools.length}
+            count={totalCount || tools.length}
             active={categoryFilter === 'all'}
             onClick={() => setCategoryFilter('all')}
           />

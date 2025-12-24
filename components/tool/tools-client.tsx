@@ -177,9 +177,12 @@ export function ToolsClient({
       observer.observe(loadMoreRef.current);
     }
 
+    // Capture the current ref value for cleanup
+    const currentRef = loadMoreRef.current;
+
     return () => {
-      if (loadMoreRef.current) {
-        observer.unobserve(loadMoreRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, [hasMore, loading, loadingMore, fetchTools]);
@@ -205,7 +208,7 @@ export function ToolsClient({
     <div className="mx-auto flex max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
       {/* SIDEBAR - Desktop Only */}
       <aside className="hidden w-56 flex-shrink-0 lg:block">
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Categories & Types
         </h2>
 
@@ -262,24 +265,34 @@ export function ToolsClient({
 
         {/* Search bar */}
         <div className="mb-6">
+          <label htmlFor="tools-search" className="sr-only">
+            Search tools
+          </label>
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <input
+              id="tools-search"
               type="text"
               placeholder="Search tools..."
               className="w-full max-w-md rounded-full bg-card border border-border pl-11 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/60"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search tools"
             />
           </div>
         </div>
 
         {/* Sort */}
         <div className="mb-8 flex flex-wrap items-center justify-end gap-4">
+          <label htmlFor="tools-sort-select" className="sr-only">
+            Sort tools by
+          </label>
           <select
+            id="tools-sort-select"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="rounded-full bg-card border border-border px-4 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/60"
+            aria-label="Sort tools"
           >
             <option value="recent">Most Recent</option>
           </select>

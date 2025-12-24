@@ -204,6 +204,7 @@ export function AddToCollectionButton({
                 <button
                   onClick={() => setShowModal(false)}
                   className="text-slate-400 hover:text-slate-200"
+                  aria-label="Close collection modal"
                 >
                   <X className="h-5 w-5" />
                 </button>

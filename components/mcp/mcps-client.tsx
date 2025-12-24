@@ -175,9 +175,12 @@ export function McpsClient({
       observer.observe(loadMoreRef.current);
     }
 
+    // Capture the current ref value for cleanup
+    const currentRef = loadMoreRef.current;
+
     return () => {
-      if (loadMoreRef.current) {
-        observer.unobserve(loadMoreRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, [hasMore, loading, loadingMore, fetchMcps]);
@@ -257,13 +260,18 @@ export function McpsClient({
       <div className="mb-8 space-y-4">
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+          <label htmlFor="mcps-search" className="sr-only">
+            Search MCP servers
+          </label>
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <input
+            id="mcps-search"
             type="text"
             placeholder="Search MCP servers..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full rounded-lg border border-border bg-card px-10 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            aria-label="Search MCP servers"
           />
         </div>
 
@@ -294,11 +302,15 @@ export function McpsClient({
             {serversCountLabel} {serversCountLabel === 1 ? 'server' : 'servers'}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Sort by:</span>
+            <label htmlFor="mcps-sort-select" className="text-sm text-muted-foreground">
+              Sort by:
+            </label>
             <select
+              id="mcps-sort-select"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
               className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
+              aria-label="Sort MCP servers"
             >
               <option value="recent">Most Recent</option>
             </select>
@@ -327,7 +339,7 @@ export function McpsClient({
           {hasMore && (
             <div ref={loadMoreRef} className="mt-8 flex justify-center">
               {loadingMore && (
-                <div className="flex items-center gap-2 text-slate-400">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span className="text-sm">Loading more...</span>
                 </div>

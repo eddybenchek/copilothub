@@ -27,7 +27,7 @@
   }
 
   .dark {
-    /* Dark mode colors (GitHub Copilot inspired) */
+    /* Dark mode colors (GitHub Copilot inspired) - improved contrast for WCAG AA */
     --background: 222 47% 5%;
     --foreground: 213 31% 84%;
     --card: 222 47% 9%;
@@ -39,7 +39,7 @@
     --secondary: 222 47% 13%;
     --secondary-foreground: 213 31% 84%;
     --muted: 222 47% 9%;
-    --muted-foreground: 210 10% 55%;
+    --muted-foreground: 210 10% 68%; /* Improved from 55% to 68% for WCAG AA compliance (4.5:1 ratio) */
     --accent: 222 47% 13%;
     --accent-foreground: 213 31% 84%;
     --destructive: 0 72% 51%;

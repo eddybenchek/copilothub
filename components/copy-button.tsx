@@ -29,12 +29,16 @@ export function CopyButton({ text, className, size = "sm", variant = "outline", 
     }
   };
 
+  const hasText = children || (!children && !copied);
+  const ariaLabel = hasText ? undefined : (copied ? 'Copied to clipboard' : 'Copy to clipboard');
+
   return (
     <Button
       variant={variant}
       size={size}
       onClick={handleCopy}
       className={className}
+      aria-label={ariaLabel}
     >
       {copied ? (
         <>

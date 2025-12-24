@@ -105,9 +105,12 @@ export function InstructionsClient({
       observer.observe(loadMoreRef.current);
     }
 
+    // Capture the current ref value for cleanup
+    const currentRef = loadMoreRef.current;
+
     return () => {
-      if (loadMoreRef.current) {
-        observer.unobserve(loadMoreRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, [hasMore, loading, loadingMore, fetchInstructions]);

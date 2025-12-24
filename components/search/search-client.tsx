@@ -374,7 +374,7 @@ function SearchSection({
                   </span>
                 ))}
               </div>
-              <p className="line-clamp-2 text-xs text-slate-400">
+              <p className="line-clamp-2 text-xs text-muted-foreground">
                 {item.description}
               </p>
             </Link>

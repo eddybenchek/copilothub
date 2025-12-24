@@ -174,9 +174,12 @@ export function PromptsClient({
       observer.observe(loadMoreRef.current);
     }
 
+    // Capture the current ref value for cleanup
+    const currentRef = loadMoreRef.current;
+
     return () => {
-      if (loadMoreRef.current) {
-        observer.unobserve(loadMoreRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, [hasMore, loading, loadingMore, fetchPrompts]);
@@ -215,7 +218,7 @@ export function PromptsClient({
     <div className="mx-auto flex max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
       {/* SIDEBAR - Desktop Only */}
       <aside className="hidden w-64 flex-shrink-0 lg:block">
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Categories
         </h2>
 
@@ -268,7 +271,7 @@ export function PromptsClient({
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl font-semibold text-slate-50">All Prompts</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-muted-foreground">
               Browse curated AI prompts for GitHub Copilot.
             </p>
           </div>
@@ -287,24 +290,34 @@ export function PromptsClient({
 
         {/* Search bar */}
         <div className="mb-6">
+          <label htmlFor="prompts-search" className="sr-only">
+            Search prompts
+          </label>
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
             <input
+              id="prompts-search"
               type="text"
               placeholder="Search prompts..."
               className="w-full max-w-md rounded-full bg-slate-900 border border-slate-700/70 pl-11 pr-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/60"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search prompts"
             />
           </div>
         </div>
 
         {/* Sort */}
         <div className="mb-8 flex flex-wrap items-center justify-end gap-4">
+          <label htmlFor="sort-select" className="sr-only">
+            Sort prompts by
+          </label>
           <select
+            id="sort-select"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="rounded-full bg-slate-900 border border-slate-700 px-4 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/60"
+            aria-label="Sort prompts"
           >
             <option value="recent">Most Recent</option>
           </select>
@@ -313,11 +326,11 @@ export function PromptsClient({
         {/* Grid */}
         {loading ? (
           <div className="text-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-slate-400 mb-4" />
-            <p className="text-slate-400">Loading prompts...</p>
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">Loading prompts...</p>
           </div>
         ) : filteredAndSortedPrompts.length === 0 ? (
-          <p className="mt-8 text-sm text-slate-400">
+          <p className="mt-8 text-sm text-muted-foreground">
             {query || selectedCategory !== 'all'
               ? 'No prompts found for this filter.'
               : 'No prompts found. Be the first to submit one!'}
@@ -334,7 +347,7 @@ export function PromptsClient({
             {hasMore && (
               <div ref={loadMoreRef} className="mt-8 flex justify-center">
                 {loadingMore && (
-                  <div className="flex items-center gap-2 text-slate-400">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span className="text-sm">Loading more...</span>
                   </div>
@@ -367,7 +380,7 @@ function SidebarItem({ label, count, active, onClick }: SidebarItemProps) {
       }`}
     >
       <span>{label}</span>
-      <span className="text-xs text-slate-500">{count}</span>
+      <span className="text-xs text-muted-foreground">{count}</span>
     </button>
   );
 }

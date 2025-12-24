@@ -101,6 +101,7 @@ export function FavoriteButton({
       onClick={handleToggleFavorite}
       disabled={isLoading}
       className={isFavorited ? 'text-red-400 hover:text-red-300' : ''}
+      aria-label={showLabel ? undefined : (isFavorited ? 'Remove from favorites' : 'Add to favorites')}
     >
       <Heart className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
       {showLabel && (

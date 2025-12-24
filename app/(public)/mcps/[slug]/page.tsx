@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { VoteButton } from '@/components/votes/vote-button';
-import { MarkdownPreview } from '@/components/markdown-preview';
+import { MarkdownPreview } from '@/components/markdown-preview-lazy';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 import { CopyButton } from '@/components/copy-button';

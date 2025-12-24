@@ -12,7 +12,7 @@ import { CopyButton } from "@/components/copy-button";
 import { AddToCollectionButton } from "@/components/collections/add-to-collection-button";
 import { ShareButton } from "@/components/share-button";
 import { VoteButton } from "@/components/votes/vote-button";
-import { MarkdownPreview } from "@/components/markdown-preview";
+import { MarkdownPreview } from "@/components/markdown-preview-lazy";
 import { ContentViewTracker } from "@/components/analytics/content-view-tracker";
 import { getBaseUrl, createMetadata, createStructuredData } from "@/lib/metadata";
 

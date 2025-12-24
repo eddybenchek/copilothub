@@ -78,6 +78,9 @@ export function SiteHeader() {
             <button 
               onClick={() => setMoreMenuOpen(!moreMenuOpen)}
               className="flex items-center gap-1 text-sm font-medium text-foreground/60 transition-colors duration-150 hover:text-sky-400 border-b-2 border-transparent hover:border-sky-500/60"
+              aria-label="More menu"
+              aria-expanded={moreMenuOpen}
+              aria-haspopup="true"
             >
               More
               <ChevronDown className={`h-4 w-4 transition-transform ${moreMenuOpen ? 'rotate-180' : ''}`} />
@@ -152,6 +155,8 @@ export function SiteHeader() {
           type="button"
           className="md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? (
             <X className="h-6 w-6" />
@@ -163,7 +168,7 @@ export function SiteHeader() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border">
+        <div className="md:hidden border-t border-border" role="menu" aria-label="Mobile navigation menu">
           <div className="space-y-1 px-4 pb-3 pt-2">
             {navigation.map((item) => (
               <Link

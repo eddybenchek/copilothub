@@ -1,13 +1,16 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { Providers } from './providers';
+import { LazyAnalytics } from '@/components/analytics/lazy-analytics';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+});
 
 const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
@@ -82,8 +85,7 @@ export default function RootLayout({
             <SiteFooter />
           </div>
         </Providers>
-        <Analytics />
-        <SpeedInsights />
+        <LazyAnalytics />
       </body>
     </html>
   );

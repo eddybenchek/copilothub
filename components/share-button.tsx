@@ -65,7 +65,12 @@ export function ShareButton({
   };
 
   return (
-    <Button size={size} variant={variant} onClick={handleShare}>
+    <Button 
+      size={size} 
+      variant={variant} 
+      onClick={handleShare}
+      aria-label={showLabel ? undefined : 'Share'}
+    >
       <Share2 className="mr-2 h-5 w-5" />
       {showLabel && 'Share'}
     </Button>

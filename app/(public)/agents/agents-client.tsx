@@ -12,21 +12,31 @@ type AgentWithRelations = Agent & {
 };
 
 interface AgentsClientProps {
-  agents?: AgentWithRelations[];
+  initialAgents: AgentWithRelations[];
+  initialStats: {
+    total: number;
+    categories: string[];
+    counts: Record<string, number>;
+  };
+  initialHasMore: boolean;
+  initialOffset: number;
 }
 
-export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
-  const [agents, setAgents] = useState<AgentWithRelations[]>(() => {
-    return Array.isArray(initialAgents) ? initialAgents : [];
-  });
+export function AgentsClient({
+  initialAgents,
+  initialStats,
+  initialHasMore: initialHasMoreProp,
+  initialOffset: initialOffsetProp,
+}: AgentsClientProps) {
+  const [agents, setAgents] = useState<AgentWithRelations[]>(initialAgents);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [loading, setLoading] = useState(!initialAgents);
+  const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
-  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(initialHasMoreProp);
+  const [offset, setOffset] = useState(initialOffsetProp);
+  const [categories, setCategories] = useState<string[]>(initialStats.categories);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>(initialStats.counts);
+  const [totalCount, setTotalCount] = useState(initialStats.total);
   
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -70,9 +80,12 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
         if (reset) {
           setAgents(data.agents);
         } else {
-          setAgents((prev) =>
-            Array.isArray(prev) ? [...prev, ...data.agents] : data.agents
-          );
+          setAgents((prev) => {
+            if (!Array.isArray(prev)) return data.agents;
+            const existingIds = new Set(prev.map((a: AgentWithRelations) => a.id));
+            const newAgents = data.agents.filter((a: AgentWithRelations) => !existingIds.has(a.id));
+            return [...prev, ...newAgents];
+          });
         }
 
         setHasMore(data.hasMore || false);
@@ -115,17 +128,38 @@ export function AgentsClient({ agents: initialAgents }: AgentsClientProps) {
       });
   }, []);
 
-  useEffect(() => {
-    if (!initialAgents) {
-      fetchAgents(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Refetch when category changes
   useEffect(() => {
-    if (!agents || agents.length === 0) return;
-    fetchAgents(true);
+    // Skip on initial mount (we have initial data)
+    if (agents.length === 0 && initialAgents.length > 0) return;
+    
+    setOffset(0);
+    setLoading(true);
+
+    const params = new URLSearchParams({
+      offset: '0',
+      limit: '20',
+    });
+
+    if (selectedCategory !== 'all') {
+      params.append('category', selectedCategory);
+    }
+
+    fetch(`/api/agents?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.agents)) {
+          setAgents(data.agents);
+          setHasMore(data.hasMore || false);
+          setOffset(data.nextOffset || (data.agents?.length || 0));
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching agents:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 

@@ -1,17 +1,45 @@
 import { McpsClient } from '@/components/mcp/mcps-client';
 import { getMcpsPaginated, getMcpsStats } from '@/lib/prisma-helpers';
 import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'MCP Servers - CopilotHub',
-  description: 'Discover Model Context Protocol servers to extend your AI coding environment.',
-};
+import { getBaseUrl } from '@/lib/metadata';
 
 interface McpsPageProps {
   searchParams: Promise<{
     category?: string;
     query?: string;
+    tags?: string;
   }>;
+}
+
+export async function generateMetadata({ searchParams }: McpsPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const hasFilters = params.category || params.query || params.tags;
+  const baseUrl = getBaseUrl();
+  const baseMcpsUrl = `${baseUrl}/mcps`;
+
+  // If there are filters, add canonical tag pointing to base URL
+  if (hasFilters) {
+    return {
+      title: 'MCP Servers - CopilotHub',
+      description: 'Discover Model Context Protocol servers to extend your AI coding environment.',
+      alternates: {
+        canonical: baseMcpsUrl,
+      },
+      robots: {
+        index: false, // Don't index filtered views
+        follow: true,
+      },
+    };
+  }
+
+  // Base page - can be indexed
+  return {
+    title: 'MCP Servers - CopilotHub',
+    description: 'Discover Model Context Protocol servers to extend your AI coding environment.',
+    alternates: {
+      canonical: baseMcpsUrl,
+    },
+  };
 }
 
 export default async function McpsPage({ searchParams }: McpsPageProps) {

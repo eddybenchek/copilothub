@@ -96,10 +96,6 @@ export default async function InstructionDetailPage({
     dateModified: instruction.updatedAt.toISOString(),
     url: `${getBaseUrl()}/instructions/${slug}`,
     keywords: [...instruction.tags, ...(instruction.language ? [instruction.language] : []), ...(instruction.framework ? [instruction.framework] : [])].join(', '),
-    about: {
-      '@type': 'SoftwareApplication',
-      name: 'GitHub Copilot',
-    },
   });
 
   return (

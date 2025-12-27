@@ -56,11 +56,9 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
   }
 
   const voteCount = tool.votes.reduce((sum, vote) => sum + vote.value, 0);
-  const structuredData = createStructuredData('SoftwareApplication', {
-    name: tool.title,
+  const structuredData = createStructuredData('TechArticle', {
+    headline: tool.title,
     description: tool.description,
-    applicationCategory: 'DeveloperApplication',
-    operatingSystem: 'Any',
     author: {
       '@type': 'Person',
       name: tool.author.name || 'Anonymous',
@@ -69,10 +67,9 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
     dateModified: tool.updatedAt.toISOString(),
     url: `${getBaseUrl()}/tools/${slug}`,
     keywords: tool.tags.join(', '),
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
+    about: {
+      '@type': 'SoftwareApplication',
+      name: tool.title,
     },
   });
 

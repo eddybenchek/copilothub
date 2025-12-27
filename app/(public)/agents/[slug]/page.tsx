@@ -29,7 +29,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const url = `${getBaseUrl()}/agents/${slug}`;
-  const description = agent.description || `AI agent: ${agent.title}`;
+  // Ensure unique description - include slug if description is missing or generic
+  const description = agent.description && agent.description.trim() 
+    ? agent.description 
+    : `${agent.title} - Specialized AI agent for GitHub Copilot. ${agent.category ? `Category: ${agent.category}.` : ''} Enhance your development workflow with this custom agent.`;
 
   return createMetadata({
     title: agent.title,
@@ -82,11 +85,9 @@ export default async function AgentDetailPage({
   const mcpCount = agent.mcpServers?.length || 0;
   const voteCount = agent.votes.reduce((sum, vote) => sum + vote.value, 0);
   
-  const structuredData = createStructuredData('SoftwareApplication', {
-    name: agent.title,
+  const structuredData = createStructuredData('TechArticle', {
+    headline: agent.title,
     description: agent.description,
-    applicationCategory: 'DeveloperApplication',
-    operatingSystem: 'Any',
     author: {
       '@type': 'Person',
       name: agent.author.name || 'Anonymous',
@@ -95,10 +96,9 @@ export default async function AgentDetailPage({
     dateModified: agent.updatedAt.toISOString(),
     url: `${getBaseUrl()}/agents/${slug}`,
     keywords: [...agent.tags, ...agent.languages, ...agent.frameworks].join(', '),
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
+    about: {
+      '@type': 'SoftwareApplication',
+      name: 'GitHub Copilot',
     },
   });
 

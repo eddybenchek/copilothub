@@ -72,11 +72,9 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
 
   const voteCount = mcp.votes.reduce((sum, vote) => sum + vote.value, 0);
   
-  const structuredData = createStructuredData('SoftwareApplication', {
-    name: mcp.title,
+  const structuredData = createStructuredData('TechArticle', {
+    headline: mcp.title,
     description: mcp.description,
-    applicationCategory: 'DeveloperApplication',
-    operatingSystem: 'Any',
     author: {
       '@type': 'Person',
       name: mcp.author.name || 'Anonymous',
@@ -85,10 +83,9 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
     dateModified: mcp.updatedAt.toISOString(),
     url: `${getBaseUrl()}/mcps/${slug}`,
     keywords: [...mcp.tags, ...(mcp.category ? [mcp.category] : [])].join(', '),
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
+    about: {
+      '@type': 'SoftwareApplication',
+      name: 'MCP Server',
     },
   });
 

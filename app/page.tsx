@@ -14,6 +14,18 @@ import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 import { CategoryLinkButton } from '@/components/analytics/category-link-button';
 import type { InstructionWithAuthor, AgentWithAuthor, McpWithAuthor } from '@/lib/types';
+import type { Metadata } from 'next';
+import { getBaseUrl } from '@/lib/metadata';
+
+export const metadata: Metadata = {
+  title: {
+    absolute: 'CopilotHub - AI Prompts, Agents, Tools & MCP Servers', // Use absolute to prevent template suffix
+  },
+  description: 'Discover curated AI prompts, specialized agents, powerful tools, and MCP servers for GitHub Copilot. Enhance your development workflow with community-driven resources.',
+  alternates: {
+    canonical: getBaseUrl(),
+  },
+};
 
 export default async function HomePage() {
   // Get top categories first

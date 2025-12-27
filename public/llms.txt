@@ -1,0 +1,40 @@
+# CopilotHub
+
+> CopilotHub is a curated directory of AI prompts, instructions, agents, tools, and MCP (Model Context Protocol) servers for GitHub Copilot. It helps developers discover, share, and use community-driven resources to enhance their AI-powered development workflow.
+
+CopilotHub provides a comprehensive collection of resources for developers using GitHub Copilot and other AI coding assistants. The platform allows users to browse, search, and contribute prompts, coding instructions, specialized AI agents, development tools, and MCP servers.
+
+Key features:
+- **Prompts**: Ready-to-use prompts for code review, debugging, documentation, refactoring, and more
+- **Instructions**: Coding standards and best practices that apply automatically to specific file patterns
+- **Agents**: Specialized AI agents for complex development tasks
+- **Tools**: Essential development tools and extensions for AI-powered workflows
+- **MCP Servers**: Model Context Protocol servers to extend AI capabilities
+
+All content is community-contributed and curated. Users can vote, favorite, and organize content into collections.
+
+## Documentation
+
+- [Homepage](https://copilothub.directory/): Main landing page with featured content and categories
+- [Prompts Directory](https://copilothub.directory/prompts): Browse all available AI prompts
+- [Instructions Directory](https://copilothub.directory/instructions): Coding instructions and best practices
+- [Agents Directory](https://copilothub.directory/agents): Specialized AI agents for GitHub Copilot
+- [Tools Directory](https://copilothub.directory/tools): Development tools and extensions
+- [MCP Servers Directory](https://copilothub.directory/mcps): Model Context Protocol servers
+
+## Content Types
+
+- [Modernization Prompts](https://copilothub.directory/modernization/prompts): High-signal prompt patterns for refactoring, upgrading, and modernizing legacy codebases
+- [Search](https://copilothub.directory/search): Search across all content types (prompts, instructions, agents, tools, MCPs)
+
+## Contributing
+
+- [GitHub Repository](https://github.com/eddybenchek/copilothub): Source code and contribution guidelines
+- [Submission Guidelines](https://copilothub.directory/rules): Rules and best practices for contributing content
+
+## Optional
+
+- [About](https://copilothub.directory/about): More information about CopilotHub
+- [Privacy Policy](https://copilothub.directory/privacy): Privacy policy and data handling
+- [Terms of Service](https://copilothub.directory/terms): Terms of service and usage guidelines
+

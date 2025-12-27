@@ -7,6 +7,8 @@ import { VoteButton } from '@/components/votes/vote-button';
 import { ContentViewTracker } from '@/components/analytics/content-view-tracker';
 import { getPromptBySlug } from '@/lib/prisma-helpers';
 import { getBaseUrl, createMetadata, createStructuredData } from '@/lib/metadata';
+import { db } from '@/lib/db';
+import { ContentStatus } from '@prisma/client';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -19,8 +21,29 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const url = `${getBaseUrl()}/prompts/${slug}`;
   const description = prompt.description || `AI prompt: ${prompt.title}`;
 
+  // Check if there are other prompts with the same title to make title unique
+  const duplicatePrompts = await db.prompt.findMany({
+    where: {
+      title: prompt.title,
+      status: ContentStatus.APPROVED,
+      id: { not: prompt.id },
+    },
+    select: { slug: true },
+    take: 1,
+  });
+
+  // If duplicates exist, add a unique identifier to the title
+  let uniqueTitle = prompt.title;
+  if (duplicatePrompts.length > 0) {
+    // Add slug-based identifier to make it unique
+    const slugIdentifier = slug.includes('workflow-') ? 'Workflow' : 
+                           slug.includes('upgrade-') ? 'Upgrade' :
+                           slug.split('-').slice(-2).join(' ').replace(/\b\w/g, l => l.toUpperCase());
+    uniqueTitle = `${prompt.title} (${slugIdentifier})`;
+  }
+
   return createMetadata({
-    title: prompt.title,
+    title: uniqueTitle,
     description,
     openGraph: {
       title: prompt.title,

@@ -117,16 +117,116 @@ export function MarkdownPreview({ content, className = '' }: MarkdownPreviewProp
             </blockquote>
           ),
           // Links
-          a: ({ href, children }) => (
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sky-400 hover:text-sky-300 underline transition-colors"
-            >
-              {children}
-            </a>
-          ),
+          a: ({ href, children }) => {
+            // Generate descriptive anchor text if children is just a URL
+            const childrenText = typeof children === 'string' ? children : 
+              (Array.isArray(children) ? children.map(c => typeof c === 'string' ? c : String(c || '')).join('') : String(children || ''));
+            
+            const normalizedChildren = childrenText.trim();
+            const normalizedHref = (href?.trim() || '').replace(/\/$/, ''); // Remove trailing slash
+            
+            let anchorText = normalizedChildren;
+            
+            // If the link text is the same as the URL (no anchor text provided), generate descriptive text
+            // Check if children is empty, matches href, or is clearly a URL without descriptive text
+            const isUrlWithoutText = normalizedChildren === '' || 
+              normalizedChildren === normalizedHref ||
+              (normalizedChildren.startsWith('http') && normalizedHref.includes(normalizedChildren.replace(/^https?:\/\//, '')));
+            
+            if (href && isUrlWithoutText) {
+              try {
+                const url = new URL(href);
+                
+                // GitHub repositories
+                if (url.hostname === 'github.com' || url.hostname === 'www.github.com') {
+                  const pathParts = url.pathname.split('/').filter(Boolean);
+                  if (pathParts.length >= 2) {
+                    anchorText = `View ${pathParts[0]}/${pathParts[1]} on GitHub`;
+                  } else if (pathParts.length === 1) {
+                    anchorText = `View ${pathParts[0]} on GitHub`;
+                  } else {
+                    anchorText = 'View on GitHub';
+                  }
+                }
+                // GitLab
+                else if (url.hostname.includes('gitlab')) {
+                  const pathParts = url.pathname.split('/').filter(Boolean);
+                  if (pathParts.length >= 2) {
+                    anchorText = `View ${pathParts[pathParts.length - 2]}/${pathParts[pathParts.length - 1]} on GitLab`;
+                  } else {
+                    anchorText = 'View on GitLab';
+                  }
+                }
+                // Apify Console
+                else if (url.hostname.includes('apify.com')) {
+                  if (url.pathname.includes('integrations')) {
+                    anchorText = 'View Apify integrations';
+                  } else if (url.pathname.includes('account')) {
+                    anchorText = 'View Apify account';
+                  } else {
+                    anchorText = 'View on Apify';
+                  }
+                }
+                // Factory.ai
+                else if (url.hostname.includes('factory.ai')) {
+                  anchorText = 'View on Factory.ai';
+                }
+                // Terraform Registry
+                else if (url.hostname.includes('registry.terraform.io')) {
+                  anchorText = 'View Terraform provider documentation';
+                }
+                // React.dev
+                else if (url.hostname.includes('react.dev')) {
+                  anchorText = 'View React documentation';
+                }
+                // Package registries
+                else if (url.hostname.includes('pypi.org')) {
+                  anchorText = 'View package on PyPI';
+                }
+                else if (url.hostname.includes('npmjs.org') || url.hostname.includes('registry.npmjs.org')) {
+                  anchorText = 'View package on npm';
+                }
+                else if (url.hostname.includes('crates.io')) {
+                  anchorText = 'View crate on crates.io';
+                }
+                else if (url.hostname.includes('packagist.org')) {
+                  anchorText = 'View package on Packagist';
+                }
+                else if (url.hostname.includes('rubygems.org')) {
+                  anchorText = 'View gem on RubyGems';
+                }
+                // Microsoft/Azure
+                else if (url.hostname.includes('microsoft.com') || url.hostname.includes('azure.com')) {
+                  const pathParts = url.pathname.split('/').filter(Boolean);
+                  if (pathParts.length > 0) {
+                    anchorText = `View ${pathParts[pathParts.length - 1]} on Microsoft`;
+                  } else {
+                    anchorText = 'View on Microsoft';
+                  }
+                }
+                // Default: use domain name
+                else {
+                  const domain = url.hostname.replace('www.', '');
+                  anchorText = `Visit ${domain}`;
+                }
+              } catch (e) {
+                // If URL parsing fails, use the href as fallback
+                anchorText = href;
+              }
+            }
+            
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-400 hover:text-sky-300 underline transition-colors"
+                aria-label={anchorText !== childrenText ? anchorText : undefined}
+              >
+                {anchorText}
+              </a>
+            );
+          },
           // Tables
           table: ({ children }) => (
             <div className="my-6 overflow-x-auto">

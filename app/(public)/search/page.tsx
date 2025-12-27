@@ -1,17 +1,48 @@
 import { Suspense } from 'react';
 import { SearchPageContent } from './search-content';
 import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Search - CopilotHub',
-  description: 'Search for prompts, instructions, agents, tools, and MCPs for your AI development needs.',
-};
+import { getBaseUrl } from '@/lib/metadata';
 
 interface SearchPageProps {
   searchParams: Promise<{
     q?: string;
     type?: string;
   }>;
+}
+
+export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const query = params.q || '';
+  const baseUrl = getBaseUrl();
+  const baseSearchUrl = `${baseUrl}/search`;
+
+  // If there's a search query, add canonical and noindex
+  if (query) {
+    return {
+      title: {
+        absolute: `Search: ${query} - CopilotHub`, // Use absolute to prevent template suffix
+      },
+      description: `Search results for "${query}" - Find prompts, instructions, agents, tools, and MCPs for your AI development needs.`,
+      alternates: {
+        canonical: baseSearchUrl,
+      },
+      robots: {
+        index: false, // Don't index search results
+        follow: true,
+      },
+    };
+  }
+
+  // Base search page - can be indexed
+  return {
+    title: {
+      absolute: 'Search - CopilotHub', // Use absolute to prevent template suffix
+    },
+    description: 'Search for prompts, instructions, agents, tools, and MCPs for your AI development needs.',
+    alternates: {
+      canonical: baseSearchUrl,
+    },
+  };
 }
 
 export default function SearchPage({ searchParams }: SearchPageProps) {

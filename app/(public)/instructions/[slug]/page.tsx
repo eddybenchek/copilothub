@@ -30,8 +30,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const url = `${getBaseUrl()}/instructions/${slug}`;
   const description = instruction.description || `Copilot instruction: ${instruction.title}`;
 
+  // Add context to title tag to differentiate from H1
+  // H1 will be just the instruction title, but title tag should be SEO-optimized
+  // Ensure minimum 30 characters for SEO (recommended 30-60)
+  let seoTitle = `${instruction.title} - Copilot Instruction | CopilotHub`;
+  if (seoTitle.length < 30) {
+    // If still too short, add more descriptive context
+    seoTitle = `${instruction.title} - GitHub Copilot Instruction | CopilotHub`;
+  }
+
   return createMetadata({
-    title: instruction.title,
+    title: {
+      absolute: seoTitle,
+    },
     description,
     openGraph: {
       title: instruction.title,

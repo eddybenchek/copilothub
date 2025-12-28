@@ -19,8 +19,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const url = `${getBaseUrl()}/tools/${slug}`;
   const description = tool.description || `Development tool: ${tool.title}`;
 
+  // Add context to title tag to differentiate from H1
+  // H1 will be just the tool title, but title tag should be SEO-optimized
+  // Ensure minimum 30 characters for SEO (recommended 30-60)
+  let seoTitle = `${tool.title} - Development Tool | CopilotHub`;
+  if (seoTitle.length < 30) {
+    // If still too short, add more descriptive context
+    seoTitle = `${tool.title} - Development Tool for GitHub Copilot | CopilotHub`;
+  }
+
   return createMetadata({
-    title: tool.title,
+    title: {
+      absolute: seoTitle,
+    },
     description,
     openGraph: {
       title: tool.title,
@@ -67,10 +78,7 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
     dateModified: tool.updatedAt.toISOString(),
     url: `${getBaseUrl()}/tools/${slug}`,
     keywords: tool.tags.join(', '),
-    about: {
-      '@type': 'SoftwareApplication',
-      name: tool.title,
-    },
+    about: tool.title,
   });
 
   return (

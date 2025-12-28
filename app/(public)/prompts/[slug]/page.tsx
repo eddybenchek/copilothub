@@ -19,7 +19,27 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const url = `${getBaseUrl()}/prompts/${slug}`;
-  const description = prompt.description || `AI prompt: ${prompt.title}`;
+  let description = prompt.description || `${prompt.title} - AI prompt for GitHub Copilot`;
+
+  // Check for duplicate descriptions and make unique
+  const duplicatePromptsDesc = await db.prompt.findMany({
+    where: {
+      description: prompt.description || `${prompt.title} - AI prompt for GitHub Copilot`,
+      status: ContentStatus.APPROVED,
+      id: { not: prompt.id },
+    },
+    select: { slug: true },
+    take: 1,
+  });
+
+  // If duplicates exist, append title to make description unique (but keep it concise)
+  if (duplicatePromptsDesc.length > 0) {
+    if (prompt.description && prompt.description.length < 100) {
+      description = `${prompt.description} (${prompt.title})`;
+    } else {
+      description = `${prompt.title} - AI prompt for GitHub Copilot`;
+    }
+  }
 
   // Check if there are other prompts with the same title to make title unique
   const duplicatePrompts = await db.prompt.findMany({
@@ -42,8 +62,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     uniqueTitle = `${prompt.title} (${slugIdentifier})`;
   }
 
+  // Add context to title tag to differentiate from H1
+  // H1 will be just the prompt title, but title tag should be SEO-optimized
+  // Ensure minimum 30 characters for SEO (recommended 30-60)
+  let seoTitle = `${uniqueTitle} - AI Prompt | CopilotHub`;
+  if (seoTitle.length < 30) {
+    // If still too short, add more descriptive context
+    seoTitle = `${uniqueTitle} - AI Prompt for GitHub Copilot | CopilotHub`;
+  }
+
   return createMetadata({
-    title: uniqueTitle,
+    title: {
+      absolute: seoTitle,
+    },
     description,
     openGraph: {
       title: prompt.title,

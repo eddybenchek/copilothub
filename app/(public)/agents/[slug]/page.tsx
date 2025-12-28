@@ -29,13 +29,47 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const url = `${getBaseUrl()}/agents/${slug}`;
-  // Ensure unique description - include slug if description is missing or generic
-  const description = agent.description && agent.description.trim() 
+  
+  // Generate base description
+  const baseDescription = agent.description && agent.description.trim() 
     ? agent.description 
     : `${agent.title} - Specialized AI agent for GitHub Copilot. ${agent.category ? `Category: ${agent.category}.` : ''} Enhance your development workflow with this custom agent.`;
+  
+  let description = baseDescription;
+
+  // Check for duplicate descriptions and make unique
+  const duplicateAgents = await db.agent.findMany({
+    where: {
+      description: baseDescription,
+      status: ContentStatus.APPROVED,
+      id: { not: agent.id },
+    },
+    select: { slug: true, title: true },
+    take: 1,
+  });
+
+  // If duplicates exist, append title to make description unique (but keep it concise)
+  if (duplicateAgents.length > 0) {
+    if (agent.description && agent.description.length < 100) {
+      description = `${agent.description} (${agent.title})`;
+    } else {
+      description = `${agent.title} - Specialized AI agent for GitHub Copilot. ${agent.category ? `Category: ${agent.category}.` : ''} Enhance your development workflow with this custom agent.`;
+    }
+  }
+
+  // Add context to title tag to differentiate from H1
+  // H1 will be just the agent title, but title tag should be SEO-optimized
+  // Ensure minimum 30 characters for SEO (recommended 30-60)
+  let seoTitle = `${agent.title} - AI Agent | CopilotHub`;
+  if (seoTitle.length < 30) {
+    // If still too short, add more descriptive context
+    seoTitle = `${agent.title} - AI Agent for GitHub Copilot | CopilotHub`;
+  }
 
   return createMetadata({
-    title: agent.title,
+    title: {
+      absolute: seoTitle,
+    },
     description,
     openGraph: {
       title: agent.title,
@@ -96,10 +130,7 @@ export default async function AgentDetailPage({
     dateModified: agent.updatedAt.toISOString(),
     url: `${getBaseUrl()}/agents/${slug}`,
     keywords: [...agent.tags, ...agent.languages, ...agent.frameworks].join(', '),
-    about: {
-      '@type': 'SoftwareApplication',
-      name: 'GitHub Copilot',
-    },
+    about: 'GitHub Copilot',
   });
 
   // Fetch actual MCP servers from database to validate links

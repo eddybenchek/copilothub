@@ -24,10 +24,41 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const url = `${getBaseUrl()}/mcps/${slug}`;
-  const description = mcp.description || `MCP Server: ${mcp.title}`;
+  let description = mcp.description || `${mcp.title} - MCP Server for GitHub Copilot`;
+
+  // Check for duplicate descriptions and make unique
+  const duplicateMcps = await db.mcpServer.findMany({
+    where: {
+      description: mcp.description || `${mcp.title} - MCP Server for GitHub Copilot`,
+      status: ContentStatus.APPROVED,
+      id: { not: mcp.id },
+    },
+    select: { slug: true, title: true },
+    take: 1,
+  });
+
+  // If duplicates exist, append title to make description unique (but keep it concise)
+  if (duplicateMcps.length > 0) {
+    if (mcp.description && mcp.description.length < 100) {
+      description = `${mcp.description} (${mcp.title})`;
+    } else {
+      description = `${mcp.title} - MCP Server for GitHub Copilot`;
+    }
+  }
+
+  // Add context to title tag to differentiate from H1
+  // H1 will be just the MCP title, but title tag should be SEO-optimized
+  // Ensure minimum 30 characters for SEO (recommended 30-60)
+  let seoTitle = `${mcp.title} - MCP Server | CopilotHub`;
+  if (seoTitle.length < 30) {
+    // If still too short, add more descriptive context
+    seoTitle = `${mcp.title} - MCP Server for GitHub Copilot | CopilotHub`;
+  }
 
   return createMetadata({
-    title: mcp.title,
+    title: {
+      absolute: seoTitle,
+    },
     description,
     openGraph: {
       title: mcp.title,
@@ -83,10 +114,7 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
     dateModified: mcp.updatedAt.toISOString(),
     url: `${getBaseUrl()}/mcps/${slug}`,
     keywords: [...mcp.tags, ...(mcp.category ? [mcp.category] : [])].join(', '),
-    about: {
-      '@type': 'SoftwareApplication',
-      name: 'MCP Server',
-    },
+    about: 'MCP Server',
   });
 
   // Extract just the repo name and format it

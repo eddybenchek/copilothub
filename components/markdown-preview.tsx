@@ -19,10 +19,11 @@ export function MarkdownPreview({ content, className = '' }: MarkdownPreviewProp
         remarkPlugins={[remarkGfm]}
         components={{
           // Headings
+          // Convert H1 to H2 in markdown content to avoid multiple H1 tags (page already has one H1 for title)
           h1: ({ children }) => (
-            <h1 className="mb-6 mt-8 text-3xl font-bold text-slate-100 border-b border-slate-800 pb-3 first:mt-0">
+            <h2 className="mb-6 mt-8 text-3xl font-bold text-slate-100 border-b border-slate-800 pb-3 first:mt-0">
               {children}
-            </h1>
+            </h2>
           ),
           h2: ({ children }) => (
             <h2 className="mb-4 mt-8 text-2xl font-semibold text-slate-100 border-b border-slate-800 pb-2">

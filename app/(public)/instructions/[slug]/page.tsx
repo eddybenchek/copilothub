@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { db } from "@/lib/db";
 import { ContentStatus } from "@prisma/client";
-import { FileCode, Download, Copy, Star, Share2, Eye } from "lucide-react";
+import { FileCode, Download, Copy, Star, Share2, Eye, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -14,7 +14,11 @@ import { ShareButton } from "@/components/share-button";
 import { VoteButton } from "@/components/votes/vote-button";
 import { MarkdownPreview } from "@/components/markdown-preview-lazy";
 import { ContentViewTracker } from "@/components/analytics/content-view-tracker";
+import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
+import { RelatedContent } from "@/components/content/related-content";
+import { getRelatedInstructions } from "@/lib/prisma-helpers";
 import { getBaseUrl, createMetadata, createStructuredData } from "@/lib/metadata";
+import Link from "next/link";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -96,6 +100,15 @@ export default async function InstructionDetailPage({
 
   const voteCount = instruction.votes.reduce((sum, vote) => sum + vote.value, 0);
   
+  // Fetch related instructions
+  const relatedInstructions = await getRelatedInstructions(
+    instruction.id,
+    instruction.tags,
+    instruction.language,
+    instruction.framework,
+    6
+  );
+  
   const structuredData = createStructuredData('TechArticle', {
     headline: instruction.title,
     description: instruction.description,
@@ -118,6 +131,24 @@ export default async function InstructionDetailPage({
       />
       <div className="container mx-auto px-4 py-12">
         <article className="mx-auto max-w-4xl">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: 'Instructions', href: '/instructions' },
+            { label: instruction.title, href: `/instructions/${slug}` },
+          ]}
+        />
+        
+        {/* Back to Instructions */}
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/instructions">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Instructions
+            </Link>
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-3">
@@ -293,6 +324,20 @@ export default async function InstructionDetailPage({
             </div>
           </div>
         )}
+
+        {/* Related Content */}
+        {relatedInstructions.length > 0 && (
+          <RelatedContent type="instruction" items={relatedInstructions} />
+        )}
+
+        {/* Browse More */}
+        <div className="mt-8 pt-8 border-t border-slate-800">
+          <Button variant="outline" asChild>
+            <Link href="/instructions">
+              Browse More Instructions
+            </Link>
+          </Button>
+        </div>
 
       </article>
     </div>

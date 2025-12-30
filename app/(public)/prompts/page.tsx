@@ -69,6 +69,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
       initialTotalCount={categoriesData.total}
       initialHasMore={promptsData.hasMore}
       initialOffset={promptsData.nextOffset || 0}
+      initialCategory={category !== 'all' ? category : undefined}
     />
   );
 }

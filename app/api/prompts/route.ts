@@ -19,10 +19,13 @@ export async function GET(request: NextRequest) {
     
     // Add category filter if provided
     if (category && category !== 'all') {
+      // Try both category:${category} format and direct tag match
+      // This handles both category tags (category:code-generation) and language/tech tags (javascript, react)
       whereConditions.push({
-        tags: {
-          has: `category:${category}`,
-        },
+        OR: [
+          { tags: { has: `category:${category}` } },
+          { tags: { has: category.toLowerCase() } },
+        ],
       });
     }
     

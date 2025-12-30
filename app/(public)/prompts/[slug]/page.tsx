@@ -5,10 +5,15 @@ import { CopyButton } from '@/components/copy-button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { VoteButton } from '@/components/votes/vote-button';
 import { ContentViewTracker } from '@/components/analytics/content-view-tracker';
-import { getPromptBySlug } from '@/lib/prisma-helpers';
+import { Breadcrumbs } from '@/components/navigation/breadcrumbs';
+import { getPromptBySlug, getRelatedPrompts } from '@/lib/prisma-helpers';
 import { getBaseUrl, createMetadata, createStructuredData } from '@/lib/metadata';
+import { RelatedContent } from '@/components/content/related-content';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -110,6 +115,10 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
   }
 
   const voteCount = prompt.votes.reduce((sum, vote) => sum + vote.value, 0);
+  
+  // Fetch related prompts
+  const relatedPrompts = await getRelatedPrompts(prompt.id, prompt.tags, 6);
+  
   const structuredData = createStructuredData('Article', {
     headline: prompt.title,
     description: prompt.description,
@@ -132,6 +141,24 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
       />
       <div className="container mx-auto px-4 py-12">
         <article className="mx-auto max-w-4xl">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: 'Prompts', href: '/prompts' },
+            { label: prompt.title, href: `/prompts/${slug}` },
+          ]}
+        />
+        
+        {/* Back to Prompts */}
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/prompts">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Prompts
+            </Link>
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
@@ -176,6 +203,20 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
           <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
             {prompt.content}
           </pre>
+        </div>
+
+        {/* Related Content */}
+        {relatedPrompts.length > 0 && (
+          <RelatedContent type="prompt" items={relatedPrompts} />
+        )}
+
+        {/* Browse More */}
+        <div className="mt-8 pt-8 border-t border-border">
+          <Button variant="outline" asChild>
+            <Link href="/prompts">
+              Browse More Prompts
+            </Link>
+          </Button>
         </div>
       </article>
     </div>

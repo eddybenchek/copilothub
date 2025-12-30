@@ -1,12 +1,15 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { VoteButton } from '@/components/votes/vote-button';
-import { getToolBySlug } from '@/lib/prisma-helpers';
+import { Breadcrumbs } from '@/components/navigation/breadcrumbs';
+import { RelatedContent } from '@/components/content/related-content';
+import { getToolBySlug, getRelatedTools } from '@/lib/prisma-helpers';
 import { getBaseUrl, createMetadata, createStructuredData } from '@/lib/metadata';
+import Link from 'next/link';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -67,6 +70,10 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
   }
 
   const voteCount = tool.votes.reduce((sum, vote) => sum + vote.value, 0);
+  
+  // Fetch related tools
+  const relatedTools = await getRelatedTools(tool.id, tool.tags, 6);
+  
   const structuredData = createStructuredData('TechArticle', {
     headline: tool.title,
     description: tool.description,
@@ -89,6 +96,24 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
       />
       <div className="container mx-auto px-4 py-12">
         <article className="mx-auto max-w-4xl">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: 'Tools', href: '/tools' },
+            { label: tool.title, href: `/tools/${slug}` },
+          ]}
+        />
+        
+        {/* Back to Tools */}
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/tools">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Tools
+            </Link>
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
@@ -139,6 +164,20 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
               {tool.content}
             </pre>
           </div>
+        </div>
+
+        {/* Related Content */}
+        {relatedTools.length > 0 && (
+          <RelatedContent type="tool" items={relatedTools} />
+        )}
+
+        {/* Browse More */}
+        <div className="mt-8 pt-8 border-t border-border">
+          <Button variant="outline" asChild>
+            <Link href="/tools">
+              Browse More Tools
+            </Link>
+          </Button>
         </div>
       </article>
     </div>

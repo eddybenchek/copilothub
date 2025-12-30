@@ -16,7 +16,7 @@ export function CategoryLinkButton({ category }: CategoryLinkButtonProps) {
 
   return (
     <Button variant="ghost" asChild>
-      <Link href={`/prompts?tags=${category}`} onClick={handleClick}>
+      <Link href={`/prompts?category=${category}`} onClick={handleClick}>
         View all
         <ArrowRight className="ml-2 h-4 w-4" />
       </Link>

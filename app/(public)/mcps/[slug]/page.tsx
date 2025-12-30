@@ -1,16 +1,20 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { ExternalLink as ExternalLinkIcon, Github, Download, Copy, BookOpen } from 'lucide-react';
+import { ExternalLink as ExternalLinkIcon, Github, Download, Copy, BookOpen, ArrowLeft } from 'lucide-react';
 import { ExternalLink } from '@/components/analytics/external-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { VoteButton } from '@/components/votes/vote-button';
 import { MarkdownPreview } from '@/components/markdown-preview-lazy';
+import { Breadcrumbs } from '@/components/navigation/breadcrumbs';
+import { RelatedContent } from '@/components/content/related-content';
+import { getRelatedMcps } from '@/lib/prisma-helpers';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 import { CopyButton } from '@/components/copy-button';
 import { getBaseUrl, createMetadata, createStructuredData } from '@/lib/metadata';
+import Link from 'next/link';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -103,6 +107,9 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
 
   const voteCount = mcp.votes.reduce((sum, vote) => sum + vote.value, 0);
   
+  // Fetch related MCPs
+  const relatedMcps = await getRelatedMcps(mcp.id, mcp.tags, mcp.category, 6);
+  
   const structuredData = createStructuredData('TechArticle', {
     headline: mcp.title,
     description: mcp.description,
@@ -132,6 +139,24 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
       />
       <div className="container mx-auto px-4 py-12">
         <article className="mx-auto max-w-4xl">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: 'MCPs', href: '/mcps' },
+            { label: displayName, href: `/mcps/${slug}` },
+          ]}
+        />
+        
+        {/* Back to MCPs */}
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/mcps">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to MCPs
+            </Link>
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
@@ -265,6 +290,20 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
             </Button>
           </div>
         )}
+
+        {/* Related Content */}
+        {relatedMcps.length > 0 && (
+          <RelatedContent type="mcp" items={relatedMcps} />
+        )}
+
+        {/* Browse More */}
+        <div className="mt-8 pt-8 border-t border-slate-800">
+          <Button variant="outline" asChild>
+            <Link href="/mcps">
+              Browse More MCPs
+            </Link>
+          </Button>
+        </div>
       </article>
     </div>
     </>

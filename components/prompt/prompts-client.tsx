@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PromptCard } from '@/components/prompt/prompt-card';
 import { Search, Loader2, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ interface PromptsClientProps {
   initialTotalCount: number;
   initialHasMore: boolean;
   initialOffset: number;
+  initialCategory?: string;
 }
 
 export function PromptsClient({
@@ -24,10 +26,15 @@ export function PromptsClient({
   initialTotalCount,
   initialHasMore: initialHasMoreProp,
   initialOffset: initialOffsetProp,
+  initialCategory,
 }: PromptsClientProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [prompts, setPrompts] = useState<PromptWithAuthor[]>(initialPrompts);
-  const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const urlCategory = searchParams.get('category') || 'all';
+  const urlQuery = searchParams.get('query') || '';
+  const [query, setQuery] = useState(urlQuery);
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || urlCategory);
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -41,6 +48,25 @@ export function PromptsClient({
   const loadMoreRef = useRef<HTMLDivElement>(null);
   // Ref to track if this is the initial mount
   const isInitialMount = useRef(true);
+
+  // Sync category and query with URL params when URL changes (e.g., from footer links)
+  useEffect(() => {
+    const categoryParam = searchParams.get('category') || 'all';
+    const queryParam = searchParams.get('query') || '';
+    
+    // Only update if different to avoid unnecessary re-renders
+    if (categoryParam !== selectedCategory) {
+      setSelectedCategory(categoryParam);
+      // Reset and fetch new data for the category
+      setOffset(0);
+      isInitialMount.current = false; // Allow refetch
+    }
+    
+    if (queryParam !== query) {
+      setQuery(queryParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Debounce search query
   useEffect(() => {
@@ -126,34 +152,7 @@ export function PromptsClient({
     
     // Reset offset and fetch with new filters
     setOffset(0);
-    setLoading(true);
-    
-    const params = new URLSearchParams({
-      offset: '0',
-      limit: '20',
-    });
-    
-    if (selectedCategory !== 'all') {
-      params.append('category', selectedCategory);
-    }
-    
-    if (debouncedQuery.trim()) {
-      params.append('query', debouncedQuery.trim());
-    }
-    
-    fetch(`/api/prompts?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setPrompts(data.prompts || []);
-        setHasMore(data.hasMore || false);
-        setOffset(data.nextOffset || (data.prompts?.length || 0));
-      })
-      .catch((error) => {
-        console.error('Error fetching prompts:', error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    fetchPrompts(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, debouncedQuery]);
 
@@ -227,7 +226,12 @@ export function PromptsClient({
             label="All"
             count={totalCount || prompts.length}
             active={selectedCategory === 'all'}
-            onClick={() => setSelectedCategory('all')}
+            onClick={() => {
+              setSelectedCategory('all');
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete('category');
+              router.push(`/prompts?${params.toString()}`);
+            }}
           />
 
           {Object.entries(categoryCounts)
@@ -238,9 +242,26 @@ export function PromptsClient({
                 label={CATEGORY_LABELS[key] ?? key}
                 count={count}
                 active={selectedCategory === key}
-                onClick={() => setSelectedCategory(key)}
+                onClick={() => {
+                  setSelectedCategory(key);
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('category', key);
+                  router.push(`/prompts?${params.toString()}`);
+                }}
               />
             ))}
+          
+          {/* Show selected category even if it's not in the category list (e.g., language tags like javascript) */}
+          {selectedCategory !== 'all' && !categoryCounts[selectedCategory] && (
+            <SidebarItem
+              label={CATEGORY_LABELS[selectedCategory] ?? selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
+              count={prompts.length}
+              active={true}
+              onClick={() => {
+                // Already selected, do nothing
+              }}
+            />
+          )}
         </div>
       </aside>
 
@@ -252,7 +273,12 @@ export function PromptsClient({
             <PillFilter
               label="All"
               active={selectedCategory === 'all'}
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => {
+                setSelectedCategory('all');
+                const params = new URLSearchParams(searchParams.toString());
+                params.delete('category');
+                router.push(`/prompts?${params.toString()}`);
+              }}
             />
             {Object.entries(categoryCounts)
               .sort((a, b) => b[1] - a[1])
@@ -261,9 +287,24 @@ export function PromptsClient({
                   key={key}
                   label={`${CATEGORY_LABELS[key] ?? key} (${count})`}
                   active={selectedCategory === key}
-                  onClick={() => setSelectedCategory(key)}
+                  onClick={() => {
+                    setSelectedCategory(key);
+                    const params = new URLSearchParams(searchParams.toString());
+                    params.set('category', key);
+                    router.push(`/prompts?${params.toString()}`);
+                  }}
                 />
               ))}
+            {/* Show selected category even if it's not in the category list (mobile) */}
+            {selectedCategory !== 'all' && !categoryCounts[selectedCategory] && (
+              <PillFilter
+                label={`${CATEGORY_LABELS[selectedCategory] ?? selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} (${prompts.length})`}
+                active={true}
+                onClick={() => {
+                  // Already selected, do nothing
+                }}
+              />
+            )}
           </div>
         </div>
 

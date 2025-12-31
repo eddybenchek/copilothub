@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { db } from "@/lib/db";
 import { ContentStatus } from "@prisma/client";
-import { Bot, Download, Plug, Eye, Star, Share2, ExternalLink as ExternalLinkIcon } from "lucide-react";
+import { Bot, Download, Plug, Eye, Star, Share2, ExternalLink as ExternalLinkIcon, ArrowLeft } from "lucide-react";
 import { ExternalLink } from "@/components/analytics/external-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,10 @@ import { VoteButton } from "@/components/votes/vote-button";
 import { MarkdownPreview } from "@/components/markdown-preview-lazy";
 import { AgentDownloadButton } from "@/components/agents/download-button";
 import { ContentViewTracker } from "@/components/analytics/content-view-tracker";
-import { getBaseUrl, createMetadata, createStructuredData } from "@/lib/metadata";
+import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
+import { RelatedContent } from "@/components/content/related-content";
+import { getRelatedAgents } from "@/lib/prisma-helpers";
+import { getBaseUrl, createMetadata, createStructuredData, truncateDescription } from "@/lib/metadata";
 import Link from "next/link";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -48,7 +51,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     take: 1,
   });
 
-  // If duplicates exist, append title to make description unique (but keep it concise)
+  // If duplicates exist, append title to make description unique
   if (duplicateAgents.length > 0) {
     if (agent.description && agent.description.length < 100) {
       description = `${agent.description} (${agent.title})`;
@@ -56,6 +59,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description = `${agent.title} - Specialized AI agent for GitHub Copilot. ${agent.category ? `Category: ${agent.category}.` : ''} Enhance your development workflow with this custom agent.`;
     }
   }
+
+  // Optimize description length (120-160 characters)
+  description = truncateDescription(description, {
+    context: {
+      title: agent.title,
+      category: agent.category || undefined,
+      tags: agent.tags,
+      type: 'agent',
+    },
+  });
 
   // Add context to title tag to differentiate from H1
   // H1 will be just the agent title, but title tag should be SEO-optimized
@@ -71,6 +84,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       absolute: seoTitle,
     },
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title: agent.title,
       description,
@@ -119,6 +135,16 @@ export default async function AgentDetailPage({
   const mcpCount = agent.mcpServers?.length || 0;
   const voteCount = agent.votes.reduce((sum, vote) => sum + vote.value, 0);
   
+  // Fetch related agents
+  const relatedAgents = await getRelatedAgents(
+    agent.id,
+    agent.tags,
+    agent.category,
+    agent.languages,
+    agent.frameworks,
+    6
+  );
+  
   const structuredData = createStructuredData('TechArticle', {
     headline: agent.title,
     description: agent.description,
@@ -158,6 +184,24 @@ export default async function AgentDetailPage({
       />
       <div className="container mx-auto px-4 py-12">
         <article className="mx-auto max-w-4xl">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: 'Agents', href: '/agents' },
+            { label: agent.title, href: `/agents/${slug}` },
+          ]}
+        />
+        
+        {/* Back to Agents */}
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/agents">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Agents
+            </Link>
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-3">
@@ -356,44 +400,32 @@ export default async function AgentDetailPage({
           <div className="mb-8">
             <h3 className="mb-3 text-lg font-semibold text-slate-50">Tags</h3>
             <div className="flex flex-wrap gap-2">
-              {agent.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="capitalize">
-                  {tag}
-                </Badge>
-              ))}
+              {agent.tags.map((tag) => {
+                const tagSlug = tag.startsWith('category:') ? tag.replace('category:', '') : tag.toLowerCase();
+                return (
+                  <Link key={tag} href={`/agents?category=${tagSlug}`}>
+                    <Badge variant="outline" className="capitalize cursor-pointer hover:bg-primary/10 transition-colors">
+                      {tag}
+                    </Badge>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* Related Content */}
-        <div className="border-t border-slate-800 pt-8">
-          <h2 className="mb-6 text-2xl font-bold text-slate-50">Related Resources</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {mcpCount > 0 && (
-              <Link
-                href="/mcps"
-                className="group rounded-lg border border-slate-800 bg-slate-900/40 p-4 transition hover:border-teal-500/40 hover:bg-slate-900"
-              >
-                <h3 className="font-semibold text-slate-100 group-hover:text-teal-300">
-                  MCP Servers
-                </h3>
-                <p className="text-sm text-slate-400">
-                  Install required MCP servers for this agent
-                </p>
-              </Link>
-            )}
-            <Link
-              href="/agents"
-              className="group rounded-lg border border-slate-800 bg-slate-900/40 p-4 transition hover:border-purple-500/40 hover:bg-slate-900"
-            >
-              <h3 className="font-semibold text-slate-100 group-hover:text-purple-300">
-                More Agents
-              </h3>
-              <p className="text-sm text-slate-400">
-                Browse other specialized AI agents
-              </p>
+        {relatedAgents.length > 0 && (
+          <RelatedContent type="agent" items={relatedAgents} />
+        )}
+
+        {/* Browse More */}
+        <div className="mt-8 pt-8 border-t border-slate-800">
+          <Button variant="outline" asChild>
+            <Link href="/agents">
+              Browse More Agents
             </Link>
-          </div>
+          </Button>
         </div>
       </article>
     </div>

@@ -117,33 +117,33 @@ export default async function HomePage() {
       <section className="border-y border-border bg-muted/50">
         <div className="container mx-auto px-4 py-20">
           <div className="grid gap-8 md:grid-cols-3">
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-4 rounded-full bg-primary/10 p-3">
+            <Link href="/prompts" className="flex flex-col items-center text-center group">
+              <div className="mb-4 rounded-full bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors">
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold">Curated Prompts</h3>
+              <h3 className="mb-2 text-lg font-semibold group-hover:text-primary transition-colors">Curated Prompts</h3>
               <p className="text-sm text-muted-foreground">
                 Battle-tested prompts for code review, documentation, debugging, and more.
               </p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-4 rounded-full bg-primary/10 p-3">
+            </Link>
+            <Link href="/instructions" className="flex flex-col items-center text-center group">
+              <div className="mb-4 rounded-full bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors">
                 <Zap className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold">AI Agents & Instructions</h3>
+              <h3 className="mb-2 text-lg font-semibold group-hover:text-primary transition-colors">AI Agents & Instructions</h3>
               <p className="text-sm text-muted-foreground">
                 Specialized AI agents and coding instructions for consistent, high-quality development.
               </p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-4 rounded-full bg-primary/10 p-3">
+            </Link>
+            <Link href="/tools" className="flex flex-col items-center text-center group">
+              <div className="mb-4 rounded-full bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors">
                 <BookOpen className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold">Essential Tools</h3>
+              <h3 className="mb-2 text-lg font-semibold group-hover:text-primary transition-colors">Essential Tools</h3>
               <p className="text-sm text-muted-foreground">
                 Discover the best tools and extensions to enhance your AI-powered workflow.
               </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

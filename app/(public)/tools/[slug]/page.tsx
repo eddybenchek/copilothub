@@ -1,12 +1,15 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AddToCollectionButton } from '@/components/collections/add-to-collection-button';
 import { VoteButton } from '@/components/votes/vote-button';
-import { getToolBySlug } from '@/lib/prisma-helpers';
-import { getBaseUrl, createMetadata, createStructuredData } from '@/lib/metadata';
+import { Breadcrumbs } from '@/components/navigation/breadcrumbs';
+import { RelatedContent } from '@/components/content/related-content';
+import { getToolBySlug, getRelatedTools } from '@/lib/prisma-helpers';
+import { getBaseUrl, createMetadata, createStructuredData, truncateDescription } from '@/lib/metadata';
+import Link from 'next/link';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -17,7 +20,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const url = `${getBaseUrl()}/tools/${slug}`;
-  const description = tool.description || `Development tool: ${tool.title}`;
+  const baseDescription = tool.description || `Development tool: ${tool.title}`;
+  
+  // Extract category from tags if present (format: category:code-generation)
+  const categoryTag = tool.tags.find(tag => tag.startsWith('category:'));
+  const category = categoryTag ? categoryTag.replace('category:', '') : undefined;
+  
+  // Optimize description length (120-160 characters)
+  const description = truncateDescription(baseDescription, {
+    context: {
+      title: tool.title,
+      category,
+      tags: tool.tags,
+      type: 'tool',
+    },
+  });
 
   // Add context to title tag to differentiate from H1
   // H1 will be just the tool title, but title tag should be SEO-optimized
@@ -33,6 +50,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       absolute: seoTitle,
     },
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title: tool.title,
       description,
@@ -67,6 +87,10 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
   }
 
   const voteCount = tool.votes.reduce((sum, vote) => sum + vote.value, 0);
+  
+  // Fetch related tools
+  const relatedTools = await getRelatedTools(tool.id, tool.tags, 6);
+  
   const structuredData = createStructuredData('TechArticle', {
     headline: tool.title,
     description: tool.description,
@@ -89,6 +113,24 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
       />
       <div className="container mx-auto px-4 py-12">
         <article className="mx-auto max-w-4xl">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: 'Tools', href: '/tools' },
+            { label: tool.title, href: `/tools/${slug}` },
+          ]}
+        />
+        
+        {/* Back to Tools */}
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/tools">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Tools
+            </Link>
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
@@ -102,11 +144,16 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
 
         {/* Tags */}
         <div className="mb-8 flex flex-wrap gap-2">
-          {tool.tags.map((tag) => (
-            <Badge key={tag} variant="outline">
-              {tag}
-            </Badge>
-          ))}
+          {tool.tags.map((tag) => {
+            const tagSlug = tag.startsWith('category:') ? tag.replace('category:', '') : tag.toLowerCase();
+            return (
+              <Link key={tag} href={`/tools?category=${tagSlug}`}>
+                <Badge variant="outline" className="cursor-pointer hover:bg-primary/10 transition-colors">
+                  {tag}
+                </Badge>
+              </Link>
+            );
+          })}
         </div>
 
         {/* Quick Actions */}
@@ -139,6 +186,20 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ slu
               {tool.content}
             </pre>
           </div>
+        </div>
+
+        {/* Related Content */}
+        {relatedTools.length > 0 && (
+          <RelatedContent type="tool" items={relatedTools} />
+        )}
+
+        {/* Browse More */}
+        <div className="mt-8 pt-8 border-t border-border">
+          <Button variant="outline" asChild>
+            <Link href="/tools">
+              Browse More Tools
+            </Link>
+          </Button>
         </div>
       </article>
     </div>

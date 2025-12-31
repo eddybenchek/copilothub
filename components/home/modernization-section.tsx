@@ -73,7 +73,7 @@ export function ModernizationSection({
               <span className="ml-1 text-xs">↓</span>
             </button>
             <Link
-              href="/prompts?tags=modernization"
+              href="/prompts?category=modernization"
               className="inline-flex items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-card-foreground hover:border-primary/50 transition-colors"
             >
               View all prompts

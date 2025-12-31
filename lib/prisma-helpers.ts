@@ -251,10 +251,13 @@ export async function getPromptsPaginated(options: {
 
   // Add category filter if provided
   if (category && category !== 'all') {
+    // Try both category:${category} format and direct tag match
+    // This handles both category tags (category:code-generation) and language/tech tags (javascript, react)
     whereConditions.push({
-      tags: {
-        has: `category:${category}`,
-      },
+      OR: [
+        { tags: { has: `category:${category}` } },
+        { tags: { has: category.toLowerCase() } },
+      ],
     });
   }
 
@@ -840,5 +843,255 @@ export async function getAgentsStats() {
     categories,
     counts,
   };
+}
+
+// Related content helpers - fetch items with shared tags/categories
+export async function getRelatedPrompts(currentId: string, tags: string[], limit = 6): Promise<PromptWithAuthor[]> {
+  if (tags.length === 0) {
+    // If no tags, return latest prompts
+    return await getLatestPrompts(limit);
+  }
+
+  // Find prompts with at least one matching tag
+  const related = await db.prompt.findMany({
+    where: {
+      status: ContentStatus.APPROVED,
+      id: { not: currentId },
+      tags: {
+        hasSome: tags,
+      },
+    },
+    include: {
+      author: true,
+      votes: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  });
+
+  // If we don't have enough, fill with latest
+  if (related.length < limit) {
+    const additional = await db.prompt.findMany({
+      where: {
+        status: ContentStatus.APPROVED,
+        id: { notIn: [currentId, ...related.map(p => p.id)] },
+      },
+      include: {
+        author: true,
+        votes: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit - related.length,
+    });
+    return [...related, ...additional] as PromptWithAuthor[];
+  }
+
+  return related as PromptWithAuthor[];
+}
+
+export async function getRelatedInstructions(currentId: string, tags: string[], language?: string | null, framework?: string | null, limit = 6): Promise<InstructionWithAuthor[]> {
+  const whereConditions: any[] = [
+    { status: ContentStatus.APPROVED },
+    { id: { not: currentId } },
+  ];
+
+  // Prefer items with matching tags, language, or framework
+  if (tags.length > 0 || language || framework) {
+    const orConditions: any[] = [];
+    
+    if (tags.length > 0) {
+      orConditions.push({ tags: { hasSome: tags } });
+    }
+    if (language) {
+      orConditions.push({ language });
+    }
+    if (framework) {
+      orConditions.push({ framework });
+    }
+
+    if (orConditions.length > 0) {
+      whereConditions.push({ OR: orConditions });
+    }
+  }
+
+  const related = await db.instruction.findMany({
+    where: { AND: whereConditions },
+    include: {
+      author: true,
+      votes: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  });
+
+  // If we don't have enough, fill with latest
+  if (related.length < limit) {
+    const additional = await db.instruction.findMany({
+      where: {
+        status: ContentStatus.APPROVED,
+        id: { notIn: [currentId, ...related.map(i => i.id)] },
+      },
+      include: {
+        author: true,
+        votes: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit - related.length,
+    });
+    return [...related, ...additional] as InstructionWithAuthor[];
+  }
+
+  return related as InstructionWithAuthor[];
+}
+
+export async function getRelatedAgents(currentId: string, tags: string[], category?: string | null, languages?: string[], frameworks?: string[], limit = 6): Promise<AgentWithAuthor[]> {
+  const whereConditions: any[] = [
+    { status: ContentStatus.APPROVED },
+    { id: { not: currentId } },
+  ];
+
+  // Prefer items with matching tags, category, languages, or frameworks
+  if (tags.length > 0 || category || (languages && languages.length > 0) || (frameworks && frameworks.length > 0)) {
+    const orConditions: any[] = [];
+    
+    if (tags.length > 0) {
+      orConditions.push({ tags: { hasSome: tags } });
+    }
+    if (category) {
+      orConditions.push({ category });
+    }
+    if (languages && languages.length > 0) {
+      orConditions.push({ languages: { hasSome: languages } });
+    }
+    if (frameworks && frameworks.length > 0) {
+      orConditions.push({ frameworks: { hasSome: frameworks } });
+    }
+
+    if (orConditions.length > 0) {
+      whereConditions.push({ OR: orConditions });
+    }
+  }
+
+  const related = await db.agent.findMany({
+    where: { AND: whereConditions },
+    include: {
+      author: true,
+      votes: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  });
+
+  // If we don't have enough, fill with latest
+  if (related.length < limit) {
+    const additional = await db.agent.findMany({
+      where: {
+        status: ContentStatus.APPROVED,
+        id: { notIn: [currentId, ...related.map(a => a.id)] },
+      },
+      include: {
+        author: true,
+        votes: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit - related.length,
+    });
+    return [...related, ...additional] as AgentWithAuthor[];
+  }
+
+  return related as AgentWithAuthor[];
+}
+
+export async function getRelatedTools(currentId: string, tags: string[], limit = 6): Promise<ToolWithAuthor[]> {
+  if (tags.length === 0) {
+    return await getLatestTools(limit);
+  }
+
+  const related = await db.tool.findMany({
+    where: {
+      status: ContentStatus.APPROVED,
+      id: { not: currentId },
+      tags: {
+        hasSome: tags,
+      },
+    },
+    include: {
+      author: true,
+      votes: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  });
+
+  // If we don't have enough, fill with latest
+  if (related.length < limit) {
+    const additional = await db.tool.findMany({
+      where: {
+        status: ContentStatus.APPROVED,
+        id: { notIn: [currentId, ...related.map(t => t.id)] },
+      },
+      include: {
+        author: true,
+        votes: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit - related.length,
+    });
+    return [...related, ...additional] as ToolWithAuthor[];
+  }
+
+  return related as ToolWithAuthor[];
+}
+
+export async function getRelatedMcps(currentId: string, tags: string[], category?: string | null, limit = 6): Promise<McpWithAuthor[]> {
+  const whereConditions: any[] = [
+    { status: ContentStatus.APPROVED },
+    { id: { not: currentId } },
+  ];
+
+  // Prefer items with matching tags or category
+  if (tags.length > 0 || category) {
+    const orConditions: any[] = [];
+    
+    if (tags.length > 0) {
+      orConditions.push({ tags: { hasSome: tags } });
+    }
+    if (category) {
+      orConditions.push({ category });
+    }
+
+    if (orConditions.length > 0) {
+      whereConditions.push({ OR: orConditions });
+    }
+  }
+
+  const related = await (db as any).mcpServer.findMany({
+    where: { AND: whereConditions },
+    include: {
+      author: true,
+      votes: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  });
+
+  // If we don't have enough, fill with latest
+  if (related.length < limit) {
+    const additional = await (db as any).mcpServer.findMany({
+      where: {
+        status: ContentStatus.APPROVED,
+        id: { notIn: [currentId, ...related.map((m: any) => m.id)] },
+      },
+      include: {
+        author: true,
+        votes: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit - related.length,
+    });
+    return [...related, ...additional] as McpWithAuthor[];
+  }
+
+  return related as McpWithAuthor[];
 }
 

@@ -15,6 +15,7 @@
     "import:mcps": "tsx scripts/import-mcps-simple.ts",
     "import:instructions": "tsx scripts/import-awesome-copilot.ts",
     "import:agents": "tsx scripts/import-agents.ts",
+    "generate:redirect-map": "tsx scripts/generate-redirect-map.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -13,7 +13,7 @@ import { getRelatedMcps } from '@/lib/prisma-helpers';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 import { CopyButton } from '@/components/copy-button';
-import { getBaseUrl, createMetadata, createStructuredData } from '@/lib/metadata';
+import { getBaseUrl, createMetadata, createStructuredData, truncateDescription } from '@/lib/metadata';
 import Link from 'next/link';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     take: 1,
   });
 
-  // If duplicates exist, append title to make description unique (but keep it concise)
+  // If duplicates exist, append title to make description unique
   if (duplicateMcps.length > 0) {
     if (mcp.description && mcp.description.length < 100) {
       description = `${mcp.description} (${mcp.title})`;
@@ -49,6 +49,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description = `${mcp.title} - MCP Server for GitHub Copilot`;
     }
   }
+
+  // Optimize description length (120-160 characters)
+  description = truncateDescription(description, {
+    context: {
+      title: mcp.title,
+      category: mcp.category || undefined,
+      tags: mcp.tags,
+      type: 'mcp',
+    },
+  });
 
   // Add context to title tag to differentiate from H1
   // H1 will be just the MCP title, but title tag should be SEO-optimized
@@ -64,6 +74,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       absolute: seoTitle,
     },
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title: mcp.title,
       description,
@@ -178,11 +191,16 @@ export default async function McpDetailPage({ params }: { params: Promise<{ slug
 
         {/* Tags */}
         <div className="mb-8 flex flex-wrap gap-2">
-          {mcp.tags.map((tag) => (
-            <Badge key={tag} variant="outline" className="capitalize">
-              {tag}
-            </Badge>
-          ))}
+          {mcp.tags.map((tag) => {
+            const tagSlug = tag.startsWith('category:') ? tag.replace('category:', '') : tag.toLowerCase();
+            return (
+              <Link key={tag} href={`/mcps?category=${tagSlug}`}>
+                <Badge variant="outline" className="capitalize cursor-pointer hover:bg-primary/10 transition-colors">
+                  {tag}
+                </Badge>
+              </Link>
+            );
+          })}
         </div>
 
         {/* Action Buttons */}

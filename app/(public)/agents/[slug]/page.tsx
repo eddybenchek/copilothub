@@ -17,7 +17,7 @@ import { ContentViewTracker } from "@/components/analytics/content-view-tracker"
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { RelatedContent } from "@/components/content/related-content";
 import { getRelatedAgents } from "@/lib/prisma-helpers";
-import { getBaseUrl, createMetadata, createStructuredData } from "@/lib/metadata";
+import { getBaseUrl, createMetadata, createStructuredData, truncateDescription } from "@/lib/metadata";
 import Link from "next/link";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     take: 1,
   });
 
-  // If duplicates exist, append title to make description unique (but keep it concise)
+  // If duplicates exist, append title to make description unique
   if (duplicateAgents.length > 0) {
     if (agent.description && agent.description.length < 100) {
       description = `${agent.description} (${agent.title})`;
@@ -59,6 +59,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description = `${agent.title} - Specialized AI agent for GitHub Copilot. ${agent.category ? `Category: ${agent.category}.` : ''} Enhance your development workflow with this custom agent.`;
     }
   }
+
+  // Optimize description length (120-160 characters)
+  description = truncateDescription(description, {
+    context: {
+      title: agent.title,
+      category: agent.category || undefined,
+      tags: agent.tags,
+      type: 'agent',
+    },
+  });
 
   // Add context to title tag to differentiate from H1
   // H1 will be just the agent title, but title tag should be SEO-optimized
@@ -74,6 +84,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       absolute: seoTitle,
     },
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title: agent.title,
       description,
@@ -387,11 +400,16 @@ export default async function AgentDetailPage({
           <div className="mb-8">
             <h3 className="mb-3 text-lg font-semibold text-slate-50">Tags</h3>
             <div className="flex flex-wrap gap-2">
-              {agent.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="capitalize">
-                  {tag}
-                </Badge>
-              ))}
+              {agent.tags.map((tag) => {
+                const tagSlug = tag.startsWith('category:') ? tag.replace('category:', '') : tag.toLowerCase();
+                return (
+                  <Link key={tag} href={`/agents?category=${tagSlug}`}>
+                    <Badge variant="outline" className="capitalize cursor-pointer hover:bg-primary/10 transition-colors">
+                      {tag}
+                    </Badge>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

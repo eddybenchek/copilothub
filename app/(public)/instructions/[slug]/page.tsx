@@ -17,7 +17,7 @@ import { ContentViewTracker } from "@/components/analytics/content-view-tracker"
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { RelatedContent } from "@/components/content/related-content";
 import { getRelatedInstructions } from "@/lib/prisma-helpers";
-import { getBaseUrl, createMetadata, createStructuredData } from "@/lib/metadata";
+import { getBaseUrl, createMetadata, createStructuredData, truncateDescription } from "@/lib/metadata";
 import Link from "next/link";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -32,7 +32,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const url = `${getBaseUrl()}/instructions/${slug}`;
-  const description = instruction.description || `Copilot instruction: ${instruction.title}`;
+  const baseDescription = instruction.description || `Copilot instruction: ${instruction.title}`;
+  
+  // Optimize description length (120-160 characters)
+  const description = truncateDescription(baseDescription, {
+    context: {
+      title: instruction.title,
+      tags: instruction.tags,
+      type: 'instruction',
+    },
+  });
 
   // Add context to title tag to differentiate from H1
   // H1 will be just the instruction title, but title tag should be SEO-optimized
@@ -48,6 +57,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       absolute: seoTitle,
     },
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title: instruction.title,
       description,
@@ -316,11 +328,16 @@ export default async function InstructionDetailPage({
           <div className="mb-8">
             <h2 className="mb-3 text-lg font-semibold text-slate-50">Tags</h2>
             <div className="flex flex-wrap gap-2">
-              {instruction.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="capitalize">
-                  {tag}
-                </Badge>
-              ))}
+              {instruction.tags.map((tag) => {
+                const tagSlug = tag.startsWith('category:') ? tag.replace('category:', '') : tag.toLowerCase();
+                return (
+                  <Link key={tag} href={`/instructions?category=${tagSlug}`}>
+                    <Badge variant="outline" className="capitalize cursor-pointer hover:bg-primary/10 transition-colors">
+                      {tag}
+                    </Badge>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

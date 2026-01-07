@@ -110,23 +110,6 @@ export default async function HomePage() {
               </a>
             </Button>
           </div>
-
-          {/* Verification Badge - There's An AI For That */}
-          <div className="mt-12 flex justify-center">
-            <a 
-              href="https://theresanaiforthat.com/ai/copilothub/?ref=featured&v=8637337" 
-              target="_blank" 
-              rel="nofollow"
-              className="inline-block"
-            >
-              <img 
-                width="300" 
-                src="https://media.theresanaiforthat.com/featured-on-taaft.png?width=600" 
-                alt="Featured on There's An AI For That"
-                className="h-auto max-w-full"
-              />
-            </a>
-          </div>
         </div>
       </section>
 

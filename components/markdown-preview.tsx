@@ -9,6 +9,31 @@ interface MarkdownPreviewProps {
   className?: string;
 }
 
+// Helper function to extract text from React children
+function getTextFromChildren(children: React.ReactNode): string {
+  if (typeof children === 'string') {
+    return children;
+  }
+  if (typeof children === 'number') {
+    return String(children);
+  }
+  if (Array.isArray(children)) {
+    return children.map(getTextFromChildren).join('');
+  }
+  if (children && typeof children === 'object' && 'props' in children) {
+    return getTextFromChildren(children.props.children);
+  }
+  return '';
+}
+
+// Helper function to generate ID from heading text
+function generateHeadingId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 export function MarkdownPreview({ content, className = '' }: MarkdownPreviewProps) {
   // Remove YAML frontmatter if present
   const cleanedContent = content.replace(/^---\n[\s\S]*?\n---\n/, '');
@@ -18,28 +43,44 @@ export function MarkdownPreview({ content, className = '' }: MarkdownPreviewProp
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          // Headings
+          // Headings - Generate IDs from text for anchor links
           // Convert H1 to H2 in markdown content to avoid multiple H1 tags (page already has one H1 for title)
-          h1: ({ children }) => (
-            <h2 className="mb-6 mt-8 text-3xl font-bold text-slate-100 border-b border-slate-800 pb-3 first:mt-0">
-              {children}
-            </h2>
-          ),
-          h2: ({ children }) => (
-            <h2 className="mb-4 mt-8 text-2xl font-semibold text-slate-100 border-b border-slate-800 pb-2">
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className="mb-3 mt-6 text-xl font-semibold text-slate-200">
-              {children}
-            </h3>
-          ),
-          h4: ({ children }) => (
-            <h4 className="mb-2 mt-4 text-lg font-semibold text-slate-200">
-              {children}
-            </h4>
-          ),
+          h1: ({ children }) => {
+            const text = getTextFromChildren(children);
+            const id = generateHeadingId(text);
+            return (
+              <h2 id={id} className="mb-6 mt-8 text-3xl font-bold text-slate-100 border-b border-slate-800 pb-3 first:mt-0 scroll-mt-20">
+                {children}
+              </h2>
+            );
+          },
+          h2: ({ children }) => {
+            const text = getTextFromChildren(children);
+            const id = generateHeadingId(text);
+            return (
+              <h2 id={id} className="mb-4 mt-8 text-2xl font-semibold text-slate-100 border-b border-slate-800 pb-2 scroll-mt-20">
+                {children}
+              </h2>
+            );
+          },
+          h3: ({ children }) => {
+            const text = getTextFromChildren(children);
+            const id = generateHeadingId(text);
+            return (
+              <h3 id={id} className="mb-3 mt-6 text-xl font-semibold text-slate-200 scroll-mt-20">
+                {children}
+              </h3>
+            );
+          },
+          h4: ({ children }) => {
+            const text = getTextFromChildren(children);
+            const id = generateHeadingId(text);
+            return (
+              <h4 id={id} className="mb-2 mt-4 text-lg font-semibold text-slate-200 scroll-mt-20">
+                {children}
+              </h4>
+            );
+          },
           // Paragraphs
           p: ({ children }) => (
             <p className="mb-4 text-slate-300 leading-relaxed">

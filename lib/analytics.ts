@@ -14,6 +14,7 @@ export function initPostHog() {
       },
       capture_pageview: false, // We'll capture pageviews manually
       capture_pageleave: true,
+      capture_performance: false, // Disable web vitals tracking (Vercel Analytics handles this)
     });
   }
 }

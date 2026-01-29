@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
 import { getBaseUrl } from '@/lib/metadata';
+import { getAllMigrations, getAllErrors, getAllPromptPacks } from '@/lib/hub-indexes/spring-boot-index';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getBaseUrl();
@@ -43,6 +44,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/spring-boot`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/spring-boot/migrations`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/spring-boot/errors`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/spring-boot/prompt-packs`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/search`,
@@ -118,6 +143,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  // Spring Boot Hub long-tail pages
+  const migrations = getAllMigrations();
+  const migrationPages: MetadataRoute.Sitemap = migrations.map((migration) => ({
+    url: `${baseUrl}/spring-boot/migrations/${migration.key}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  const errors = getAllErrors();
+  const errorPages: MetadataRoute.Sitemap = errors.map((error) => ({
+    url: `${baseUrl}/spring-boot/errors/${error.key}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  const promptPacks = getAllPromptPacks();
+  const promptPackPages: MetadataRoute.Sitemap = promptPacks.map((pack) => ({
+    url: `${baseUrl}/spring-boot/prompt-packs/${pack.key}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
   return [
     ...staticPages,
     ...promptPages,
@@ -125,6 +175,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...toolPages,
     ...mcpPages,
     ...instructionPages,
+    ...migrationPages,
+    ...errorPages,
+    ...promptPackPages,
   ];
 }
 

@@ -16,6 +16,7 @@ import { MarkdownPreview } from "@/components/markdown-preview-lazy";
 import { ContentViewTracker } from "@/components/analytics/content-view-tracker";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { RelatedContent } from "@/components/content/related-content";
+import { HashScrollHandler } from "@/components/instructions/hash-scroll-handler";
 import { getRelatedInstructions } from "@/lib/prisma-helpers";
 import { getBaseUrl, createMetadata, createStructuredData, truncateDescription } from "@/lib/metadata";
 import Link from "next/link";
@@ -136,6 +137,7 @@ export default async function InstructionDetailPage({
 
   return (
     <>
+      <HashScrollHandler />
       <ContentViewTracker type="instruction" id={instruction.id} title={instruction.title} />
       <script
         type="application/ld+json"

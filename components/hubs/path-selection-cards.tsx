@@ -5,18 +5,23 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+import { getMigrationByKey } from '@/lib/hub-indexes/spring-boot-index';
+
 export function PathSelectionCards() {
+  const migration2to3 = getMigrationByKey('2-to-3-jakarta');
+  const migration3to4 = getMigrationByKey('3-to-4-upgrade');
+
   const paths = [
     {
       title: 'Migrate Spring Boot 2 → 3',
       description: 'Jakarta, Java 17, Spring Security 6, Hibernate 6',
-      href: '/instructions/spring-boot-2-to-3-migration',
+      href: migration2to3 ? `/spring-boot/migrations/${migration2to3.key}` : '/instructions/spring-boot-2-to-3-migration',
       color: 'border-blue-500/50 bg-blue-500/5',
     },
     {
       title: 'Upgrade Spring Boot 3 → 4',
       description: 'Framework upgrades + config changes + validation',
-      href: '/instructions/spring-boot-3x-to-40-migration-guide',
+      href: migration3to4 ? `/spring-boot/migrations/${migration3to4.key}` : '/instructions/spring-boot-3x-to-40-migration-guide',
       color: 'border-emerald-500/50 bg-emerald-500/5',
     },
     {

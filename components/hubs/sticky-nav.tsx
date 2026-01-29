@@ -3,15 +3,17 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { SPRING_BOOT_SECTIONS } from '@/lib/hub-indexes/spring-boot-index';
 
 const navItems = [
-  { id: 'overview', label: 'Overview', href: '#overview' },
-  { id: 'featured', label: 'Featured', href: '#featured' },
-  { id: 'catalog', label: 'Catalog', href: '#catalog' },
-  { id: 'prompt-packs', label: 'Prompt Packs', href: '#prompt-packs' },
-  { id: 'workflows', label: 'Workflows', href: '#workflows' },
-  { id: 'tools', label: 'Tools', href: '#tools' },
-  { id: 'faq', label: 'FAQ', href: '#faq' },
+  { id: SPRING_BOOT_SECTIONS.overview, label: 'Overview', href: `#${SPRING_BOOT_SECTIONS.overview}` },
+  { id: SPRING_BOOT_SECTIONS.featured, label: 'Featured', href: `#${SPRING_BOOT_SECTIONS.featured}` },
+  { id: SPRING_BOOT_SECTIONS.catalog, label: 'Catalog', href: `#${SPRING_BOOT_SECTIONS.catalog}` },
+  { id: SPRING_BOOT_SECTIONS['common-errors'], label: 'Errors', href: `#${SPRING_BOOT_SECTIONS['common-errors']}` },
+  { id: SPRING_BOOT_SECTIONS['prompt-packs'], label: 'Prompt Packs', href: `#${SPRING_BOOT_SECTIONS['prompt-packs']}` },
+  { id: SPRING_BOOT_SECTIONS.workflows, label: 'Workflows', href: `#${SPRING_BOOT_SECTIONS.workflows}` },
+  { id: SPRING_BOOT_SECTIONS.tools, label: 'Tools', href: `#${SPRING_BOOT_SECTIONS.tools}` },
+  { id: SPRING_BOOT_SECTIONS.faq, label: 'FAQ', href: `#${SPRING_BOOT_SECTIONS.faq}` },
 ];
 
 export function StickyNav() {

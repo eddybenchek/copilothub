@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileCode, ArrowRight } from 'lucide-react';
 import type { InstructionWithAuthor } from '@/lib/types';
+import { SectionHeader } from './section-header';
 
 interface WorkflowsSectionProps {
   workflows: InstructionWithAuthor[];
@@ -61,7 +62,11 @@ export function WorkflowsSection({ workflows }: WorkflowsSectionProps) {
 
   return (
     <section id="workflows" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <h2 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-foreground">Step-by-step Workflows</h2>
+      <SectionHeader 
+        id="workflows" 
+        title="Step-by-step Workflows" 
+        icon={<FileCode className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />}
+      />
       
       <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {displayWorkflows.map((workflow) => {

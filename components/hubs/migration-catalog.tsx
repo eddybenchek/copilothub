@@ -4,57 +4,39 @@ import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { ExternalLink } from 'lucide-react';
+import { getAllMigrations } from '@/lib/hub-indexes/spring-boot-index';
 
-interface CatalogRow {
-  migration: string;
-  whyItMatters: string;
-  whatBreaks: string;
-  playbookHref: string;
+function getCatalogData() {
+  const migrations = getAllMigrations();
+  return migrations.map((migration) => {
+    const playbookHref = migration.anchor
+      ? `/instructions/${migration.primaryInstructionSlug}#${migration.anchor}`
+      : `/instructions/${migration.primaryInstructionSlug}`;
+    
+    return {
+      migration: migration.title,
+      whyItMatters: migration.description,
+      whatBreaks: migration.tags.join(', '),
+      playbookHref,
+      migrationKey: migration.key,
+    };
+  });
 }
 
-const catalogData: CatalogRow[] = [
-  {
-    migration: '2→3 Jakarta',
-    whyItMatters: 'Jakarta EE namespace change, Java 17 requirement',
-    whatBreaks: 'javax.* imports, Java 8/11 compatibility',
-    playbookHref: '/instructions/spring-boot-2-to-3-migration#jakarta-ee-namespace-migration',
-  },
-  {
-    migration: '3→4 upgrade',
-    whyItMatters: 'Framework improvements, new features',
-    whatBreaks: 'Deprecated APIs, configuration changes',
-    playbookHref: '/instructions/spring-boot-3x-to-40-migration-guide',
-  },
-  {
-    migration: 'Spring Security config changes',
-    whyItMatters: 'WebSecurityConfigurerAdapter removed',
-    whatBreaks: 'Security filter chain configuration',
-    playbookHref: '/instructions/spring-boot-2-to-3-migration#spring-security-6',
-  },
-  {
-    migration: 'Hibernate upgrade notes',
-    whyItMatters: 'Hibernate 6 stricter query parsing',
-    whatBreaks: 'JPQL queries, pagination, joins',
-    playbookHref: '/instructions/spring-boot-2-to-3-migration#hibernate-6',
-  },
-  {
-    migration: 'Actuator endpoint changes',
-    whyItMatters: 'Endpoint path and configuration updates',
-    whatBreaks: 'Monitoring and health check endpoints',
-    playbookHref: '/instructions/spring-boot-3x-to-40-migration-guide#actuator-changes',
-  },
-  {
-    migration: 'Logging/tracing/observability changes',
-    whyItMatters: 'Micrometer and observability improvements',
-    whatBreaks: 'Metrics configuration, tracing setup',
-    playbookHref: '/instructions/spring-boot-3x-to-40-migration-guide',
-  },
-];
-
 export function MigrationCatalog() {
+  const catalogData = getCatalogData();
+
   return (
     <section id="catalog" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <h2 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-foreground">Migration Catalog</h2>
+      <div className="mb-4 sm:mb-6 flex items-center justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Migration Catalog</h2>
+        <Button variant="outline" size="sm" className="text-xs" asChild>
+          <Link href="/spring-boot/migrations">
+            View all migrations
+            <ExternalLink className="ml-1 h-3 w-3" />
+          </Link>
+        </Button>
+      </div>
       
       <div className="overflow-x-auto rounded-lg border border-border -mx-4 sm:mx-0">
         <div className="inline-block min-w-full align-middle">
@@ -69,7 +51,7 @@ export function MigrationCatalog() {
             </TableHeader>
             <TableBody>
               {catalogData.map((row, index) => (
-                <TableRow key={index}>
+                <TableRow key={row.migrationKey || index}>
                   <TableCell className="font-medium text-xs sm:text-sm">
                     <div className="sm:hidden">
                       <div className="font-semibold">{row.migration}</div>

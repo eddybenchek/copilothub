@@ -30,7 +30,7 @@ const recommendedTools = [
   {
     name: 'OpenRewrite',
     description: 'Automated code refactoring for Spring Boot migrations',
-    url: 'https://docs.openrewrite.org/recipes/java/spring/springboot',
+    url: 'https://docs.openrewrite.org/',
   },
   {
     name: 'Spring Boot Migrator',
@@ -40,14 +40,21 @@ const recommendedTools = [
   {
     name: 'Testcontainers',
     description: 'Integration testing for Spring Boot applications',
-    url: 'https://www.testcontainers.org/modules/spring/',
+    url: 'https://java.testcontainers.org/',
   },
 ];
+
+import { SectionHeader } from './section-header';
+import { Wrench } from 'lucide-react';
 
 export function ToolsReposSection({ tools }: ToolsReposSectionProps) {
   return (
     <section id="tools" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <h2 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-foreground">Tools & Repositories</h2>
+      <SectionHeader 
+        id="tools" 
+        title="Tools & Repositories" 
+        icon={<Wrench className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />}
+      />
       
       <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
         {/* Left: Recommended Tools */}

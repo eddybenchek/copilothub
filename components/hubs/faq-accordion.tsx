@@ -40,6 +40,9 @@ const faqData: FAQItem[] = [
   },
 ];
 
+import { SectionHeader } from './section-header';
+import { HelpCircle } from 'lucide-react';
+
 export function FAQAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -49,7 +52,11 @@ export function FAQAccordion() {
 
   return (
     <section id="faq" className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <h2 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-foreground">Frequently Asked Questions</h2>
+      <SectionHeader 
+        id="faq" 
+        title="Frequently Asked Questions" 
+        icon={<HelpCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />}
+      />
       
       <div className="space-y-2">
         {faqData.map((faq, index) => (

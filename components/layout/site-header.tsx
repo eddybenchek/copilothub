@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { Menu, X, Github, LogOut, User, Heart, Folder, ChevronDown, FileText, Info } from 'lucide-react';
+import { Menu, X, Github, LogOut, User, Heart, Folder, ChevronDown, FileText, Info, Wrench } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -38,6 +38,7 @@ export function SiteHeader() {
   ];
 
   const moreMenu = [
+    { name: 'Migration Hubs', href: '/spring-boot', icon: Wrench },
     { name: 'Rules', href: '/rules', icon: FileText },
     { name: 'About', href: '/about', icon: Info },
   ];

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getSpringBootContent, getSpringBootStats, getFeaturedPlaybooks } from '@/lib/hub-helpers';
 import { generateSpringBootHubStructuredData } from '@/lib/structured-data/spring-boot-hub';
 import { getBaseUrl, createMetadata } from '@/lib/metadata';
@@ -54,16 +55,42 @@ export default async function SpringBootHubPage() {
           __html: JSON.stringify(structuredData.breadcrumbs),
         }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData.featuredPlaybooksList),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData.migrationsList),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData.errorsList),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData.promptPacksList),
+        }}
+      />
       
       <div className="container mx-auto px-4 pt-4">
         <Breadcrumbs items={breadcrumbs} />
       </div>
       
-      <SpringBootHubClient 
-        content={content}
-        stats={stats}
-        featuredPlaybooks={featuredPlaybooks}
-      />
+      <Suspense fallback={<div className="min-h-screen bg-background" />}>
+        <SpringBootHubClient 
+          content={content}
+          stats={stats}
+          featuredPlaybooks={featuredPlaybooks}
+        />
+      </Suspense>
     </>
   );
 }

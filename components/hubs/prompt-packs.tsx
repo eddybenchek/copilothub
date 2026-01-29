@@ -1,125 +1,175 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { PromptCard } from '@/components/prompt/prompt-card';
 import type { PromptWithAuthor } from '@/lib/types';
+import { getAllPromptPacks } from '@/lib/hub-indexes/spring-boot-index';
+import { ArrowRight } from 'lucide-react';
 
 interface PromptPacksProps {
   prompts: PromptWithAuthor[];
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
-const promptCategories = [
-  { id: 'all', label: 'All' },
-  { id: 'jakarta', label: 'Jakarta refactor' },
-  { id: 'security', label: 'Security migration' },
-  { id: 'hibernate', label: 'Hibernate/JPA' },
-  { id: 'testing', label: 'Testing & verification' },
-  { id: 'build', label: 'Build (Maven/Gradle)' },
-];
+function getPromptCategories() {
+  const packs = getAllPromptPacks();
+  return [
+    { id: 'all', label: 'All', key: 'all' },
+    ...packs.map((pack) => ({
+      id: pack.key,
+      label: pack.title,
+      key: pack.key,
+    })),
+  ];
+}
 
-export function PromptPacks({ prompts }: PromptPacksProps) {
-  const [activeTab, setActiveTab] = useState('all');
+export function PromptPacks({ prompts, activeTab: externalTab, onTabChange }: PromptPacksProps) {
+  const [internalTab, setInternalTab] = useState('all');
+  const activeTab = externalTab || internalTab;
+  
+  const handleTabChange = (newTab: string) => {
+    if (onTabChange) {
+      onTabChange(newTab);
+    } else {
+      setInternalTab(newTab);
+    }
+  };
 
   const filterPrompts = (category: string) => {
     if (category === 'all') return prompts;
     
-    // Strict category mapping - each category has specific tags/keywords
-    const categoryMap: Record<string, { requiredTags: string[]; titleKeywords: string[]; excludeTags?: string[] }> = {
-      jakarta: {
-        requiredTags: ['jakarta', 'javax', 'jakarta-ee', 'namespace'],
-        titleKeywords: ['jakarta', 'javax', 'namespace'],
-        excludeTags: ['security', 'hibernate', 'jpa', 'testing', 'maven', 'gradle'],
-      },
-      security: {
-        requiredTags: ['spring-security', 'security'],
-        titleKeywords: ['security', 'spring-security', 'filter chain', 'configurer adapter', 'websecurity'],
-        excludeTags: ['jakarta', 'javax', 'hibernate', 'jpa', 'testing', 'maven', 'gradle'],
-      },
-      hibernate: {
-        requiredTags: ['hibernate', 'jpa'],
-        titleKeywords: ['hibernate', 'jpa', 'jpql', 'entity mapping', 'query parsing'],
-        excludeTags: ['jakarta', 'javax', 'security', 'testing', 'maven', 'gradle'],
-      },
-      testing: {
-        requiredTags: ['testing', 'test', 'verification'],
-        titleKeywords: ['test suite', 'migration test', 'verification', 'dependency compatibility'],
-        // Don't exclude maven/gradle for testing - dependency verification can mention build tools
-      },
-      build: {
-        requiredTags: ['maven', 'gradle'],
-        titleKeywords: ['maven', 'gradle', 'pom.xml', 'build.gradle', 'build for spring boot'],
-        excludeTags: ['testing', 'verification'], // Exclude testing prompts
-      },
-    };
-
-    const categoryConfig = categoryMap[category];
-    if (!categoryConfig) return prompts;
-
-    return prompts.filter(p => {
+    // Get prompt pack config from hub index
+    const packConfig = getAllPromptPacks().find(p => p.key === category);
+    if (!packConfig) return prompts;
+    
+    // Filter prompts based on category with strict matching
+    const filtered = prompts.filter(p => {
       const tagsLower = p.tags.map(t => t.toLowerCase());
       const titleLower = p.title.toLowerCase();
       const descLower = p.description.toLowerCase();
+      const contentLower = (p.content || '').toLowerCase();
       
-      // Exclude if it has exclude tags (unless it also has required tags)
-      if (categoryConfig.excludeTags) {
-        const hasExcludeTag = categoryConfig.excludeTags.some(excludeTag =>
-          tagsLower.includes(excludeTag.toLowerCase())
-        );
+      // Category-specific strict filtering
+      if (category === 'jakarta-refactor') {
+        // Must specifically mention jakarta/javax/namespace in title or description
+        const hasJakartaKeywords = titleLower.includes('jakarta') || 
+                                  titleLower.includes('javax') ||
+                                  titleLower.includes('namespace') ||
+                                  descLower.includes('jakarta') ||
+                                  descLower.includes('javax') ||
+                                  descLower.includes('namespace');
         
-        // If it has exclude tag, check if it also has required tag
-        if (hasExcludeTag) {
-          const hasRequiredTag = categoryConfig.requiredTags.some(reqTag =>
-            tagsLower.includes(reqTag.toLowerCase())
-          );
-          // If no required tag, exclude it
-          if (!hasRequiredTag) {
-            return false;
-          }
-        }
+        // Exclude build, testing, security, hibernate prompts
+        const isExcluded = titleLower.includes('maven') || 
+                          titleLower.includes('gradle') ||
+                          titleLower.includes('build') ||
+                          titleLower.includes('test') ||
+                          titleLower.includes('testing') ||
+                          titleLower.includes('security') ||
+                          titleLower.includes('hibernate') ||
+                          titleLower.includes('jpa');
+        
+        return hasJakartaKeywords && !isExcluded;
       }
       
-      // Check if it has required tags
-      const hasRequiredTag = categoryConfig.requiredTags.some(tag => 
-        tagsLower.includes(tag.toLowerCase())
-      );
-      
-      if (hasRequiredTag) {
-        // For build category, make sure it's specifically about build configuration
-        if (category === 'build') {
-          // Must have maven OR gradle tag, AND title should mention build/maven/gradle/pom.xml/build.gradle
-          const hasBuildTag = tagsLower.includes('maven') || tagsLower.includes('gradle');
-          const titleMatchesBuild = titleLower.includes('maven') || 
-                                   titleLower.includes('gradle') || 
-                                   titleLower.includes('build') ||
-                                   titleLower.includes('pom.xml') ||
-                                   titleLower.includes('build.gradle');
-          
-          // Exclude dependency verification prompts (they belong in testing)
-          if (titleLower.includes('dependency compatibility') || 
-              titleLower.includes('dependency verification')) {
-            return false;
-          }
-          
-          return hasBuildTag && titleMatchesBuild;
-        }
+      if (category === 'hibernate-jpa') {
+        // Must specifically mention hibernate/jpa/entity/persistence in title or description
+        const hasHibernateKeywords = titleLower.includes('hibernate') || 
+                                    titleLower.includes('jpa') ||
+                                    titleLower.includes('entity') ||
+                                    titleLower.includes('persistence') ||
+                                    descLower.includes('hibernate') ||
+                                    descLower.includes('jpa') ||
+                                    descLower.includes('entity') ||
+                                    descLower.includes('persistence');
         
-        // For testing category, include verification prompts
-        if (category === 'testing') {
-          // Include test suite and verification prompts
-          return true;
-        }
+        // Exclude build, testing, security, jakarta prompts
+        const isExcluded = titleLower.includes('maven') || 
+                          titleLower.includes('gradle') ||
+                          titleLower.includes('build') ||
+                          titleLower.includes('test') ||
+                          titleLower.includes('testing') ||
+                          titleLower.includes('security') ||
+                          titleLower.includes('jakarta') ||
+                          titleLower.includes('javax');
         
-        return true;
+        return hasHibernateKeywords && !isExcluded;
       }
       
-      // If no required tag, check title keywords
-      const matchesTitle = categoryConfig.titleKeywords.some(keyword => 
-        titleLower.includes(keyword.toLowerCase())
-      );
+      if (category === 'build-maven-gradle') {
+        // Must specifically mention maven/gradle/build in title or description
+        const hasBuildKeywords = titleLower.includes('maven') || 
+                                titleLower.includes('gradle') ||
+                                titleLower.includes('build') ||
+                                titleLower.includes('pom.xml') ||
+                                titleLower.includes('build.gradle') ||
+                                descLower.includes('maven') ||
+                                descLower.includes('gradle') ||
+                                descLower.includes('build') ||
+                                descLower.includes('pom.xml') ||
+                                descLower.includes('build.gradle');
+        
+        // Exclude testing/verification prompts
+        const isExcluded = titleLower.includes('dependency compatibility') || 
+                          titleLower.includes('dependency verification') ||
+                          titleLower.includes('test') ||
+                          titleLower.includes('testing') ||
+                          titleLower.includes('verification');
+        
+        return hasBuildKeywords && !isExcluded;
+      }
       
-      return matchesTitle;
+      if (category === 'security-migration') {
+        // Must specifically mention security/authentication/authorization in title or description
+        const hasSecurityKeywords = titleLower.includes('security') || 
+                                   titleLower.includes('authentication') ||
+                                   titleLower.includes('authorization') ||
+                                   descLower.includes('security') ||
+                                   descLower.includes('authentication') ||
+                                   descLower.includes('authorization');
+        
+        // Exclude build, testing, jakarta, hibernate prompts
+        const isExcluded = titleLower.includes('maven') || 
+                          titleLower.includes('gradle') ||
+                          titleLower.includes('build') ||
+                          titleLower.includes('test') ||
+                          titleLower.includes('testing') ||
+                          titleLower.includes('jakarta') ||
+                          titleLower.includes('javax') ||
+                          titleLower.includes('hibernate') ||
+                          titleLower.includes('jpa');
+        
+        return hasSecurityKeywords && !isExcluded;
+      }
+      
+      if (category === 'testing-verification') {
+        // Must specifically mention test/testing/verification in title or description
+        const hasTestingKeywords = titleLower.includes('test') || 
+                                  titleLower.includes('testing') ||
+                                  titleLower.includes('verification') ||
+                                  titleLower.includes('junit') ||
+                                  descLower.includes('test') ||
+                                  descLower.includes('testing') ||
+                                  descLower.includes('verification') ||
+                                  descLower.includes('junit');
+        
+        // Exclude build prompts
+        const isExcluded = titleLower.includes('maven') || 
+                          titleLower.includes('gradle') ||
+                          titleLower.includes('build');
+        
+        return hasTestingKeywords && !isExcluded;
+      }
+      
+      return false;
     });
+    
+    // Return only the first 2 prompts for each category
+    return filtered.slice(0, 2);
   };
 
   const filteredPrompts = filterPrompts(activeTab);
@@ -128,13 +178,23 @@ export function PromptPacks({ prompts }: PromptPacksProps) {
     return null;
   }
 
+  const promptCategories = getPromptCategories();
+
   return (
     <section id="prompt-packs" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <h2 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-foreground">
-        Copilot Prompt Packs for Spring Boot
-      </h2>
+      <div className="mb-4 sm:mb-6 flex items-center justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
+          Copilot Prompt Packs for Spring Boot
+        </h2>
+        <Button variant="outline" size="sm" className="text-xs" asChild>
+          <Link href="/spring-boot/prompt-packs">
+            View all packs
+            <ArrowRight className="ml-1 h-3 w-3" />
+          </Link>
+        </Button>
+      </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="mb-4 sm:mb-6 grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto">
           {promptCategories.map((category) => (
             <TabsTrigger key={category.id} value={category.id} className="text-xs sm:text-sm py-2">

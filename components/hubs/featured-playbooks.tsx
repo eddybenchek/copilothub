@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/copy-button';
 import { BookOpen, Sparkles } from 'lucide-react';
 import type { InstructionWithAuthor } from '@/lib/types';
+import { SectionHeader } from './section-header';
 
 interface FeaturedPlaybooksProps {
   playbooks: InstructionWithAuthor[];
@@ -32,10 +33,11 @@ Visit: https://copilothub.directory/instructions/${playbook.slug}
 
   return (
     <section id="featured" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <div className="mb-4 sm:mb-6 flex items-center gap-2">
-        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-        <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Featured Playbooks</h2>
-      </div>
+      <SectionHeader 
+        id="featured" 
+        title="Featured Playbooks" 
+        icon={<Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />}
+      />
       
       <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
         {playbooks.map((playbook) => {

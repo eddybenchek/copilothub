@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { ArrowRight, Sparkles, Zap, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { PromptCard } from '@/components/prompt/prompt-card';
 import { ToolCard } from '@/components/tool/tool-card';
 import { McpCard } from '@/components/mcp/mcp-card';
@@ -9,6 +10,7 @@ import { InstructionCard } from '@/components/instructions/instruction-card';
 import { AgentCard } from '@/components/agents/agent-card';
 import { GlobalSearchDropdown } from '@/components/search/global-search-dropdown';
 import { ModernizationSection } from '@/components/home/modernization-section';
+import { FeaturedMigrationHubs } from '@/components/home/featured-migration-hubs';
 import { getLatestPrompts, getLatestTools, getTopCategories, getPromptsByCategory, getLatestContent } from '@/lib/prisma-helpers';
 import { db } from '@/lib/db';
 import { ContentStatus } from '@prisma/client';
@@ -78,8 +80,11 @@ export default async function HomePage() {
             <span className="text-primary">GitHub Copilot</span>
           </h1>
           <p className="mb-12 text-xl text-muted-foreground">
-            A curated collection of prompts, instructions, agents, tools, and MCP servers to help you build faster and smarter
-            with AI-powered development.
+            Curated prompts, workflows, and production-ready{' '}
+            <Link href="/spring-boot" className="text-primary hover:underline font-medium">
+              migration hubs
+            </Link>{' '}
+            to upgrade real-world codebases with GitHub Copilot.
           </p>
           
           {/* Global Search */}
@@ -112,6 +117,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Featured Migration Hubs */}
+      <FeaturedMigrationHubs />
 
       {/* Features */}
       <section className="border-y border-border bg-muted/50">
@@ -208,6 +216,36 @@ export default async function HomePage() {
               </Link>
             </Button>
           </div>
+          
+          {/* Featured Hub Card */}
+          <div className="mb-6">
+            <Card className="border-primary/20 bg-primary/5 hover:border-primary/40 transition-colors">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-semibold text-primary uppercase tracking-wide">Featured Hub</span>
+                    </div>
+                    <CardTitle className="text-lg">
+                      <Link href="/spring-boot" className="hover:text-primary transition-colors">
+                        Spring Boot Migration Hub
+                      </Link>
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      2→3 (Jakarta), 3→4, Security, Hibernate — Production-grade migration playbooks and Copilot workflows
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/spring-boot">
+                      Explore
+                      <ArrowRight className="ml-1 h-3 w-3" />
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+          </div>
+
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {latestInstructions.map((instruction) => (
               <InstructionCard key={instruction.id} instruction={instruction} />

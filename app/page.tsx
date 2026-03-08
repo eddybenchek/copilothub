@@ -322,6 +322,25 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Developer utilities */}
+      <section className="container mx-auto px-4 py-20">
+        <h2 className="mb-2 text-3xl font-bold">Developer utilities</h2>
+        <p className="mb-6 text-muted-foreground">
+          Test formulas, generate types, and experiment with code.
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          <Button asChild variant="outline" size="lg">
+            <Link href="/dev-tools/power-fx-playground" className="gap-2">
+              Power Fx Playground
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="lg">
+            <Link href="/dev-tools">All Dev Tools</Link>
+          </Button>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="border-t border-border bg-muted/50">
         <div className="container mx-auto px-4 py-20">

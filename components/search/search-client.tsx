@@ -9,6 +9,15 @@ import { highlightMatch } from '@/lib/search-types';
 import type { SearchResults, SearchType } from '@/lib/search-types';
 import { cn } from '@/lib/utils';
 
+function isPowerFxRelatedQuery(q: string): boolean {
+  const lower = q.trim().toLowerCase();
+  return (
+    lower.includes('power fx') ||
+    lower.includes('power apps') ||
+    lower.includes('formula')
+  );
+}
+
 interface SearchClientProps {
   initialQuery: string;
   initialType: SearchType;
@@ -216,6 +225,22 @@ export function SearchClient({
 
       {query && (
         <>
+          {isPowerFxRelatedQuery(query) && (
+            <Link
+              href="/dev-tools/power-fx-playground"
+              className="block rounded-lg border border-primary/30 bg-primary/5 p-6 transition-colors hover:border-primary/50 hover:bg-primary/10"
+            >
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                Featured
+              </div>
+              <h2 className="mb-2 text-lg font-semibold text-slate-50">
+                Power Fx Playground
+              </h2>
+              <p className="text-sm text-slate-300">
+                Test Power Apps formulas instantly with our interactive playground.
+              </p>
+            </Link>
+          )}
           <section className="space-y-10">
             {/* Show prompts section if type is 'all' or 'prompt' */}
             {(type === 'all' || type === 'prompt') && (

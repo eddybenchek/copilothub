@@ -7,8 +7,18 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { SearchResults, SearchType } from "@/lib/search-types";
 import { highlightMatch } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { analytics } from "@/lib/analytics";
+
+function isPowerFxRelatedQuery(q: string): boolean {
+  const lower = q.trim().toLowerCase();
+  return (
+    lower.includes("power fx") ||
+    lower.includes("power apps") ||
+    lower.includes("formula")
+  );
+}
 
 // Caps for preview suggestions in dropdown
 const MAX_PROMPT_SUGGESTIONS = 5;
@@ -310,6 +320,23 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
         <div className="absolute z-30 mt-2 w-full rounded-xl border border-border bg-popover shadow-2xl backdrop-blur-xl">
           {/* Scrollable content container */}
           <div className="relative max-h-[60vh] overflow-y-auto">
+            {isPowerFxRelatedQuery(debouncedQuery) && (
+              <Link
+                href="/dev-tools/power-fx-playground"
+                onClick={closeDropdown}
+                className="block border-b border-border px-4 py-3 transition-colors hover:bg-primary/10"
+              >
+                <div className="text-[10px] uppercase tracking-[0.16em] text-primary font-medium mb-1">
+                  Featured
+                </div>
+                <div className="font-medium text-sm text-foreground">
+                  Power Fx Playground
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Test Power Apps formulas instantly
+                </div>
+              </Link>
+            )}
             <SearchDropdownSection
               label="Prompts"
               icon="✨"
@@ -395,6 +422,18 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
           <div className="font-medium text-foreground">
             No results for &ldquo;{debouncedQuery}&rdquo;
           </div>
+          {isPowerFxRelatedQuery(debouncedQuery) && (
+            <div className="mt-3">
+              <Link
+                href="/dev-tools/power-fx-playground"
+                onClick={closeDropdown}
+                className="block rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm transition-colors hover:border-primary/50 hover:bg-primary/10"
+              >
+                <span className="font-medium text-primary">Power Fx Playground</span>
+                <span className="ml-1 text-muted-foreground">— Test Power Apps formulas instantly</span>
+              </Link>
+            </div>
+          )}
           <ul className="mt-2 list-disc pl-5 text-xs text-muted-foreground space-y-1">
             <li>Try a different keyword or tag (e.g. &ldquo;typescript&rdquo;, &ldquo;api&rdquo;)</li>
             <li>Remove difficulty filters on the search page</li>

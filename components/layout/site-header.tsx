@@ -33,6 +33,7 @@ export function SiteHeader() {
     { name: 'Prompts', href: '/prompts' },
     { name: 'Instructions', href: '/instructions' },
     { name: 'Agents', href: '/agents' },
+    { name: 'Dev Tools', href: '/dev-tools' },
     { name: 'Tools', href: '/tools' },
     { name: 'MCPs', href: '/mcps' },
   ];

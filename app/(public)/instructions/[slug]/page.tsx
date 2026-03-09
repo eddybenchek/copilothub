@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { db } from "@/lib/db";
 import { ContentStatus } from "@prisma/client";
-import { FileCode, Download, Copy, Star, Share2, Eye, ArrowLeft } from "lucide-react";
+import { FileCode, Download, Copy, Star, Share2, Eye, ArrowLeft, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -324,6 +324,26 @@ export default async function InstructionDetailPage({
             </TabsContent>
           )}
         </Tabs>
+
+        {/* Power Fx Playground callout for Power Apps YAML guide */}
+        {slug === 'power-apps-canvas-apps-yaml-structure-guide' && (
+          <div className="mb-8 rounded-lg border border-primary/30 bg-primary/5 p-6">
+            <h2 className="mb-2 text-lg font-semibold text-slate-50">
+              Test your Power Fx formulas instantly
+            </h2>
+            <p className="mb-4 text-sm text-slate-300">
+              When building Power Apps Canvas Apps, debugging formulas like SUM(), FILTER(), and
+              COUNTROWS() can be difficult. You can experiment with formulas using our interactive
+              Power Fx playground.
+            </p>
+            <Button asChild size="sm">
+              <Link href="/dev-tools/power-fx-playground" className="gap-2">
+                Try the Power Fx Playground
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
 
         {/* Tags */}
         {instruction.tags.length > 0 && (

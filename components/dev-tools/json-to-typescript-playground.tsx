@@ -127,7 +127,7 @@ export function JsonToTypeScriptPlayground() {
                 <Button
                   key={example.label}
                   type="button"
-                  variant={selectedExample === example.label ? 'secondary' : 'outline'}
+                  variant={selectedExample === example.label ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => handleLoadExample(example)}
                   className={

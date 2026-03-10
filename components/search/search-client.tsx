@@ -18,6 +18,21 @@ function isPowerFxRelatedQuery(q: string): boolean {
   );
 }
 
+function isJsonTsRelatedQuery(q: string): boolean {
+  const lower = q.trim().toLowerCase();
+  if (!lower.includes('json')) return false;
+  return (
+    lower.includes('json typescript') ||
+    lower.includes('json to ts') ||
+    lower.includes('json to typescript') ||
+    lower.includes('typescript') ||
+    lower.includes('typ') || // "json to typ", "json typ"
+    lower.includes('json playground') ||
+    lower.includes('json generator') ||
+    lower.includes('json to ')
+  );
+}
+
 interface SearchClientProps {
   initialQuery: string;
   initialType: SearchType;
@@ -241,6 +256,22 @@ export function SearchClient({
               </p>
             </Link>
           )}
+          {isJsonTsRelatedQuery(query) && (
+            <Link
+              href="/dev-tools/json-to-typescript"
+              className="block rounded-lg border border-primary/30 bg-primary/5 p-6 transition-colors hover:border-primary/50 hover:bg-primary/10"
+            >
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                Featured
+              </div>
+              <h2 className="mb-2 text-lg font-semibold text-slate-50">
+                JSON to TypeScript Generator
+              </h2>
+              <p className="text-sm text-slate-300">
+                Convert JSON into TypeScript interfaces instantly.
+              </p>
+            </Link>
+          )}
           <section className="space-y-10">
             {/* Show prompts section if type is 'all' or 'prompt' */}
             {(type === 'all' || type === 'prompt') && (
@@ -305,9 +336,19 @@ export function SearchClient({
 
           {!loading && totalCount === 0 && (
             <div className="text-center py-20">
-              <div className="mb-4 text-6xl">🔍</div>
-              <h3 className="mb-2 text-xl font-semibold text-slate-300">No results found</h3>
-              <p className="text-slate-500">Try adjusting your search terms or filters</p>
+              {(isPowerFxRelatedQuery(query) || isJsonTsRelatedQuery(query)) ? (
+                <>
+                  <p className="text-slate-400">
+                    No matching prompts, tools, or instructions—the suggested dev tool above may be what you need.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4 text-6xl">🔍</div>
+                  <h3 className="mb-2 text-xl font-semibold text-slate-300">No results found</h3>
+                  <p className="text-slate-500">Try adjusting your search terms or filters</p>
+                </>
+              )}
             </div>
           )}
         </>

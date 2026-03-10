@@ -275,6 +275,16 @@ export default async function PowerFxPlaygroundPage({
                     .
                   </li>
                   <li>
+                    Need TypeScript types? Try the{' '}
+                    <Link
+                      href="/dev-tools/json-to-typescript"
+                      className="text-primary hover:underline"
+                    >
+                      JSON → TypeScript generator
+                    </Link>
+                    .
+                  </li>
+                  <li>
                     Discover external JSON and API helpers in the{' '}
                     <Link
                       href="/tools?query=json"

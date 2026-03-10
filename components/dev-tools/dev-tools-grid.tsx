@@ -17,6 +17,13 @@ const DEV_TOOLS: DevToolDefinition[] = [
     href: '/dev-tools/power-fx-playground',
     badge: 'Playground',
   },
+  {
+    name: 'JSON to TypeScript Generator',
+    description:
+      'Convert JSON into TypeScript interfaces instantly. Paste JSON, generate type-safe interfaces for your projects.',
+    href: '/dev-tools/json-to-typescript',
+    badge: 'Generator',
+  },
 ];
 
 export function DevToolsGrid() {

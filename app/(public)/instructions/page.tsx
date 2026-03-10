@@ -39,14 +39,14 @@ export default async function InstructionsPage() {
               </CardHeader>
             </Card>
           </Link>
-          <Link href="/dev-tools" className="group">
+          <Link href="/dev-tools/json-to-typescript" className="group">
             <Card className="h-full transition-colors hover:border-primary/40 hover:bg-slate-900/60">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base group-hover:text-primary transition-colors">
                   JSON → TypeScript generator
                 </CardTitle>
                 <CardDescription>
-                  Convert JSON to TypeScript types. (Coming soon)
+                  Convert JSON into TypeScript interfaces instantly with our free generator.
                 </CardDescription>
               </CardHeader>
             </Card>

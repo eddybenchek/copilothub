@@ -232,6 +232,23 @@ export default async function InstructionDetailPage({
           />
         </div>
 
+        {/* JSON → TypeScript generator callout for relevant instructions */}
+        {(slug.includes('typescript') || slug.includes('json') || slug.includes('js-to-ts') ||
+          instruction.tags.some((t) => /typescript|json|interface|type\s*gen/i.test(t))) && (
+          <div className="mb-8 rounded-lg border border-primary/30 bg-primary/5 p-4">
+            <p className="text-sm text-slate-300">
+              Need to generate TypeScript interfaces from JSON? Try our{' '}
+              <Link
+                href="/dev-tools/json-to-typescript"
+                className="font-medium text-primary hover:underline"
+              >
+                JSON → TypeScript generator
+              </Link>
+              .
+            </p>
+          </div>
+        )}
+
         {/* Tabs */}
         <Tabs defaultValue="preview" className="mb-8">
           <TabsList className="w-full justify-start">

@@ -285,6 +285,16 @@ export default async function PowerFxPlaygroundPage({
                     .
                   </li>
                   <li>
+                    Test patterns? Use the{' '}
+                    <Link
+                      href="/dev-tools/regex-tester"
+                      className="text-primary hover:underline"
+                    >
+                      Regex Tester
+                    </Link>
+                    .
+                  </li>
+                  <li>
                     Discover external JSON and API helpers in the{' '}
                     <Link
                       href="/tools?query=json"

@@ -24,6 +24,13 @@ const DEV_TOOLS: DevToolDefinition[] = [
     href: '/dev-tools/json-to-typescript',
     badge: 'Generator',
   },
+  {
+    name: 'Regex Tester',
+    description:
+      'Test regular expressions online with live matches. Set flags, use examples, and copy patterns instantly.',
+    href: '/dev-tools/regex-tester',
+    badge: 'Playground',
+  },
 ];
 
 export function DevToolsGrid() {

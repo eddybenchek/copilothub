@@ -33,6 +33,15 @@ function isJsonTsRelatedQuery(q: string): boolean {
   );
 }
 
+function isRegexTesterRelatedQuery(q: string): boolean {
+  const lower = q.trim().toLowerCase();
+  return (
+    lower.includes('regex') ||
+    lower.includes('regexp') ||
+    lower.includes('regular expression')
+  );
+}
+
 interface SearchClientProps {
   initialQuery: string;
   initialType: SearchType;
@@ -272,6 +281,22 @@ export function SearchClient({
               </p>
             </Link>
           )}
+          {isRegexTesterRelatedQuery(query) && (
+            <Link
+              href="/dev-tools/regex-tester"
+              className="block rounded-lg border border-primary/30 bg-primary/5 p-6 transition-colors hover:border-primary/50 hover:bg-primary/10"
+            >
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                Featured
+              </div>
+              <h2 className="mb-2 text-lg font-semibold text-slate-50">
+                Regex Tester
+              </h2>
+              <p className="text-sm text-slate-300">
+                Test regular expressions online with live match results.
+              </p>
+            </Link>
+          )}
           <section className="space-y-10">
             {/* Show prompts section if type is 'all' or 'prompt' */}
             {(type === 'all' || type === 'prompt') && (
@@ -336,7 +361,9 @@ export function SearchClient({
 
           {!loading && totalCount === 0 && (
             <div className="text-center py-20">
-              {(isPowerFxRelatedQuery(query) || isJsonTsRelatedQuery(query)) ? (
+              {(isPowerFxRelatedQuery(query) ||
+                isJsonTsRelatedQuery(query) ||
+                isRegexTesterRelatedQuery(query)) ? (
                 <>
                   <p className="text-slate-400">
                     No matching prompts, tools, or instructions—the suggested dev tool above may be what you need.

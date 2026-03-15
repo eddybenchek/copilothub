@@ -102,6 +102,16 @@ export default function JsonToTypeScriptPage() {
               </li>
               <li>
                 <Link
+                  href="/dev-tools/regex-tester"
+                  className="text-primary hover:underline"
+                >
+                  Regex Tester
+                </Link>
+                {' '}
+                – Test regular expressions with live matches.
+              </li>
+              <li>
+                <Link
                   href="/dev-tools"
                   className="text-primary hover:underline"
                 >

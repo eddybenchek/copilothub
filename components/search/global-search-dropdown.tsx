@@ -35,6 +35,15 @@ function isJsonTsRelatedQuery(q: string): boolean {
   );
 }
 
+function isRegexTesterRelatedQuery(q: string): boolean {
+  const lower = q.trim().toLowerCase();
+  return (
+    lower.includes("regex") ||
+    lower.includes("regexp") ||
+    lower.includes("regular expression")
+  );
+}
+
 // Caps for preview suggestions in dropdown
 const MAX_PROMPT_SUGGESTIONS = 5;
 const MAX_TOOL_SUGGESTIONS = 3;
@@ -369,6 +378,23 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
                 </div>
               </Link>
             )}
+            {isRegexTesterRelatedQuery(debouncedQuery) && (
+              <Link
+                href="/dev-tools/regex-tester"
+                onClick={closeDropdown}
+                className="block border-b border-border px-4 py-3 transition-colors hover:bg-primary/10"
+              >
+                <div className="text-[10px] uppercase tracking-[0.16em] text-primary font-medium mb-1">
+                  Featured
+                </div>
+                <div className="font-medium text-sm text-foreground">
+                  Regex Tester
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Test regular expressions with live matches
+                </div>
+              </Link>
+            )}
             <SearchDropdownSection
               label="Prompts"
               icon="✨"
@@ -451,7 +477,9 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
 
       {open && !loading && !hasResults && debouncedQuery && (
         <div className="absolute z-30 mt-2 w-full rounded-2xl border border-border bg-popover p-4 text-sm text-muted-foreground backdrop-blur-sm">
-          {(isPowerFxRelatedQuery(debouncedQuery) || isJsonTsRelatedQuery(debouncedQuery)) ? (
+          {(isPowerFxRelatedQuery(debouncedQuery) ||
+            isJsonTsRelatedQuery(debouncedQuery) ||
+            isRegexTesterRelatedQuery(debouncedQuery)) ? (
             <div className="font-medium text-foreground mb-1">
               Suggested for &ldquo;{debouncedQuery}&rdquo;
             </div>
@@ -481,6 +509,18 @@ export function GlobalSearchDropdown({ initialQuery = "" }: GlobalSearchProps) {
               >
                 <span className="font-medium text-primary">JSON to TypeScript Generator</span>
                 <span className="ml-1 text-muted-foreground">— Convert JSON into TypeScript interfaces</span>
+              </Link>
+            </div>
+          )}
+          {isRegexTesterRelatedQuery(debouncedQuery) && (
+            <div className="mt-3">
+              <Link
+                href="/dev-tools/regex-tester"
+                onClick={closeDropdown}
+                className="block rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm transition-colors hover:border-primary/50 hover:bg-primary/10"
+              >
+                <span className="font-medium text-primary">Regex Tester</span>
+                <span className="ml-1 text-muted-foreground">— Test regular expressions online</span>
               </Link>
             </div>
           )}
